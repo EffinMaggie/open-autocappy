@@ -1,0 +1,19 @@
+# in the "clean room" environment, we want to see a fully built version - without
+# the source files that created them; this is to have a "preview" of what NPM
+# packages ought to look like as well as have a clean place to cut them from.
+
+# TL;DR: this isn't the right place for TypeScript files, we want the JavaScript output here!
+
+node_modules/
+
+*.ts
+
+# We also don't want any of the tests here - they run during development and
+# aren't meant to be useful during runtime. 
+test/
+test.js
+
+# Documentation will be built and kept in a separate branch - Doxygen is great,
+# but it makes a mess of things!
+documentation/
+doxyfile
