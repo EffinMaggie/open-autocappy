@@ -31,13 +31,9 @@ ol#caption span {
 }
 
 #status-captioning,
-#status-captioning.captioning-end,
 #status-audio,
-#status-audio.audio-end,
 #status-sound,
-#status-sound.sound-end,
-#status-speech,
-#status-speech.speech-end {
+#status-speech {
   display: inline-block;
   color: gray;
 }
