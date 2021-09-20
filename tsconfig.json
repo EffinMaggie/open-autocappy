@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "target": "es2016",
+    "sourceMap": true
+  },
+  "files": [
+    "index.ts",
+    "test.ts"
+  ],
+  "include": ["./src/**/*.ts"]
+}

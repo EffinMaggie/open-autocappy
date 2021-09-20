@@ -30,6 +30,18 @@ ol#caption span {
   color: green;
 }
 
+#status-last-error {
+  display: inline-block;
+  font-weight: bold;
+  color: red;
+}
+
+#status-last-error-message {
+  display: inline-block;
+  font-weight: bold;
+  color: red;
+}
+
 #status-captioning,
 #status-audio,
 #status-sound,

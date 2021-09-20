@@ -1,1 +1,3 @@
-# open-autocappy
+# Open AutoCappy
+
+App to automatically caption microphone input using your browser.

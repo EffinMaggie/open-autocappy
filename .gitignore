@@ -1,0 +1,5 @@
+# don't commit node modules installed locally.
+# npm can reconstruct them using package.json
+node_modules/
+
+# TODO: the JS files and maps shouldn't need to be in git, just build them
