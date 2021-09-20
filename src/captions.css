@@ -5,19 +5,19 @@ body {
   margin: 5px 50px;
 }
 
-ol#caption li {
+.captions ol li {
   display: block;
   margin: .3em -50px;
   padding: .5em 50px;
 }
 
-ol#caption li span[data-confidence]:after {
+.captions ol li span[data-confidence]:after {
   content: " @" attr(data-confidence);
   color: gray;
   font-size: .8em;
 }
 
-ol#caption span {
+.captions ol span {
 }
 
 #status-service,
@@ -54,50 +54,50 @@ span {
   color: gray;
 }
 
-ol#caption li.final,
-ol#caption li.final span {
+.captions ol li.final,
+.captions ol li.final span {
   background: black;
   color: white;
   font-weight: bold;
 }
 
-ol#caption li.final {
+.captions ol li.final {
   color: gray;
   font-weight: bold;
 }
 
-ol#caption li.final span.interim {
+.captions ol li.final span.interim {
   font-weight: normal;
   font-size: .9em;
   color: gray;
   padding-right: .5em;
 }
 
-ol#caption li span.interim {
+.captions ol li span.interim {
   display: none;
 }
 
-ol#caption li span.interim:last-child {
+.captions ol li span.interim:last-child {
   display: inline;
 }
 
-ol#caption li.final:hover span.interim,
-ol#caption li.final:focus span.interim,
-ol#caption li.final:active span.interim {
+.captions ol li.final:hover span.interim,
+.captions ol li.final:focus span.interim,
+.captions ol li.final:active span.interim {
   display: inline-block;
 }
 
-ol#caption { 
+.captions ol { 
   display: flex;
   flex-direction: column-reverse;
   padding-inline-start: 0;
 }
 
-ol#caption > li {
+.captions ol > li {
   flex: 1;
 }
 
-ol#caption li span > span {
+.captions ol li span > span {
   padding: 5px 20px;
 }
 
@@ -105,18 +105,18 @@ p#last-final {
   display: none;
 }
 
-ol#caption li:nth-last-child(2),
-ol#caption li:last-child {
+.captions ol li:nth-last-child(2),
+.captions ol li:last-child {
   display: block;
   border-bottom: 1px solid gray;
 }
 
-ol#caption li:last-child {
+.captions ol li:last-child {
   font-size:1.8em;
   color: white;
   margin: 1em -50px;
 }
 
-ol#caption li:nth-last-child(2) {
+.captions ol li:nth-last-child(2) {
   font-size: 1.5em;
 }

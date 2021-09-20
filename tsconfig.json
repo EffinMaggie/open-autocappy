@@ -3,11 +3,14 @@
     "allowJs": true,
     "checkJs": true,
     "target": "es2016",
-    "sourceMap": true
+    "sourceMap": false
   },
   "files": [
     "index.ts",
-    "test.ts"
+    "test.ts",
   ],
-  "include": ["./src/**/*.ts"]
+  "include": [
+    "./src/**/*.ts",
+    "./test/**/*.ts",
+  ]
 }

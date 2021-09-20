@@ -34,4 +34,5 @@ export function registerEventHandlers(emitter, events) {
     }
     return status;
 }
-//# sourceMappingURL=declare-events.js.map
+// REFACTOR: make events composable and declarative
+// TODO: add sanity checking for event states

@@ -45,8 +45,15 @@ export function updateClasses(node, remove, add) {
     }
     return node;
 }
+export function hasClass(node, cls) {
+    if (node) {
+        var c = node.getAttribute('class');
+        var cs = c ? c.split(' ') : [];
+        return cs.includes(cls);
+    }
+    return false;
+}
 export function updateNodeClasses(nodeID, remove, add) {
     var node = document.getElementById(nodeID);
     return updateClasses(node, remove, add);
 }
-//# sourceMappingURL=dom-manipulation.js.map

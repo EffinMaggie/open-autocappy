@@ -1,8 +1,10 @@
 import { updateNodeClasses } from './dom-manipulation.js';
 
-export interface eventHandler {
+type EventHandler = (event: object) => boolean;
+
+export interface EventDeclaration {
   name: string;
-  handler: (event: object) => void;
+  handler: EventHandler;
 }
 
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {

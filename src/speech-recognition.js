@@ -1,4 +1,4 @@
-import { updateNodeText } from './dom-manipulation.js';
+import { updateNodeText, updateClasses, hasClass } from './dom-manipulation.js';
 import { makeStatusHandlers, registerEventHandlers } from './declare-events.js';
 var recogniser = null;
 if ('webkitSpeechRecognition' in window) {
@@ -12,6 +12,8 @@ recognition.continuous = true;
 recognition.lang = 'en';
 recognition.interimResults = true;
 recognition.maxAlternatives = 5;
+// TODO: allow for user settings instead of hardcoded defaults
+// TODO: allow turning users to turn captions on and off
 var setupCaptions = function (recognition) {
     try {
         recognition.start();
@@ -28,6 +30,7 @@ var setupCaptions = function (recognition) {
     }
     updateNodeText('status-service', recognition.serviceURI);
 };
+// REFACTOR: make event handlers declarative
 export var isAudioActive = registerEventHandlers(recognition, makeStatusHandlers('status-audio', 'audiostart', 'audioend'));
 export var isSoundActive = registerEventHandlers(recognition, makeStatusHandlers('status-sound', 'soundstart', 'soundend'));
 export var isSpeechActive = registerEventHandlers(recognition, makeStatusHandlers('status-speech', 'speechstart', 'speechend'));
@@ -35,6 +38,8 @@ registerEventHandlers(recognition, {
     'result': {
         name: 'result',
         handler: function (event) {
+            // FIX: handle disappearing nodes properly
+            // TODO: create separate type for qualified output sets
             if (!event || !event.results) {
                 // nothing to do
             }
@@ -42,7 +47,7 @@ registerEventHandlers(recognition, {
                 var caption = document.getElementById('caption');
                 while (!caption.children || (caption.children.length < event.results.length)) {
                     var li = document.createElement('li');
-                    li.setAttribute('class', 'speculative');
+                    li = updateClasses(li, [], ['speculative']);
                     caption.appendChild(li);
                 }
                 while (caption.children.length > event.results.length) {
@@ -52,7 +57,7 @@ registerEventHandlers(recognition, {
                     var result = event.results[r];
                     var li = document.createElement('li');
                     if (result.isFinal) {
-                        li.setAttribute('class', 'final');
+                        li = updateClasses(li, [], ['final']);
                     }
                     var interim = [];
                     var oli = caption.children[r];
@@ -63,7 +68,8 @@ registerEventHandlers(recognition, {
                             var addOK = true;
                             // remove noisy extra whitespace
                             te = te.replace(/ +(?= )/g, '');
-                            if (cn.getAttribute('class') == 'interim') {
+                            // TODO: create a dedicated prefix-free list data structure
+                            if (hasClass(cn, 'interim')) {
                                 // remove all prefixes
                                 // note: in future version, log the timing of when the transcript
                                 // was recorded, and the confidence level
@@ -93,7 +99,7 @@ registerEventHandlers(recognition, {
                     for (var c = 0; c < interim.length; c++) {
                         var tn = document.createTextNode(interim[c]);
                         var si = document.createElement('span');
-                        si.setAttribute('class', 'interim');
+                        si = updateClasses(si, [], ['interim']);
                         si.appendChild(tn);
                         li.appendChild(si);
                     }
@@ -111,7 +117,7 @@ registerEventHandlers(recognition, {
                                 continue;
                             }
                             interim.push(transcript);
-                            e.setAttribute('class', 'interim');
+                            e = updateClasses(e, [], ['interim']);
                         }
                         e.appendChild(tn);
                         li.appendChild(e);
@@ -177,4 +183,3 @@ export var isCaptioning = registerEventHandlers(recognition, function () {
 window.addEventListener('load', function (event) {
     setupCaptions(recognition);
 });
-//# sourceMappingURL=speech-recognition.js.map
