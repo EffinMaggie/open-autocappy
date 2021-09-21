@@ -11,13 +11,9 @@ export class Branch implements Qualified {
     // TODO: chaining multiple Qualified implementations really sounds like
     // something that should be a function composition... consider refactoring
     // into something that does this.
-    this.when.compare(b.when);
-    
-    if (dc == 0) {
-      dc = this.confidence.compare(b.confidence);
-    }
+    const dc = this.when.compare(b.when);
 
-    return dc;
+    return dc == 0 ? this.confidence.compare(b.confidence) : dc;
   }
 }
 
