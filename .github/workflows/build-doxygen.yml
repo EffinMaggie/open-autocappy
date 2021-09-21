@@ -28,6 +28,7 @@ jobs:
       - name: Like, totally like submit the fresh new stuff like, you know
         uses: peaceiris/actions-gh-pages@v3
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./documentation/doxygen
           commit_message: 'chore: freshen up documentation'
           user_name: Lumpy Space Princess
