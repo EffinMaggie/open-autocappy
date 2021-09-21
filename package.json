@@ -9,8 +9,8 @@
     "build": "tsc",
     "release": "standard-version",
     "prepare": "husky install",
-    "lint": "prettier --check src test *.ts",
-    "format": "prettier --write src test *.ts"
+    "lint": "prettier --check src test *.ts *.json",
+    "format": "prettier --write src test *.ts *.json"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "doxygen": "^0.4.0",
     "http-server": "^13.0.2",
     "husky": "^7.0.2",
+    "lint-staged": "^11.1.2",
     "prettier": "^2.4.1",
     "standard-version": "^9.3.1",
     "typescript": "^4.4.3"
@@ -47,7 +48,22 @@
   "dependencies": {},
   "husky": {
     "hooks": {
+      "precommit": "lint-staged",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.css": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.html": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }
