@@ -22,7 +22,7 @@ export class Q<Type> implements Qualified {
   }
 }
 
-export class QValue extends Q<number>{};
+export class QValue extends Q<number> {}
 
 /**
  * template class for an outer hull for a generic Qualified value.
@@ -54,7 +54,10 @@ export class QValue extends Q<number>{};
  * from the Qualified interface; we don't actually need to know or care what
  * kind of "point" we have, so this works just the same with Dates.
  */
-export class OuterHull<Type extends Qualified> extends Array<Type> implements Qualified {
+export class OuterHull<Type extends Qualified>
+  extends Array<Type>
+  implements Qualified
+{
   /**
    * construct with a "plain" array of Type.
    *
@@ -80,7 +83,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
      * be a linear scan without changes (i.e.: fast) if it's already sorted, so
      * should be fine in the constructor.
      */
-    this.sort(function(a: Type, b: Type) {
+    this.sort(function (a: Type, b: Type) {
       return a.compare(b);
     });
   }
@@ -90,7 +93,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
   }
 
   end(): Type {
-    return this[(this.length-1)];
+    return this[this.length - 1];
   }
 
   where(): Array<Type> {
@@ -105,8 +108,9 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
   inside(p: Type): boolean {
     var v = new OuterHull<Type>(this.where().concat([p]));
 
-    return (this.begin().compare(v.begin()) != 0)
-        || (this.end().compare(v.end()) != 0);
+    return (
+      this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0
+    );
     // TODO: I should probably write a proof that this works.
   }
 
@@ -183,7 +187,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
 }
 
 export function sort<Type extends Qualified>(a: Array<Type>): Array<Type> {
-  return a.sort(function(a: Qualified, b: Qualified) {
+  return a.sort(function (a: Qualified, b: Qualified) {
     return a.compare(b);
   });
 }

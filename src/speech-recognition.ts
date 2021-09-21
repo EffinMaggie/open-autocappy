@@ -1,17 +1,24 @@
-import { clearContent, addContent, replaceContent, updateNodeText, updateClasses, hasClass } from './dom-manipulation.js';
-import { makeStatusHandlers, registerEventHandlers } from './declare-events.js';
+import {
+  clearContent,
+  addContent,
+  replaceContent,
+  updateNodeText,
+  updateClasses,
+  hasClass,
+} from "./dom-manipulation.js";
+import { makeStatusHandlers, registerEventHandlers } from "./declare-events.js";
 
 var recogniser = null;
-if ('webkitSpeechRecognition' in window) {
-  recogniser = window['webkitSpeechRecognition'];
+if ("webkitSpeechRecognition" in window) {
+  recogniser = window["webkitSpeechRecognition"];
 }
-if ('SpeechRecognition' in window) {
-  recogniser = window['SpeechRecognition'];
+if ("SpeechRecognition" in window) {
+  recogniser = window["SpeechRecognition"];
 }
 var recognition = new recogniser();
 
 recognition.continuous = true;
-recognition.lang = 'en';
+recognition.lang = "en";
 recognition.interimResults = true;
 recognition.maxAlternatives = 5;
 
@@ -21,51 +28,50 @@ var setupCaptions = function (recognition) {
   try {
     recognition.start();
   } catch (e) {
-    if (e.name == 'InvalidStateError') {
+    if (e.name == "InvalidStateError") {
       // documentation says this is only thrown if speech recognition is on,
       // so ignore this problem.
     } else {
-       updateNodeText('status-last-error', e.name);
-       throw e;
+      updateNodeText("status-last-error", e.name);
+      throw e;
     }
   }
 
-  updateNodeText('status-service', recognition.serviceURI);
-}
+  updateNodeText("status-service", recognition.serviceURI);
+};
 
 // REFACTOR: make event handlers declarative
-export var isAudioActive =
-  registerEventHandlers(
-    recognition,
-    makeStatusHandlers(
-      'status-audio', 'audiostart', 'audioend'));
+export var isAudioActive = registerEventHandlers(
+  recognition,
+  makeStatusHandlers("status-audio", "audiostart", "audioend")
+);
 
-export var isSoundActive =
-  registerEventHandlers(
-    recognition,
-    makeStatusHandlers(
-      'status-sound', 'soundstart', 'soundend'));
+export var isSoundActive = registerEventHandlers(
+  recognition,
+  makeStatusHandlers("status-sound", "soundstart", "soundend")
+);
 
-export var isSpeechActive =
-  registerEventHandlers(
-    recognition,
-    makeStatusHandlers(
-      'status-speech', 'speechstart', 'speechend'));
+export var isSpeechActive = registerEventHandlers(
+  recognition,
+  makeStatusHandlers("status-speech", "speechstart", "speechend")
+);
 
-registerEventHandlers(
-  recognition, {
-  'result': {
-    name: 'result',
+registerEventHandlers(recognition, {
+  result: {
+    name: "result",
     handler: function (event) {
       // FIX: handle disappearing nodes properly
       // TODO: create separate type for qualified output sets
       if (!event || !event.results) {
         // nothing to do
       } else {
-        var caption = document.getElementById('caption');
-        while (!caption.children || (caption.children.length < event.results.length)) {
-          var li = document.createElement('li');
-          updateClasses(li, new Set(), new Set(['speculative']));
+        var caption = document.getElementById("caption");
+        while (
+          !caption.children ||
+          caption.children.length < event.results.length
+        ) {
+          var li = document.createElement("li");
+          updateClasses(li, new Set(), new Set(["speculative"]));
 
           caption.appendChild(li);
         }
@@ -76,9 +82,9 @@ registerEventHandlers(
         for (var r = 0; r < event.results.length; r++) {
           var result = event.results[r];
 
-          var li = document.createElement('li');
+          var li = document.createElement("li");
           if (result.isFinal) {
-            updateClasses(li, new Set(), new Set(['final']));
+            updateClasses(li, new Set(), new Set(["final"]));
           }
 
           var interim = [];
@@ -91,10 +97,10 @@ registerEventHandlers(
               var addOK = true;
 
               // remove noisy extra whitespace
-              te = te.replace(/ +(?= )/g, '');
+              te = te.replace(/ +(?= )/g, "");
 
               // TODO: create a dedicated prefix-free list data structure
-              if (hasClass(cn, 'interim')) {
+              if (hasClass(cn, "interim")) {
                 // remove all prefixes
                 // note: in future version, log the timing of when the transcript
                 // was recorded, and the confidence level
@@ -125,8 +131,8 @@ registerEventHandlers(
 
           for (var c = 0; c < interim.length; c++) {
             var tn = document.createTextNode(interim[c]);
-            var si = document.createElement('span');
-            updateClasses(si, new Set(), new Set(['interim']));
+            var si = document.createElement("span");
+            updateClasses(si, new Set(), new Set(["interim"]));
             si.appendChild(tn);
             li.appendChild(si);
           }
@@ -138,10 +144,10 @@ registerEventHandlers(
             var confidence = alternative.confidence;
 
             var tn = document.createTextNode(transcript);
-            var e = document.createElement('span');
+            var e = document.createElement("span");
 
             if (confidence && confidence > 0) {
-              e.setAttribute('data-confidence', confidence);
+              e.setAttribute("data-confidence", confidence);
             }
 
             if (!result.isFinal) {
@@ -150,60 +156,58 @@ registerEventHandlers(
               }
 
               interim.push(transcript);
-              updateClasses(e, new Set(), new Set(['interim']));
+              updateClasses(e, new Set(), new Set(["interim"]));
             }
             e.appendChild(tn);
             li.appendChild(e);
 
             if (result.isFinal) {
-              updateNodeText('last-line', transcript);
-              updateNodeText('last-final', transcript);
+              updateNodeText("last-line", transcript);
+              updateNodeText("last-final", transcript);
             } else {
-              updateNodeText('last-line', '[ ' + transcript + ' ]');
+              updateNodeText("last-line", "[ " + transcript + " ]");
             }
           }
         }
       }
-    }
+    },
   },
 
-  'error': {
-    name: 'error',
-    handler: function(event) {
-      console.warn('SpeechRecognition API error', event.error, event.message);
+  error: {
+    name: "error",
+    handler: function (event) {
+      console.warn("SpeechRecognition API error", event.error, event.message);
 
-      updateNodeText('status-last-error', event.error);
-      updateNodeText('status-last-error-message', event.message);
-    }
+      updateNodeText("status-last-error", event.error);
+      updateNodeText("status-last-error-message", event.message);
+    },
   },
 
-  'nomatch': {
-    name: 'nomatch',
-    handler: function(event) {
-      console.warn('SpeechRecognition API nomatch event', event);
-    }
-  }
+  nomatch: {
+    name: "nomatch",
+    handler: function (event) {
+      console.warn("SpeechRecognition API nomatch event", event);
+    },
+  },
 });
 
-export var isCaptioning =
-  registerEventHandlers(
-    recognition,
-    function () {
-    var r = makeStatusHandlers(
-        'status-captioning', 'start', 'end');
+export var isCaptioning = registerEventHandlers(
+  recognition,
+  (function () {
+    var r = makeStatusHandlers("status-captioning", "start", "end");
 
     return {
       start: {
-        name: 'start',
+        name: "start",
         handler: function (event) {
-          updateNodeText('status-last-error', null);
-          updateNodeText('status-last-error-message', null);
+          updateNodeText("status-last-error", null);
+          updateNodeText("status-last-error-message", null);
 
           r.start.handler(event);
-        }
+        },
       },
       end: {
-        name: 'end',
+        name: "end",
         handler: function (event) {
           r.end.handler(event);
 
@@ -214,22 +218,18 @@ export var isCaptioning =
           // possible.
           //
           // future versions will require flags and proper configurations and the like.
-          window.setTimeout(
-            function () {
+          window.setTimeout(function () {
             if (!r.status()) {
               setupCaptions(recognition);
             }
-          },
-            5000);
-        }
+          }, 5000);
+        },
       },
-      status: r.status
-    }
-  }
-    ());
+      status: r.status,
+    };
+  })()
+);
 
-window.addEventListener(
-  'load',
-  function (event) {
+window.addEventListener("load", function (event) {
   setupCaptions(recognition);
 });

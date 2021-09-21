@@ -1,4 +1,4 @@
-import { updateNodeClasses } from './dom-manipulation.js';
+import { updateNodeClasses } from "./dom-manipulation.js";
 
 type EventHandler = (event: object) => boolean;
 
@@ -9,8 +9,8 @@ export interface EventDeclaration {
 
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {
   var active = false;
-  const endcls = new Set(['end']);
-  const activecls = new Set(['active']);
+  const endcls = new Set(["end"]);
+  const activecls = new Set(["active"]);
 
   return {
     status: function () {
@@ -23,7 +23,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
         active = true;
 
         updateNodeClasses(id, endcls, activecls);
-      }
+      },
     },
 
     end: {
@@ -32,9 +32,9 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
         active = false;
 
         updateNodeClasses(id, activecls, endcls);
-      }
-    }
-  }
+      },
+    },
+  };
 }
 
 export function registerEventHandlers(emitter, events) {
@@ -43,7 +43,7 @@ export function registerEventHandlers(emitter, events) {
   for (const key in events) {
     const ev = events[key];
 
-    if (key === 'status') {
+    if (key === "status") {
       status = ev;
     } else {
       emitter.addEventListener(ev.name, ev.handler);

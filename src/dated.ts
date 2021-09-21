@@ -1,6 +1,6 @@
-import { CompareResult, Qualified, Q, OuterHull } from './qualified.js';
+import { CompareResult, Qualified, Q, OuterHull } from "./qualified.js";
 
-export class QDate extends Q<Date>{};
+export class QDate extends Q<Date> {}
 
 export interface Dated extends Qualified {
   absorb(a: QDate): Dated;

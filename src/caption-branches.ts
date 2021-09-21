@@ -1,5 +1,11 @@
-import { Dated, DateBetween } from './dated.js';
-import { CompareResult, Qualified, QValue, OuterHull, sort } from './qualified.js';
+import { Dated, DateBetween } from "./dated.js";
+import {
+  CompareResult,
+  Qualified,
+  QValue,
+  OuterHull,
+  sort,
+} from "./qualified.js";
 
 export class Branch implements Qualified {
   when: DateBetween;
@@ -17,4 +23,4 @@ export class Branch implements Qualified {
   }
 }
 
-export class Branches extends OuterHull<Branch>{};
+export class Branches extends OuterHull<Branch> {}

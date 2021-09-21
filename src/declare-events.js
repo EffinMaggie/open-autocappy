@@ -1,40 +1,39 @@
-import { updateNodeClasses } from './dom-manipulation.js';
+import { updateNodeClasses } from "./dom-manipulation.js";
 export function makeStatusHandlers(id, onstart, onend) {
-    var active = false;
-    const endcls = new Set(['end']);
-    const activecls = new Set(['active']);
-    return {
-        status: function () {
-            return active;
-        },
-        start: {
-            name: onstart,
-            handler: function (event) {
-                active = true;
-                updateNodeClasses(id, endcls, activecls);
-            }
-        },
-        end: {
-            name: onend,
-            handler: function (event) {
-                active = false;
-                updateNodeClasses(id, activecls, endcls);
-            }
-        }
-    };
+  var active = false;
+  const endcls = new Set(["end"]);
+  const activecls = new Set(["active"]);
+  return {
+    status: function () {
+      return active;
+    },
+    start: {
+      name: onstart,
+      handler: function (event) {
+        active = true;
+        updateNodeClasses(id, endcls, activecls);
+      },
+    },
+    end: {
+      name: onend,
+      handler: function (event) {
+        active = false;
+        updateNodeClasses(id, activecls, endcls);
+      },
+    },
+  };
 }
 export function registerEventHandlers(emitter, events) {
-    var status = undefined;
-    for (const key in events) {
-        const ev = events[key];
-        if (key === 'status') {
-            status = ev;
-        }
-        else {
-            emitter.addEventListener(ev.name, ev.handler);
-        }
+  var status = undefined;
+  for (const key in events) {
+    const ev = events[key];
+    if (key === "status") {
+      status = ev;
+    } else {
+      emitter.addEventListener(ev.name, ev.handler);
     }
-    return status;
+  }
+  return status;
 }
 // REFACTOR: make events composable and declarative
 // TODO: add sanity checking for event states

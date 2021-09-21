@@ -8,7 +8,9 @@
     "docs": "node build-docs.cjs",
     "build": "tsc",
     "release": "standard-version",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "prettier --check src test *.ts",
+    "format": "prettier --write src test *.ts"
   },
   "repository": {
     "type": "git",
@@ -33,6 +35,7 @@
     "doxygen": "^0.4.0",
     "http-server": "^13.0.2",
     "husky": "^7.0.2",
+    "prettier": "^2.4.1",
     "standard-version": "^9.3.1",
     "typescript": "^4.4.3"
   },
@@ -44,7 +47,6 @@
   "dependencies": {},
   "husky": {
     "hooks": {
-      "pre-commit": "npm test",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }

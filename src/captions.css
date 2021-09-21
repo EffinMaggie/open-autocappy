@@ -1,4 +1,3 @@
-
 body {
   background: black;
   color: white;
@@ -7,14 +6,14 @@ body {
 
 .captions ol li {
   display: block;
-  margin: .3em -50px;
-  padding: .5em 50px;
+  margin: 0.3em -50px;
+  padding: 0.5em 50px;
 }
 
 .captions ol li span[data-confidence]:after {
   content: " @" attr(data-confidence);
   color: gray;
-  font-size: .8em;
+  font-size: 0.8em;
 }
 
 .captions ol span {
@@ -68,9 +67,9 @@ span {
 
 .captions ol li.final span.interim {
   font-weight: normal;
-  font-size: .9em;
+  font-size: 0.9em;
   color: gray;
-  padding-right: .5em;
+  padding-right: 0.5em;
 }
 
 .captions ol li span.interim {
@@ -87,7 +86,7 @@ span {
   display: inline-block;
 }
 
-.captions ol { 
+.captions ol {
   display: flex;
   flex-direction: column-reverse;
   padding-inline-start: 0;
@@ -112,7 +111,7 @@ p#last-final {
 }
 
 .captions ol li:last-child {
-  font-size:1.8em;
+  font-size: 1.8em;
   color: white;
   margin: 1em -50px;
 }
