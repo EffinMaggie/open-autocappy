@@ -53,17 +53,23 @@
     }
   },
   "lint-staged": {
+    "*.cjs": [
+      "prettier --write"
+    ],
     "*.ts": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
+    ],
+    "*.json": [
+      "prettier --write"
+    ],
+    "*.yml": [
+      "prettier --write"
     ],
     "*.css": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
     "*.html": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   }
 }
