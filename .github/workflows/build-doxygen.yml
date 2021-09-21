@@ -28,7 +28,7 @@ jobs:
       - name: Like, totally like submit the fresh new stuff like, you know
         uses: EndBug/add-and-commit@v7
         with:
-          add: .
+          add: documentation/doxygen/.
           cwd: documentation/doxygen
           message: 'chore: freshen up documentation'
           author_name: Lumpy Space Princess
