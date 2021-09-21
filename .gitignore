@@ -3,3 +3,9 @@
 node_modules/
 
 # TODO: the JS files and maps shouldn't need to be in git, just build them
+
+# don't commit doxygen output - it's better when it's fresh!
+documentation/html
+
+# don't commit doxyfile - the build script creates its own.
+doxyfile

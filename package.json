@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node test.js",
+    "docs": "node build-docs.cjs",
     "build": "tsc",
     "release": "standard-version"
   },
@@ -28,6 +29,7 @@
     "@commitlint/cli": "^13.1.0",
     "@commitlint/config-conventional": "^13.1.0",
     "@types/node": "^16.9.4",
+    "doxygen": "^0.4.0",
     "http-server": "^13.0.2",
     "husky": "^7.0.2",
     "standard-version": "^9.3.1",
