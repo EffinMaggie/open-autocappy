@@ -26,10 +26,10 @@ jobs:
           doxyfile-path: './doxyfile'
 
       - name: Like, totally like submit the fresh new stuff like, you know
-        uses: EndBug/add-and-commit@v7
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          add: documentation/doxygen/.
-          cwd: documentation/doxygen
-          message: 'chore: freshen up documentation'
-          author_name: Lumpy Space Princess
-          author_email: buttercup.rules.xxx@lumpy.space
+          publish_dir: ./documentation/doxygen
+          commit_message: 'chore: freshen up documentation'
+          user_name: Lumpy Space Princess
+          user_email: buttercup.rules.xxx@lumpy.space
+          publish_branch: documentation
