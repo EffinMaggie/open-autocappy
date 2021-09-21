@@ -34,11 +34,11 @@ export function updateNodeText(nodeID: string, newText: string): Element | false
 export function updateClasses(node: Element, remove: Set<string>, add: Set<string>): Element {
   var c = node.getAttribute('class');
   var s = new Set(c ? c.split(' ') : []);
-  for (const i in remove) {
-    s.delete(remove[i]);
+  for (const i of remove) {
+    s.delete(i);
   }
-  for (const i in add) {
-    s.add(add[i]);
+  for (const i of add) {
+    s.add(i);
   }
 
   node.setAttribute('class', Array.from(s).join(' '));
