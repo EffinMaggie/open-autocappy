@@ -1,3 +1,5 @@
+/** @format */
+
 export class Q {
   constructor(qval) {
     this.q = qval;
@@ -87,9 +89,7 @@ export class OuterHull extends Array {
    */
   inside(p) {
     var v = new OuterHull(this.where().concat([p]));
-    return (
-      this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0
-    );
+    return this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0;
     // TODO: I should probably write a proof that this works.
   }
   /**

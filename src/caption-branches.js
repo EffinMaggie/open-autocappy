@@ -1,4 +1,6 @@
-import { OuterHull } from "./qualified.js";
+/** @format */
+
+import { OuterHull } from './qualified.js';
 export class Branch {
   compare(b) {
     // TODO: chaining multiple Qualified implementations really sounds like

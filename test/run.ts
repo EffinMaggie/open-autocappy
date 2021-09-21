@@ -1,3 +1,5 @@
+/** @format */
+
 export type LogFunction = (string, boolean) => boolean;
 export type TestFunction = (log: LogFunction) => boolean;
 
@@ -16,7 +18,7 @@ export function testModule(mod: TestableModule): boolean {
   var success = true;
 
   var log = function (name: string, succ: boolean): boolean {
-    process.stdout.write(succ ? "." : "!" + name);
+    process.stdout.write(succ ? '.' : '!' + name);
 
     success &&= succ;
     return success;
@@ -25,14 +27,14 @@ export function testModule(mod: TestableModule): boolean {
   for (const i in tests) {
     const test: Testable = tests[i];
 
-    process.stdout.write(mod.name + "/" + test.name + ": ");
+    process.stdout.write(mod.name + '/' + test.name + ': ');
     const tr = test.test(log);
     success &&= tr;
 
     if (tr) {
-      process.stdout.write(" OK\n");
+      process.stdout.write(' OK\n');
     } else {
-      process.stdout.write(" FAIL\n");
+      process.stdout.write(' FAIL\n');
     }
   }
 

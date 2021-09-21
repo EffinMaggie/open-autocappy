@@ -1,11 +1,7 @@
-import { Dated, DateBetween } from "./dated.js";
-import {
-  CompareResult,
-  Qualified,
-  QValue,
-  OuterHull,
-  sort,
-} from "./qualified.js";
+/** @format */
+
+import { Dated, DateBetween } from './dated.js';
+import { CompareResult, Qualified, QValue, OuterHull, sort } from './qualified.js';
 
 export class Branch implements Qualified {
   when: DateBetween;

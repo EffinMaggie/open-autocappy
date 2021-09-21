@@ -1,3 +1,5 @@
+/** @format */
+
 body {
   background: black;
   color: white;
@@ -11,7 +13,7 @@ body {
 }
 
 .captions ol li span[data-confidence]:after {
-  content: " @" attr(data-confidence);
+  content: ' @' attr(data-confidence);
   color: gray;
   font-size: 0.8em;
 }

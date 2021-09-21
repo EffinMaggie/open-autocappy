@@ -1,4 +1,6 @@
-import { CompareResult, Qualified, Q, OuterHull } from "./qualified.js";
+/** @format */
+
+import { CompareResult, Qualified, Q, OuterHull } from './qualified.js';
 
 export class QDate extends Q<Date> {}
 

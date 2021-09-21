@@ -1,7 +1,9 @@
-import { testModule } from "./test/run.js";
+/** @format */
 
-import * as qualified from "./test/qualified.js";
-import * as dated from "./test/dated.js";
+import { testModule } from './test/run.js';
+
+import * as qualified from './test/qualified.js';
+import * as dated from './test/dated.js';
 
 export var testsOK = true;
 

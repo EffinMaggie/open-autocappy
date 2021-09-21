@@ -1,3 +1,5 @@
+/** @format */
+
 export type CompareResult = -1 | 0 | 1;
 
 export interface Qualified {
@@ -54,10 +56,7 @@ export class QValue extends Q<number> {}
  * from the Qualified interface; we don't actually need to know or care what
  * kind of "point" we have, so this works just the same with Dates.
  */
-export class OuterHull<Type extends Qualified>
-  extends Array<Type>
-  implements Qualified
-{
+export class OuterHull<Type extends Qualified> extends Array<Type> implements Qualified {
   /**
    * construct with a "plain" array of Type.
    *
@@ -108,9 +107,7 @@ export class OuterHull<Type extends Qualified>
   inside(p: Type): boolean {
     var v = new OuterHull<Type>(this.where().concat([p]));
 
-    return (
-      this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0
-    );
+    return this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0;
     // TODO: I should probably write a proof that this works.
   }
 

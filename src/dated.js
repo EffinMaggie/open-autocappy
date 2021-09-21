@@ -1,4 +1,6 @@
-import { Q, OuterHull } from "./qualified.js";
+/** @format */
+
+import { Q, OuterHull } from './qualified.js';
 export class QDate extends Q {}
 export class DateBetween extends OuterHull {
   constructor(a) {
