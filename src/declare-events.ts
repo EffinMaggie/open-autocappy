@@ -9,6 +9,8 @@ export interface EventDeclaration {
 
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {
   var active = false;
+  const endcls = new Set(['end']);
+  const activecls = new Set(['active']);
 
   return {
     status: function () {
@@ -20,7 +22,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
       handler: function (event) {
         active = true;
 
-        updateNodeClasses(id, ['end'], ['active']);
+        updateNodeClasses(id, endcls, activecls);
       }
     },
 
@@ -29,7 +31,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
       handler: function (event) {
         active = false;
 
-        updateNodeClasses(id, ['active'], ['end']);
+        updateNodeClasses(id, activecls, endcls);
       }
     }
   }

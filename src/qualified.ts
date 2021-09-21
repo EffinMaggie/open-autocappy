@@ -1,5 +1,7 @@
+export type CompareResult = -1 | 0 | 1;
+
 export interface Qualified {
-  compare(b: Qualified): number;
+  compare(b: Qualified): CompareResult;
 }
 
 export class Q<Type> implements Qualified {
@@ -9,7 +11,7 @@ export class Q<Type> implements Qualified {
     this.q = qval;
   }
 
-  compare(b: Q<Type>): number {
+  compare(b: Q<Type>): CompareResult {
     if (b.q == this.q) {
       return 0;
     }
@@ -148,7 +150,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
    * {i} is inside {A, B, C}, but {A, B, C} is obviously not in {i}, and sorting
    * an array would most often end up comparing from both sides.
    */
-  compareItem(b: Type): number {
+  compareItem(b: Type): CompareResult {
     if (this.inside(b)) {
       return 0;
     }
@@ -163,7 +165,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
    * "Sadly" because this means thinking about comparators, lol. We can do a
    * few tricks, though...
    */
-  compare(b: OuterHull<Type>): number {
+  compare(b: OuterHull<Type>): CompareResult {
     /**
      * It would help properly specifying how we want to sort, so:
      * - sort over begin() of the hull

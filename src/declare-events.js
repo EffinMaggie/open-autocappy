@@ -1,6 +1,8 @@
 import { updateNodeClasses } from './dom-manipulation.js';
 export function makeStatusHandlers(id, onstart, onend) {
     var active = false;
+    const endcls = new Set(['end']);
+    const activecls = new Set(['active']);
     return {
         status: function () {
             return active;
@@ -9,14 +11,14 @@ export function makeStatusHandlers(id, onstart, onend) {
             name: onstart,
             handler: function (event) {
                 active = true;
-                updateNodeClasses(id, ['end'], ['active']);
+                updateNodeClasses(id, endcls, activecls);
             }
         },
         end: {
             name: onend,
             handler: function (event) {
                 active = false;
-                updateNodeClasses(id, ['active'], ['end']);
+                updateNodeClasses(id, activecls, endcls);
             }
         }
     };

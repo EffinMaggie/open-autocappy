@@ -65,7 +65,7 @@ registerEventHandlers(
         var caption = document.getElementById('caption');
         while (!caption.children || (caption.children.length < event.results.length)) {
           var li = document.createElement('li');
-          li = updateClasses(li, [], ['speculative']);
+          updateClasses(li, new Set(), new Set(['speculative']));
 
           caption.appendChild(li);
         }
@@ -78,7 +78,7 @@ registerEventHandlers(
 
           var li = document.createElement('li');
           if (result.isFinal) {
-            li = updateClasses(li, [], ['final']);
+            updateClasses(li, new Set(), new Set(['final']));
           }
 
           var interim = [];
@@ -126,7 +126,7 @@ registerEventHandlers(
           for (var c = 0; c < interim.length; c++) {
             var tn = document.createTextNode(interim[c]);
             var si = document.createElement('span');
-            si = updateClasses(si, [], ['interim']);
+            updateClasses(si, new Set(), new Set(['interim']));
             si.appendChild(tn);
             li.appendChild(si);
           }
@@ -150,7 +150,7 @@ registerEventHandlers(
               }
 
               interim.push(transcript);
-              e = updateClasses(e, [], ['interim']);
+              updateClasses(e, new Set(), new Set(['interim']));
             }
             e.appendChild(tn);
             li.appendChild(e);

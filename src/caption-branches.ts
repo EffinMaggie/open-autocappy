@@ -1,5 +1,5 @@
 import { Dated, DateBetween } from './dated.js';
-import { Qualified, QValue, OuterHull, sort } from './qualified.js';
+import { CompareResult, Qualified, QValue, OuterHull, sort } from './qualified.js';
 
 export class Branch implements Qualified {
   when: DateBetween;
@@ -7,13 +7,13 @@ export class Branch implements Qualified {
   final: boolean;
   caption: string;
 
-  compare(b: Branch): number {
+  compare(b: Branch): CompareResult {
     // TODO: chaining multiple Qualified implementations really sounds like
     // something that should be a function composition... consider refactoring
     // into something that does this.
-    var dc = this.when.compare(b.when);
+    this.when.compare(b.when);
     
-    if (dc === 0) {
+    if (dc == 0) {
       dc = this.confidence.compare(b.confidence);
     }
 
@@ -21,4 +21,4 @@ export class Branch implements Qualified {
   }
 }
 
-export type Branches = OuterHull<Branch>;
+export class Branches extends OuterHull<Branch>{};
