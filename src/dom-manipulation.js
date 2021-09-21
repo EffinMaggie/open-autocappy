@@ -26,7 +26,7 @@ export function updateNodeText(nodeID, newText) {
     var n = document.getElementById(nodeID);
     if (n) {
         return newText ?
-            replaceContent(n, document.createTextNode(newText)) :
+            replaceContent(n, [document.createTextNode(newText)]) :
             clearContent(n);
     }
     return n;

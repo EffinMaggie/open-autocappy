@@ -1,4 +1,6 @@
 import { testModule } from './test/run.js';
 import * as qualified from './test/qualified.js';
-var testsOK = true;
+import * as dated from './test/dated.js';
+export var testsOK = true;
 testsOK && (testsOK = testModule(qualified));
+testsOK && (testsOK = testModule(dated));

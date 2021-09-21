@@ -2,7 +2,6 @@ import { clearContent, addContent, replaceContent, updateNodeText, updateClasses
 import { makeStatusHandlers, registerEventHandlers } from './declare-events.js';
 
 var recogniser = null;
-
 if ('webkitSpeechRecognition' in window) {
   recogniser = window['webkitSpeechRecognition'];
 }

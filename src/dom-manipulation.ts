@@ -6,7 +6,7 @@ export function clearContent(node) {
   return node;
 }
 
-export function addContent(node, newContent) {
+export function addContent(node, newContent: Array<object>) {
   // accept two kinds of content: arrays of nodes, and nodes.
   //
   // if newContent is an array, we add all array elements to the node.
@@ -22,15 +22,15 @@ export function addContent(node, newContent) {
   return node;
 }
 
-export function replaceContent(node, newContent) {
+export function replaceContent(node, newContent: Array<object>) {
   return addContent(clearContent(node), newContent);
 }
 
-export function updateNodeText(nodeID, newText) {
+export function updateNodeText(nodeID: string, newText: string) {
   var n = document.getElementById(nodeID);
   if (n) {
     return newText ?
-      replaceContent(n, document.createTextNode(newText)) :
+      replaceContent(n, [ document.createTextNode(newText) ]) :
       clearContent(n);
   }
 
