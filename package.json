@@ -7,7 +7,8 @@
     "test": "node test.js",
     "docs": "node build-docs.cjs",
     "build": "tsc",
-    "release": "standard-version"
+    "release": "standard-version",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -42,6 +43,7 @@
   },
   "husky": {
     "hooks": {
+      "pre-commit": "npm test",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
