@@ -20,16 +20,13 @@ jobs:
           ref: documentation
           path: documentation/doxygen
 
-      - name: Setup Node.js 14.x
-        uses: actions/setup-node@v2
+      - name: Build Doxygen
+        uses: mattnotmitt/doxygen-action@v1
         with:
-          node-version: '14.x'
-          cache: 'npm'
+          doxyfile-path: './doxyfile'
 
-      - run: npm ci
-      - run: npm run docs
-
-      - uses: EndBug/add-and-commit@v7
+      - name: Like, totally like submit the fresh new stuff like, you know
+        uses: EndBug/add-and-commit@v7
         with:
           add: .
           cwd: documentation/doxygen

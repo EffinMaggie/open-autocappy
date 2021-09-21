@@ -9,7 +9,4 @@ node_modules/
 !*.cjs
 
 # don't commit doxygen output - it's better when it's fresh!
-documentation/html
-
-# don't commit doxyfile - the build script creates its own.
-doxyfile
+documentation/doxygen

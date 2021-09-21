@@ -1,0 +1,10 @@
+OUTPUT_DIRECTORY = ./documentation
+INPUT = ./
+RECURSIVE = YES
+FILE_PATTERNS = *.ts \ 
+*.md
+EXTENSION_MAPPING = ts=Javascript
+GENERATE_HTML = YES
+HTML_OUTPUT = doxygen
+GENERATE_LATEX = NO
+EXCLUDE_PATTERNS = */node_modules/*
