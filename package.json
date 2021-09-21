@@ -1,6 +1,6 @@
 {
   "name": "open-autocappy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "create subtitles with your browser's VoiceRecognition API",
   "main": "index.js",
   "scripts": {
