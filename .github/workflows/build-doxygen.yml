@@ -29,8 +29,10 @@ jobs:
       - run: npm ci
       - run: npm run docs
 
-      - uses: EndBug/add-and-commit
+      - uses: EndBug/add-and-commit@v7
         with:
           add: .
           cwd: documentation/doxygen
           message: 'chore: freshen up documentation'
+          author_name: Lumpy Space Princess
+          author_email: buttercup.rules.xxx@lumpy.space
