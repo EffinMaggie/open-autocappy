@@ -31,7 +31,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: output-app-n`${{ matrix.node-version }}
+          name: output-app-n${{ matrix.node-version }}
           path: |
             src/*.html
             src/*.css
