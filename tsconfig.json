@@ -2,9 +2,11 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
-    "target": "es2016",
+    "target": "es2015",
     "sourceMap": false,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "es2020",
+    "allowSyntheticDefaultImports": true
   },
   "include": ["./src/**/*.ts", "./test/**/*.ts", "*.ts"]
 }
