@@ -7,18 +7,12 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  doxygen:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout (main)
         uses: actions/checkout@v2
-
-      - name: Checkout (documentation)
-        uses: actions/checkout@v2
-        with:
-          ref: documentation
-          path: documentation/doxygen
 
       - name: Build Doxygen
         uses: mattnotmitt/doxygen-action@v1
