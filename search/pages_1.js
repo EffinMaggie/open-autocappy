@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['open_20autocappy_23',['Open AutoCappy',['../md_README.html',1,'']]]
+  ['readme_23',['README',['../md_README.html',1,'']]]
 ];
