@@ -1,6 +1,6 @@
 /** @format */
 
-import { readFile } from 'fs';
+import { readFile, writeFile } from 'fs';
 import { default as prettier } from 'prettier';
 import { format } from './lint.config.js';
 import { diffLines } from 'diff';
@@ -81,14 +81,23 @@ function diff(update: update): diff {
   };
 }
 
-function formatFiles(files: Array<string>): Array<Promise<result>> {
+function formatFiles(write: boolean, files: Array<string>): Array<Promise<result>> {
   let ps = [];
 
   for (const file of files) {
     ps.push(
       prettify(file).then(
         (u: update): update | diff => {
-          if (u.clean) {
+          if (u.clean === true) {
+            return u;
+          } else if (write) {
+            writeFile(file, u.pretty, (err) => {
+              if (err) {
+                console.error(err);
+                throw err;
+              }
+            });
+            u.clean = true;
             return u;
           }
           return diff(u);
@@ -109,7 +118,7 @@ function formatFiles(files: Array<string>): Array<Promise<result>> {
 export function reformat(write: boolean): Promise<Array<result>> {
   return new Promise((resolve, reject): void => {
     format.then((files: Array<string>) => {
-      let ps = formatFiles(files);
+      let ps = formatFiles(write, files);
 
       Promise.all(ps).then(
         (results: Array<result>): void => {
@@ -156,20 +165,23 @@ function show(dirty: Array<result>, output: (s: boolean, r: string) => void): vo
   }
 }
 
-if (esMain(import.meta)) {
-  reformat(false).then((result: Array<result>) => {
-    let dirty = result.filter((e: result): boolean => {
-      return !e.pass || !e.clean;
-    });
-
-    show(dirty, (warning: boolean, message: string): void => {
-      if (warning) {
-        console.warn(message);
-      } else {
-        console.log(message);
-      }
-    });
-
-    process.exit(dirty.length);
+export function summary(result: Array<result>): Array<result> {
+  let dirty = result.filter((e: result): boolean => {
+    return !e.pass || !e.clean;
   });
+
+  show(dirty, (warning: boolean, message: string): void => {
+    if (warning) {
+      console.warn(message);
+    } else {
+      console.log(message);
+    }
+  });
+
+  process.exitCode = dirty.length;
+  return dirty;
+}
+
+if (esMain(import.meta)) {
+  reformat(false).then(summary);
 }
