@@ -5,12 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "node test.js",
-    "docs": "node build-docs.cjs",
+    "doxygen": "node doxygen.cjs",
     "build": "tsc",
     "release": "standard-version",
-    "prepare": "husky install",
-    "lint": "prettier --check src test *.ts *.json",
-    "format": "prettier --write src test *.ts *.json"
+    "prepare": "node prepare.cjs",
+    "lint": "node lint.js",
+    "fix": "node fix.js"
   },
   "repository": {
     "type": "git",
@@ -32,18 +32,15 @@
     "@commitlint/cli": "^13.1.0",
     "@commitlint/config-conventional": "^13.1.0",
     "@types/node": "^16.9.4",
+    "cz-conventional-changelog": "^3.3.0",
     "doxygen": "^0.4.0",
+    "globby": "^12.0.2",
     "http-server": "^13.0.2",
     "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "prettier": "^2.4.1",
     "standard-version": "^9.3.1",
     "typescript": "^4.4.3"
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
   },
   "dependencies": {},
   "husky": {
@@ -71,5 +68,10 @@
     "*.html": [
       "prettier --write"
     ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
