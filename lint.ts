@@ -6,6 +6,16 @@ import { format } from './lint.config.js';
 import { diffLines } from 'diff';
 import esMain from 'es-main';
 import chalk from 'chalk';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+const argv = yargs(hideBin(process.argv)).argv;
+
+let args = argv['_'];
+let wantFormatted = format;
+if (args.length > 0) {
+  wantFormatted = Promise.resolve(args);
+}
 
 interface chunk {
   added?: boolean;
@@ -117,7 +127,7 @@ function formatFiles(write: boolean, files: Array<string>): Array<Promise<result
 
 export function reformat(write: boolean): Promise<Array<result>> {
   return new Promise((resolve, reject): void => {
-    format.then((files: Array<string>) => {
+    wantFormatted.then((files: Array<string>) => {
       let ps = formatFiles(write, files);
 
       Promise.all(ps).then(

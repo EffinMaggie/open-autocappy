@@ -32,6 +32,7 @@
     "@commitlint/cli": "^13.1.0",
     "@commitlint/config-conventional": "^13.1.0",
     "@types/node": "^16.9.4",
+    "@types/yargs": "^17.0.3",
     "chalk": "^4.1.2",
     "cz-conventional-changelog": "^3.3.0",
     "diff": "^5.0.0",
@@ -43,7 +44,8 @@
     "lint-staged": "^11.1.2",
     "prettier": "^2.4.1",
     "standard-version": "^9.3.1",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "yargs": "^17.1.1"
   },
   "dependencies": {},
   "husky": {
@@ -54,22 +56,22 @@
   },
   "lint-staged": {
     "*.cjs": [
-      "prettier --write"
+      "npm run fix"
     ],
     "*.ts": [
-      "prettier --write"
+      "npm run fix"
     ],
     "*.json": [
-      "prettier --write"
+      "npm run fix"
     ],
     "*.yml": [
-      "prettier --write"
+      "npm run fix"
     ],
     "*.css": [
-      "prettier --write"
+      "npm run fix"
     ],
     "*.html": [
-      "prettier --write"
+      "npm run fix"
     ]
   },
   "config": {
