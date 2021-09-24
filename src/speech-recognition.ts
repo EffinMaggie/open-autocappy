@@ -9,6 +9,14 @@ import {
   hasClass,
 } from './dom-manipulation.js';
 import { makeStatusHandlers, registerEventHandlers } from './declare-events.js';
+import {
+  DOM,
+  SpeechAPI,
+  SpeechAPIEvent,
+  SpeechAPIResultList,
+  SpeechAPIResult,
+  SpeechAPIAlternative,
+} from './caption-branches.js';
 
 var recogniser = null;
 if ('webkitSpeechRecognition' in window) {
@@ -25,7 +33,7 @@ recognition.interimResults = true;
 recognition.maxAlternatives = 5;
 
 // TODO: allow for user settings instead of hardcoded defaults
-// TODO: allow turning users to turn captions on and off
+// TODO: allow users to turn captions on and off
 var setupCaptions = function (recognition) {
   try {
     recognition.start();
@@ -61,113 +69,76 @@ export var isSpeechActive = registerEventHandlers(
 registerEventHandlers(recognition, {
   result: {
     name: 'result',
-    handler: function (event) {
+    handler: (event: SpeechAPIEvent) => {
       // FIX: handle disappearing nodes properly
       // TODO: create separate type for qualified output sets
       if (!event || !event.results) {
         // nothing to do
-      } else {
-        var caption = document.getElementById('caption');
-        while (!caption.children || caption.children.length < event.results.length) {
-          var li = document.createElement('li');
-          updateClasses(li, new Set(), new Set(['speculative']));
+        return;
+      }
 
-          caption.appendChild(li);
-        }
-        while (caption.children.length > event.results.length) {
-          caption.removeChild(caption.children[0]);
-        }
+      var caption = document.getElementById('caption');
+      var transcript = document.getElementById('transcript');
 
-        for (var r = 0; r < event.results.length; r++) {
-          var result = event.results[r];
+      while (!caption.children || caption.children.length < event.results.length) {
+        var li = document.createElement('li');
+        updateClasses(li, new Set(), new Set(['speculative']));
 
-          var li = document.createElement('li');
-          if (result.isFinal) {
-            updateClasses(li, new Set(), new Set(['final']));
-          }
+        caption.appendChild(li);
+      }
+      while (caption.children.length > event.results.length) {
+        caption.removeChild(caption.children[0]);
+      }
 
-          var interim = [];
-          var oli = caption.children[r];
+      for (var r = 0; r < event.results.length; r++) {
+        var result: SpeechAPIResult = event.results[r];
+        var oli = caption.children[r];
 
-          if (oli && oli.children) {
-            for (var c = 0; c < oli.children.length; c++) {
-              var cn = oli.children[c];
-              var te = cn.textContent;
-              var addOK = true;
+        let bs = SpeechAPI.fromResult(result, r);
+        let li = DOM.toLi(bs);
 
-              // remove noisy extra whitespace
-              te = te.replace(/ +(?= )/g, '');
-
-              // TODO: create a dedicated prefix-free list data structure
-              if (hasClass(cn, 'interim')) {
-                // remove all prefixes
-                // note: in future version, log the timing of when the transcript
-                // was recorded, and the confidence level
-                for (var d = 0; d < interim.length; d++) {
-                  if (te.startsWith(interim[d])) {
-                    // found an element that is a prefix of what we add here, so
-                    // remove the prefix.
-                    interim.splice(d, 1);
-                    d--;
-                  } else if (interim[d].startsWith(te)) {
-                    // reverse: what we're trying to add already exists in the list
-                    // and the new string we want to add is a prefix of a longer
-                    // version in the list: skip adding right away.
-                    addOK = false;
-                    break;
-                  }
-                }
-
-                // add any new and unique alternative we don't have yet
-                if (addOK && !interim.includes(te)) {
-                  interim.push(te);
-                }
-              }
-            }
-          }
-
+        /**
+         * isFinal doesn't mean it can't still be multiple choices,
+         * but it does mean that there won't be future updates to
+         * this result, if we're holding the event the right way up,
+         * that is to say, start at event.resultIndex.
+         */
+        if (result.isFinal) {
+          transcript.appendChild(li);
+          updateNodeText('last-final', bs.end().caption);
+        } else {
+          /**
+           * if 'final' isn't set on the result, this is an interim
+           * result, which may (or not) replace any previous content
+           * as speech is recognised and understood by the API.
+           * These results MAY disappear at a later stage, from the
+           * end of event.results, which should also be the 'lowest'
+           * level if there's more than one result that is not final.
+           *
+           * OK, this isn't Best Explanation. The idea is, that
+           * several results may be worked on at the same time, and
+           * the index number is about the only thing we have to go
+           * on, for UI purposes. Chrome seems to use a layout much
+           * like this:
+           *
+           * event.results: [prior finals...] [finals...] [interims...]
+           *
+           * Sorting by the array index naturally provides a sorting
+           * such that 'old stuff' is first, and 'new stuff' settles
+           * in later, naturally.
+           *
+           * The tricky part is that the docs aren't clear about if
+           * 'settled' results can 'disappear' entirely, so e.g.
+           * Edge keeps all results pretty much until you stop the
+           * recognition entirely, while Chrome won't be repeating
+           * itself about anything that settled. That's where
+           * resultIndex comes in: the browser should set this only
+           * to the later, 'unsettled' things that need updating.
+           */
           caption.replaceChild(li, oli);
-
-          for (var c = 0; c < interim.length; c++) {
-            var tn = document.createTextNode(interim[c]);
-            var si = document.createElement('span');
-            updateClasses(si, new Set(), new Set(['interim']));
-            si.appendChild(tn);
-            li.appendChild(si);
-          }
-
-          for (var a = 0; a < result.length; a++) {
-            var alternative = result[a];
-
-            var transcript = alternative.transcript;
-            var confidence = alternative.confidence;
-
-            var tn = document.createTextNode(transcript);
-            var e = document.createElement('span');
-
-            if (confidence && confidence > 0) {
-              e.setAttribute('data-confidence', confidence);
-            }
-
-            if (!result.isFinal) {
-              if (interim.includes(transcript)) {
-                continue;
-              }
-
-              interim.push(transcript);
-              updateClasses(e, new Set(), new Set(['interim']));
-            }
-            e.appendChild(tn);
-            li.appendChild(e);
-
-            if (result.isFinal) {
-              updateNodeText('last-line', transcript);
-              updateNodeText('last-final', transcript);
-            } else {
-              updateNodeText('last-line', '[ ' + transcript + ' ]');
-            }
-          }
         }
+
+        updateNodeText('last-line', bs.end().caption);
       }
     },
   },

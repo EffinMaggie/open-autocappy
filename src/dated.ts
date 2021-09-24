@@ -14,6 +14,10 @@ export class DateBetween extends OuterHull<QDate> implements Dated {
   }
 
   absorb(a: QDate): DateBetween {
-    return new DateBetween(this.where().concat([a]));
+    return new DateBetween(this.concat([a]));
   }
+}
+
+export function now(): QDate {
+  return new QDate(new Date(Date.now()));
 }

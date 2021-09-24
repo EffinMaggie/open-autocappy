@@ -95,17 +95,13 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
     return this[this.length - 1];
   }
 
-  where(): Array<Type> {
-    return this;
-  }
-
   /**
    * probably not rhe "best" implementation, but it's a fun one!
    *
    * sort of intuitive, even? ;)
    */
   inside(p: Type): boolean {
-    var v = new OuterHull<Type>(this.where().concat([p]));
+    var v = new OuterHull<Type>(this.concat([p]));
 
     return this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0;
     // TODO: I should probably write a proof that this works.
@@ -119,7 +115,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
   }
 
   /**
-   * More fun with algorithms: our comparison actually becomes quite easy given
+   * More fun with algorithms: hull/item comparison actually becomes quite easy given
    * an inside() function!
    *
    * Visual aid:
@@ -151,7 +147,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
    * {i} is inside {A, B, C}, but {A, B, C} is obviously not in {i}, and sorting
    * an array would most often end up comparing from both sides.
    */
-  compareItem(b: Type): CompareResult {
+  compareOne(b: Type): CompareResult {
     if (this.inside(b)) {
       return 0;
     }
@@ -165,21 +161,22 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
    *
    * "Sadly" because this means thinking about comparators, lol. We can do a
    * few tricks, though...
+   *
+   * It would help properly specifying how we want to sort, so:
+   *
+   *   - sort over begin() of the hull
+   *   - if both begin at the same time, sort the shorter element first
+   *   - otherwise, we don't really care about length
+   *
+   * This should be equivalent to:
+   *
+   *   - compare: { begin() < b.begin() }
+   *   - iff 0, compare: { end() < b.end() }
+   *   - iff 0, both hulls are equivalent
+   *
    */
-  compare(b: OuterHull<Type>): CompareResult {
-    /**
-     * It would help properly specifying how we want to sort, so:
-     * - sort over begin() of the hull
-     * - if both begin at the same time, sort the shorter element first
-     * - otherwise, we don't really care about length
-     */
-    let bc = this.begin().compare(b.begin());
-    if (bc == 0) {
-      // same begin(), just sort by end():
-      return this.end().compare(b.end());
-    }
-
-    return bc;
+  public compare(b: OuterHull<Type>): CompareResult {
+    return this.begin().compare(b.begin()) || this.end().compare(b.end());
   }
 }
 

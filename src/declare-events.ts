@@ -1,18 +1,21 @@
 /** @format */
 
 import { updateNodeClasses } from './dom-manipulation.js';
+import { DateBetween, now } from './dated.js';
 
-type EventHandler = (event: object) => boolean;
+type EventHandler = (event: Event) => void;
 
 export interface EventDeclaration {
   name: string;
   handler: EventHandler;
 }
 
+const endcls = new Set(['end']);
+const activecls = new Set(['active']);
+
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {
-  var active = false;
-  const endcls = new Set(['end']);
-  const activecls = new Set(['active']);
+  let active = false;
+  let started = null;
 
   return {
     status: function () {
@@ -23,6 +26,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
       name: onstart,
       handler: function (event) {
         active = true;
+        started = now();
 
         updateNodeClasses(id, endcls, activecls);
       },
@@ -32,6 +36,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
       name: onend,
       handler: function (event) {
         active = false;
+        started = null;
 
         updateNodeClasses(id, activecls, endcls);
       },
@@ -39,7 +44,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
   };
 }
 
-export function registerEventHandlers(emitter, events) {
+export function registerEventHandlers(emitter: EventTarget, events) {
   var status = undefined;
 
   for (const key in events) {
