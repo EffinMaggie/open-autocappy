@@ -78,16 +78,63 @@ Inheritance diagram for Transcript:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac7328c33bafd369eda14df23225c8f28"><td class="memItemLeft" align="right" valign="top"><a id="ac7328c33bafd369eda14df23225c8f28"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (ts:Array&lt; <a class="el" href="classBranches.html">Branches</a> &gt;, idx:number|undefined)</td></tr>
-<tr class="separator:ac7328c33bafd369eda14df23225c8f28"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dabb983659cc4a6ae83052cf4621da0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTranscript.html#a9dabb983659cc4a6ae83052cf4621da0">constructor</a> (ts:Iterable&lt; <a class="el" href="classBranches.html">Branches</a> &gt;, idx?:number)</td></tr>
+<tr class="separator:a9dabb983659cc4a6ae83052cf4621da0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3f2118f54ca4e4f4fa5e183478e47f30"><td class="memItemLeft" align="right" valign="top"><a id="a3f2118f54ca4e4f4fa5e183478e47f30"></a>
-index&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number | undefined</td></tr>
+index&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number</td></tr>
 <tr class="separator:a3f2118f54ca4e4f4fa5e183478e47f30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cd1840a0ac7fb6042b63855ac065127"><td class="memItemLeft" align="right" valign="top"><a id="a6cd1840a0ac7fb6042b63855ac065127"></a>
+indexed&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: { [id: number]: <a class="el" href="classBranches.html">Branches</a> }</td></tr>
+<tr class="separator:a6cd1840a0ac7fb6042b63855ac065127"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a6704e4eb79f0435dccb912a3cf5146"><td class="memItemLeft" align="right" valign="top"><a id="a2a6704e4eb79f0435dccb912a3cf5146"></a>
+settled&#160;</td><td class="memItemRight" valign="bottom"><b>__pad2__</b>: <a class="el" href="classBranches.html">Branches</a>[]</td></tr>
+<tr class="separator:a2a6704e4eb79f0435dccb912a3cf5146"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef7114f6e005de0ec572619bab486fb3"><td class="memItemLeft" align="right" valign="top"><a id="aef7114f6e005de0ec572619bab486fb3"></a>
+interim&#160;</td><td class="memItemRight" valign="bottom"><b>__pad3__</b>: <a class="el" href="classBranches.html">Branches</a>[]</td></tr>
+<tr class="separator:aef7114f6e005de0ec572619bab486fb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9dabb983659cc4a6ae83052cf4621da0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dabb983659cc4a6ae83052cf4621da0">&#9670;&nbsp;</a></span>constructor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Transcript::constructor </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>ts:Iterable&lt; Branches &gt;</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>idx?:number</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Prepare semantic maps for branches in different states.</p>
+<p>Separate maps by state help when merging or using the transcript or updating the transcript, especially during captioning, where many of the branches could be in chaotically different states and maybe even from distinct sources.</p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/caption-branches.ts</li>
 </ul>

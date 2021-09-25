@@ -2,5 +2,5 @@ var searchData=
 [
   ['carrier_2',['carrier',['../classcarrier.html',1,'']]],
   ['changelog_3',['CHANGELOG',['../md_CHANGELOG.html',1,'']]],
-  ['constructor_4',['constructor',['../classOuterHull_3_01Type_01extends_01Qualified_01_4.html#ae23923dad3776fede69747c46691f707',1,'OuterHull&lt; Type extends Qualified &gt;']]]
+  ['constructor_4',['constructor',['../classTranscript.html#a9dabb983659cc4a6ae83052cf4621da0',1,'Transcript::constructor()'],['../classOuterHull_3_01Type_01extends_01Qualified_01_4.html#a309d409873bdec5a81e364a86dfe6cec',1,'OuterHull&lt; Type extends Qualified &gt;::constructor()']]]
 ];
