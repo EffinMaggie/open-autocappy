@@ -8,36 +8,33 @@ import {
   hasClass,
 } from './dom-manipulation.js';
 import { CompareResult, Qualified, QValue, OuterHull, sort } from './qualified.js';
-import { Dated, DateBetween, QDate, now } from './dated.js';
+import { DateBetween, QDate, now } from './dated.js';
 
 export class Branch implements Qualified {
   when: DateBetween;
   confidence: QValue;
-  final: boolean;
-  caption: string;
+  final?: boolean;
+  text?: string;
+  source?: string;
 
-  constructor(w: DateBetween, c: QValue, f: boolean, t: string) {
-    this.when = w;
-    this.confidence = c;
-    this.final = f;
-    this.caption = t;
+  constructor(when: DateBetween, confidence: QValue, final?: boolean, text?: string, source?: string) {
+    this.when = when;
+    this.confidence = confidence;
+    this.final = final;
+    this.text = text;
+    this.source = source;
   }
 
   compare(b: Branch): CompareResult {
-    // TODO: chaining multiple Qualified implementations really sounds like
-    // something that should be a function composition... consider refactoring
-    // into something that does this.
-    const dc = this.when.compare(b.when);
-
-    return dc == 0 ? this.confidence.compare(b.confidence) : dc;
+    return this.when.compare(b.when) || this.confidence.compare(b.confidence);
   }
 }
 
 export class Branches extends OuterHull<Branch> {
-  index: number | undefined;
+  index?: number;
   final: boolean;
 
-  constructor(bs: Array<Branch>, idx: number | undefined, final: boolean) {
+  constructor(bs: Iterable<Branch>, idx: number | undefined, final: boolean) {
     super(bs);
 
     this.index = idx;
@@ -46,30 +43,60 @@ export class Branches extends OuterHull<Branch> {
 }
 
 export class Transcript extends OuterHull<Branches> {
-  index: number | undefined;
+  index?: number;
+  indexed: { [id: number]: Branches };
+  settled: Branches[];
+  interim: Branches[];
 
-  constructor(ts: Array<Branches>, idx: number | undefined) {
+  constructor(ts: Iterable<Branches>, idx?: number) {
     super(ts);
 
     this.index = idx;
+    this.indexed = {};
+    this.settled = [];
+    this.interim = [];
+
+    /**
+     * Prepare semantic maps for branches in different states.
+     *
+     * Separate maps by state help when merging or using the transcript or
+     * updating the transcript, especially during captioning, where many of
+     * the branches could be in chaotically different states and maybe even
+     * from distinct sources.
+     */
+    for (const branches of this) {
+      if (!branches) {
+        console.error('empty branch set', this, branches);
+        continue;
+      }
+
+      if (branches.index === undefined) {
+        if (branches.final) {
+          this.settled.push(branches);
+        } else {
+          this.interim.push(branches);
+        }
+        continue;
+      }
+
+      if (this.index === undefined) {
+        this.indexed[branches.index] = branches;
+        continue;
+      }
+
+      if (branches.index >= this.index) {
+        this.indexed[branches.index] = branches;
+      } else if (branches.index < this.index) {
+        this.settled.push(branches);
+      }
+      if (!branches.final) {
+        this.interim.push(branches);
+      }
+    }
   }
 
-  final(): Transcript {
-    return new Transcript(
-      this.filter((bs: Branches): boolean => {
-        return bs.final && bs.index >= this.index;
-      }),
-      this.index
-    );
-  }
-
-  interim(): Transcript {
-    return new Transcript(
-      this.filter((bs: Branches): boolean => {
-        return !bs.final;
-      }),
-      this.index
-    );
+  concat(bs: Iterable<Branches>): Transcript {
+    return new Transcript(this.catter(bs));
   }
 }
 
@@ -138,10 +165,7 @@ export class Transcript extends OuterHull<Branches> {
  * the confidence values and the exact time span.
  */
 export const DOM = {
-  fromSpan: (node: Element): Branch | undefined => {
-    if (node.tagName.toLowerCase() !== 'span') {
-      return undefined;
-    }
+  fromSpan: (node: HTMLSpanElement): Branch => {
     const f = hasClass(node, 'final') || !hasClass(node, 'interim') || false;
     const c = new QValue(Number(node.getAttribute('data-q') || '0'));
     const w = new DateBetween(
@@ -149,80 +173,129 @@ export const DOM = {
         return new QDate(new Date(Number(point)));
       })
     );
-    const t = node.textContent;
+    const text = node.textContent || undefined;
 
-    return new Branch(w, c, f, t);
+    return new Branch(w, c, f, text);
   },
 
-  fromLi: (node: Element): Branches | undefined => {
-    if (node.tagName.toLowerCase() !== 'li') {
-      return undefined;
+  fromLi: (node: HTMLLIElement): Branches | undefined => {
+   const bs = Array.from(node.querySelectorAll('span')).reduce((bs: Branch[], e): Branch[] => {
+     let branch = DOM.fromSpan(e);
+     if (branch) {
+          bs.push(branch);
+        }
+        return bs;
+      }, []);
+
+    if (!bs.length) {
+      return;
     }
-    const i = node.getAttribute('data-index');
-    const idx = i ? Number(i) : undefined;
+
+    const idx = Number(node.getAttribute('data-index')?.toString()) || undefined;
     const f = hasClass(node, 'final');
-    return new Branches(
-      Array.from(node.querySelectorAll('span')).map((e: Element): Branch => {
-        return DOM.fromSpan(e);
-      }),
-      idx,
-      f
-    );
+
+    return new Branches(bs, idx, f);
   },
 
-  fromOl: (node: Element): Transcript => {
-    if (node.tagName.toLowerCase() !== 'ol') {
-      return undefined;
+  fromOl: (node: HTMLOListElement): Transcript | undefined => {
+    const bs = Array.from(node.querySelectorAll('li')).reduce((bs: Branches[], e: HTMLLIElement): Branches[] => {
+        let branches = DOM.fromLi(e);
+        if (branches) {
+          bs.push(branches);
+        }
+        return bs;
+      }, []);
+
+    if (!bs.length) {
+      return;
     }
+
+    const idx = Number(node.getAttribute('data-index')?.toString()) || undefined;
+    
     return new Transcript(
-      Array.from(node.querySelectorAll('li')).map((e: Element): Branches => {
-        return DOM.fromLi(e);
-      }),
-      undefined
+      bs,
+      idx
     );
   },
 
-  toSpan: (b: Branch, where: Element): Element => {
+  toSpan: (b: Branch, where: Element): HTMLSpanElement => {
     // TODO: try to identify this node in where and update instead of creating a new one.
     var span = document.createElement('span');
     if (b.final) {
-      updateClasses(span, new Set(['interim']), new Set(['final']));
+      updateClasses(span, ['interim'], ['final']);
     } else {
-      updateClasses(span, new Set(['final']), new Set(['interim']));
+      updateClasses(span, ['final'], ['interim']);
     }
     if (b.confidence) {
       span.setAttribute('data-q', b.confidence.q.toString());
     }
+    const when: Iterable<string> = b.when.map((when: QDate): string => {
+          return when.q.getTime().toString();
+        });
     span.setAttribute(
       'data-when',
-      b.when
-        .map((when: QDate): string => {
-          return when.q.getTime().toString();
-        })
-        .join(' ')
+      Array.from(when).join(' ')
     );
-    updateText(span, b.caption);
+    updateText(span, b.text);
     return span;
   },
 
   toLi: (bs: Branches): Element => {
     let li = document.createElement('li');
     if (bs.final) {
-      updateClasses(li, new Set(), new Set(['final']));
+      updateClasses(li, undefined, ['final']);
     } else {
-      updateClasses(li, new Set(['final']), new Set());
+      updateClasses(li, ['final']);
     }
     if (bs.index !== undefined) {
-      if (bs.index) {
-        li.setAttribute('data-index', bs.index.toString());
-      }
+      li.setAttribute('data-index', bs.index.toString());
     }
-    bs.forEach((b: Branch): void => {
-      li.appendChild(DOM.toSpan(b, li));
-    });
+    for (const b of bs) {
+      let span = DOM.toSpan(b, li);
+      li.appendChild(span);
+    }
     return li;
   },
+
+  toOl: (ts: Transcript): HTMLOListElement => {
+    let ol = document.createElement('ol');
+    if (ts.index !== undefined) {
+      ol.setAttribute('data-index', ts.index.toString());
+    }
+    for (const bs of ts) {
+      let li = DOM.toLi(bs);
+      ol.appendChild(li);
+    }
+    return ol;
+  },
+
+  merge: (where: HTMLOListElement, ts: Transcript): HTMLOListElement => {
+    let t = DOM.fromOl(where);
+    let c: Transcript = t?.concat(ts) ?? ts;
+    let out = DOM.toOl((where.id === 'caption') ? new Transcript(c.interim) : c);
+
+    console.warn('calculated transcript: ', c);
+    console.warn('serialisation for #' + where.id + ': ', out);
+
+    replaceContent(where, out.children);
+
+    return where;
+  },
 };
+
+export interface Recogniser extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  serviceURI?: string;
+
+  constructor();
+
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
 
 export interface SpeechAPIAlternative {
   transcript: string;
@@ -248,22 +321,24 @@ export interface SpeechAPIEvent extends Event {
 }
 
 export const SpeechAPI = {
-  fromAlternative: (alt: SpeechAPIAlternative, final: boolean): Branch => {
+  fromAlternative: (alt: SpeechAPIAlternative, final?: boolean): Branch => {
     return new Branch(new DateBetween([now()]), new QValue(alt.confidence), final, alt.transcript);
   },
 
-  fromResult: (result: SpeechAPIResult, idx: number): Branches => {
-    var bs: Array<Branch> = [];
+  fromResult: (result: SpeechAPIResult, idx?: number): Branches => {
+    var bs: Branch[] = [];
     for (let i = 0; i < result.length; i++) {
-      const alt: SpeechAPIAlternative = result.item(i);
-      const branch = SpeechAPI.fromAlternative(alt, result.isFinal);
-      bs.push(branch);
+      const alt = result.item(i);
+      if (alt) {
+        const branch = SpeechAPI.fromAlternative(alt, result.isFinal);
+        bs.push(branch);
+      }
     }
     return new Branches(bs, idx, result.isFinal);
   },
 
-  fromList: (list: SpeechAPIResultList, idx: number | undefined): Transcript => {
-    var ds: Array<Branches> = [];
+  fromList: (list: SpeechAPIResultList, idx?: number): Transcript => {
+    var ds: Branches[] = [];
     for (let i = idx || 0; i < list.length; i++) {
       const result: SpeechAPIResult = list.item(i);
       const branches = SpeechAPI.fromResult(result, i);

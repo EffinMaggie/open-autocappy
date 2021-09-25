@@ -1,7 +1,7 @@
 /** @format */
 
 import { updateNodeClasses } from './dom-manipulation.js';
-import { DateBetween, now } from './dated.js';
+import { QDate, DateBetween, now } from './dated.js';
 
 type EventHandler = (event: Event) => void;
 
@@ -10,12 +10,9 @@ export interface EventDeclaration {
   handler: EventHandler;
 }
 
-const endcls = new Set(['end']);
-const activecls = new Set(['active']);
-
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {
   let active = false;
-  let started = null;
+  let started: QDate | undefined = undefined;
 
   return {
     status: function () {
@@ -28,7 +25,7 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
         active = true;
         started = now();
 
-        updateNodeClasses(id, endcls, activecls);
+        updateNodeClasses(id, ['end'], ['active']);
       },
     },
 
@@ -36,9 +33,9 @@ export function makeStatusHandlers(id: string, onstart: string, onend: string) {
       name: onend,
       handler: function (event) {
         active = false;
-        started = null;
+        started = undefined;
 
-        updateNodeClasses(id, activecls, endcls);
+        updateNodeClasses(id, ['active'], ['end']);
       },
     },
   };

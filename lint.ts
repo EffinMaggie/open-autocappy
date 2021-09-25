@@ -30,7 +30,7 @@ interface common {
 
 interface update extends common {
   pass: true;
-  clean: true | null;
+  clean?: true;
   source: string;
   pretty: string;
 }
@@ -48,7 +48,7 @@ interface reason extends common {
 
 export type result = update | diff | reason;
 
-export function prettify(file) {
+export function prettify(file): Promise<result> {
   return new Promise((resolve, reject) => {
     readFile(file, 'utf8', (err, data) => {
       if (err) {
@@ -92,7 +92,7 @@ function diff(update: update): diff {
 }
 
 function formatFiles(write: boolean, files: Array<string>): Array<Promise<result>> {
-  let ps = [];
+  let ps: Promise<result>[] = [];
 
   for (const file of files) {
     ps.push(

@@ -56,7 +56,13 @@ export class QValue extends Q<number> {}
  * from the Qualified interface; we don't actually need to know or care what
  * kind of "point" we have, so this works just the same with Dates.
  */
-export class OuterHull<Type extends Qualified> extends Array<Type> implements Qualified {
+export class OuterHull<Type extends Qualified> implements Qualified, Iterable<Type> {
+  readonly length?: number;
+  readonly start?: Type;
+  readonly end?: Type;
+
+  *[Symbol.iterator](): Generator<Type> {};
+
   /**
    * construct with a "plain" array of Type.
    *
@@ -68,13 +74,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
    * requiring at least one point, and sorting out list of points, begin() is
    * simply always the first element (this[0]). Thus: win!
    */
-  constructor(a: Array<Type>) {
-    super(a.length);
-
-    for (const i in a) {
-      this[i] = a[i];
-    }
-
+  constructor(a: Iterable<Type>) {
     /**
      * this sort() is important: this, here, is the Array base class' sort();
      *
@@ -82,28 +82,65 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
      * be a linear scan without changes (i.e.: fast) if it's already sorted, so
      * should be fine in the constructor.
      */
-    this.sort(function (a: Type, b: Type) {
-      return a.compare(b);
-    });
+    const mine = Array.from(a).sort((a: Type, b: Type) => a.compare(b));
+
+    if (!mine.length) {
+      return;
+    }
+
+    this.length = mine.length;
+    this.start = mine[0];
+    this.end = mine[mine.length-1];
+
+    this[Symbol.iterator] = function* () {
+      yield* mine;
+    }
   }
 
-  begin(): Type {
-    return this[0];
+  *absorber(b: Type): Generator<Type> {
+    yield *this;
+    yield b;
   }
 
-  end(): Type {
-    return this[this.length - 1];
+  // deliberate similarity to Array<Type>
+  *catter(bs: Iterable<Type>): Generator<Type> {
+    yield* this;
+    for (const b of bs) {
+      yield b;
+    }
+  }
+
+  *convertor<O>(f: (val: Type) => O): Generator<O> {
+    for (const val of this) {
+      yield f(val);
+    }
+  }
+
+  absorb(b: Type): OuterHull<Type> {
+    return new OuterHull<Type>(this.absorber(b));
+  }
+
+  concat(bs: Iterable<Type>): OuterHull<Type> {
+    return new OuterHull<Type>(this.catter(bs));
+  }
+
+  map<O>(f: (val: Type) => O): Iterable<O> {
+    return this.convertor<O>(f);
   }
 
   /**
-   * probably not rhe "best" implementation, but it's a fun one!
+   * probably not the "best" implementation, but it's a fun one!
    *
    * sort of intuitive, even? ;)
    */
   inside(p: Type): boolean {
-    var v = new OuterHull<Type>(this.concat([p]));
+    if (!this.length) {
+      return false;
+    }
 
-    return this.begin().compare(v.begin()) != 0 || this.end().compare(v.end()) != 0;
+    let v = new OuterHull<Type>(this.concat([p]));
+
+    return this.start!.compare(v.start ?? p) === 0 && this.end!.compare(v.end ?? p) === 0;
     // TODO: I should probably write a proof that this works.
   }
 
@@ -152,7 +189,7 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
       return 0;
     }
 
-    return this.begin().compare(b);
+    return this.start?.compare(b) ?? -1;
   }
 
   /**
@@ -176,11 +213,19 @@ export class OuterHull<Type extends Qualified> extends Array<Type> implements Qu
    *
    */
   public compare(b: OuterHull<Type>): CompareResult {
-    return this.begin().compare(b.begin()) || this.end().compare(b.end());
+    if (!this.length) {
+      return -1;
+    }
+
+    if (!b.length) {
+      return 1;
+    }
+
+    return this.start!.compare(b.start!) || this.end!.compare(b.end!);
   }
 }
 
-export function sort<Type extends Qualified>(a: Array<Type>): Array<Type> {
+export function sort<Type extends Qualified>(a: Type[]): Type[] {
   return a.sort(function (a: Qualified, b: Qualified) {
     return a.compare(b);
   });

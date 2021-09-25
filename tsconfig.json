@@ -3,9 +3,10 @@
     "allowJs": true,
     "checkJs": true,
     "target": "es2015",
-    "sourceMap": false,
+    "sourceMap": true,
     "moduleResolution": "node",
     "module": "es2020",
+    "strictNullChecks": true,
     "allowSyntheticDefaultImports": true
   },
   "include": ["./src/**/*.ts", "./test/**/*.ts", "*.ts"]

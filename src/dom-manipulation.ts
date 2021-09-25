@@ -1,6 +1,6 @@
 /** @format */
 
-export function clearContent(node: Element): Element {
+export function clearContent(node: HTMLElement): HTMLElement {
   while (node.firstChild) {
     node.removeChild(node.firstChild);
   }
@@ -8,23 +8,23 @@ export function clearContent(node: Element): Element {
   return node;
 }
 
-export function addContent(node: Element, newContent: Array<Node>): Element {
-  for (const c in newContent) {
-    node.appendChild(newContent[c]);
+export function addContent(node: HTMLElement, newContent: Iterable<Node>): HTMLElement {
+  for (const n of newContent) {
+    node.appendChild(n);
   }
 
   return node;
 }
 
-export function replaceContent(node: Element, newContent: Array<Node>): Element {
+export function replaceContent(node: HTMLElement, newContent: Iterable<Node>): HTMLElement {
   return addContent(clearContent(node), newContent);
 }
 
-export function updateText(node: Element, newText: string): Element {
+export function updateText(node: HTMLElement, newText?: string): HTMLElement {
   return newText ? replaceContent(node, [document.createTextNode(newText)]) : clearContent(node);
 }
 
-export function updateNodeText(nodeID: string, newText: string): Element | false {
+export function updateNodeText(nodeID: string, newText?: string): HTMLElement | false {
   var n = document.getElementById(nodeID);
   if (n) {
     return updateText(n, newText);
@@ -33,17 +33,24 @@ export function updateNodeText(nodeID: string, newText: string): Element | false
   return false;
 }
 
-export function updateClasses(node: Element, remove: Set<string>, add: Set<string>): Element {
-  var c = node.getAttribute('class');
-  var s = new Set(c ? c.split(' ') : []);
-  for (const i of remove) {
-    s.delete(i);
-  }
-  for (const i of add) {
-    s.add(i);
+type classList = Set<string> | Array<string> | false;
+
+export function updateClasses(node: HTMLElement, remove: string[] = [], add: string[] = []): HTMLElement {
+  const had = node.hasAttribute('class');
+  const attr = node.getAttribute('class');
+  const classes = add.concat(attr?.split(' ') ?? []);
+
+  let s = new Set(classes);
+
+  for (const cls of remove) {
+    s.delete(cls);
   }
 
-  node.setAttribute('class', Array.from(s).join(' '));
+  if (s.size > 0) {
+    node.setAttribute('class', Array.from(s).join(' '));
+  } else if (had) {
+    node.removeAttribute('class');
+  }
 
   return node;
 }
@@ -57,6 +64,9 @@ export function hasClass(node: Element, cls: string): boolean {
   return c.split(' ').includes(cls);
 }
 
-export function updateNodeClasses(nodeID: string, remove: Set<string>, add: Set<string>): Element {
-  return updateClasses(document.getElementById(nodeID), remove, add);
+export function updateNodeClasses(nodeID: string, remove: string[], add: string[]): HTMLElement | void {
+  let node = document.getElementById(nodeID);
+  if (node) {
+    return updateClasses(node, remove, add);
+  }
 }
