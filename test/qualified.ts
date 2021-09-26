@@ -3,7 +3,7 @@
 import { LogFunction, TestFunction, Testable } from './run.js';
 import { QValue, sort } from '../src/qualified.js';
 
-class extendedQualified extends QValue {
+class extendedPartialOrder extends QValue {
   isZero?: boolean;
 
   constructor(qval: number, z?: boolean) {
@@ -16,35 +16,35 @@ class extendedQualified extends QValue {
 function testSort(log: LogFunction): boolean {
   const tt: Array<{
     name: string;
-    have: Array<extendedQualified>;
-    expect: Array<extendedQualified>;
+    have: Array<extendedPartialOrder>;
+    expect: Array<extendedPartialOrder>;
   }> = [
     {
       name: 'no sort needed',
-      have: [new extendedQualified(1)],
-      expect: [new extendedQualified(1)],
+      have: [new extendedPartialOrder(1)],
+      expect: [new extendedPartialOrder(1)],
     },
     {
       name: 'invert',
-      expect: [new extendedQualified(0.1), new extendedQualified(0.2), new extendedQualified(0.3)],
-      have: [new extendedQualified(0.3), new extendedQualified(0.2), new extendedQualified(0.1)],
+      expect: [new extendedPartialOrder(0.1), new extendedPartialOrder(0.2), new extendedPartialOrder(0.3)],
+      have: [new extendedPartialOrder(0.3), new extendedPartialOrder(0.2), new extendedPartialOrder(0.1)],
     },
     {
       name: 'negative',
-      expect: [new extendedQualified(-0.1), new extendedQualified(0), new extendedQualified(0.3)],
-      have: [new extendedQualified(0.3), new extendedQualified(0), new extendedQualified(-0.1)],
+      expect: [new extendedPartialOrder(-0.1), new extendedPartialOrder(0), new extendedPartialOrder(0.3)],
+      have: [new extendedPartialOrder(0.3), new extendedPartialOrder(0), new extendedPartialOrder(-0.1)],
     },
     {
       name: 'negative with extra fields',
       expect: [
-        new extendedQualified(-0.1),
-        new extendedQualified(0, true),
-        new extendedQualified(0.3, false),
+        new extendedPartialOrder(-0.1),
+        new extendedPartialOrder(0, true),
+        new extendedPartialOrder(0.3, false),
       ],
       have: [
-        new extendedQualified(0.3, false),
-        new extendedQualified(0, true),
-        new extendedQualified(-0.1),
+        new extendedPartialOrder(0.3, false),
+        new extendedPartialOrder(0, true),
+        new extendedPartialOrder(-0.1),
       ],
     },
   ];
@@ -61,7 +61,7 @@ function testSort(log: LogFunction): boolean {
       r = false;
     } else
       for (const x in have) {
-        if (have[x].q !== t.expect[x].q) {
+        if (have[x].valueOf() !== t.expect[x].valueOf()) {
           console.error(have, '!=', t.expect);
           r = false;
         }

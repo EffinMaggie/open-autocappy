@@ -7,10 +7,10 @@ import {
   replaceContent,
   hasClass,
 } from './dom-manipulation.js';
-import { CompareResult, Qualified, QValue, OuterHull, sort } from './qualified.js';
+import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, QDate, now } from './dated.js';
 
-export class Branch implements Qualified {
+export class Branch implements PartialOrder {
   when: DateBetween;
   confidence: QValue;
   final?: boolean;
@@ -227,10 +227,10 @@ export const DOM = {
       updateClasses(span, ['final'], ['interim']);
     }
     if (b.confidence) {
-      span.setAttribute('data-q', b.confidence.q.toString());
+      span.setAttribute('data-q', b.confidence.toString());
     }
     const when: Iterable<string> = b.when.map((when: QDate): string => {
-          return when.q.getTime().toString();
+          return when.valueOf().getTime().toString();
         });
     span.setAttribute(
       'data-when',

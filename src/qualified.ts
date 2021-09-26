@@ -2,22 +2,40 @@
 
 export type CompareResult = -1 | 0 | 1;
 
-export interface Qualified {
-  compare(b: Qualified): CompareResult;
+const valueSymbol = Symbol('value');
+
+export interface PartialOrder {
+  compare(b: PartialOrder): CompareResult;
 }
 
-export class Q<Type> implements Qualified {
-  q: Type;
+export interface Equatable {
+  equal(b: PartialOrder): boolean;
+}
 
-  constructor(qval: Type) {
-    this.q = qval;
+export class Q<Type> implements PartialOrder, Equatable {
+  readonly [valueSymbol]: Type;
+
+  valueOf(): Type {
+    return this[valueSymbol];
+  }
+
+  toString(): string {
+    return String(this[valueSymbol]);
+  }
+
+  constructor(readonly qval: Type) {
+    this[valueSymbol] = qval;
+  }
+
+  equal(b: Q<Type>): boolean {
+    return this.valueOf() === b.valueOf();
   }
 
   compare(b: Q<Type>): CompareResult {
-    if (b.q == this.q) {
+    if (b[valueSymbol] == this[valueSymbol]) {
       return 0;
     }
-    if (b.q < this.q) {
+    if (b[valueSymbol] < this[valueSymbol]) {
       return 1;
     }
     return -1;
@@ -27,7 +45,7 @@ export class Q<Type> implements Qualified {
 export class QValue extends Q<number> {}
 
 /**
- * template class for an outer hull for a generic Qualified value.
+ * template class for an outer hull for a generic PartialOrder value.
  *
  * Why? Because the date/time range stuff needs this exact feature, and I don't
  * see any need for it to actually be a special implementation for date ranges
@@ -35,7 +53,7 @@ export class QValue extends Q<number> {}
  *
  * Note: the outer hull in a 1D context is effectively a range:
  *
- * Let's say A, B and C implement Qualified by being QValue instance, and those
+ * Let's say A, B and C implement PartialOrder by being QValue instance, and those
  * qvalues are between -1 and 1.
  * The outer hull in this case is intuitively the range from A to C, because
  * there's only one way to define a consistent "inside" in 1D, assuming we want
@@ -53,10 +71,10 @@ export class QValue extends Q<number> {}
  *       |///// HULL ///|
  *
  * We only need one thing to construct the comparator: the "compare" function
- * from the Qualified interface; we don't actually need to know or care what
+ * from the PartialOrder interface; we don't actually need to know or care what
  * kind of "point" we have, so this works just the same with Dates.
  */
-export class OuterHull<Type extends Qualified> implements Qualified, Iterable<Type> {
+export class OuterHull<Type extends PartialOrder> implements PartialOrder, Iterable<Type> {
   readonly length?: number;
   readonly start?: Type;
   readonly end?: Type;
@@ -225,8 +243,8 @@ export class OuterHull<Type extends Qualified> implements Qualified, Iterable<Ty
   }
 }
 
-export function sort<Type extends Qualified>(a: Type[]): Type[] {
-  return a.sort(function (a: Qualified, b: Qualified) {
+export function sort<Type extends PartialOrder>(a: Type[]): Type[] {
+  return a.sort(function (a: PartialOrder, b: PartialOrder) {
     return a.compare(b);
   });
 }
