@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['extendedqualified_6',['extendedQualified',['../classextendedQualified.html',1,'']]]
+  ['extendedpartialorder_6',['extendedPartialOrder',['../classextendedPartialOrder.html',1,'']]]
 ];

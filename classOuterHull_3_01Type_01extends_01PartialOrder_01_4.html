@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>My Project: OuterHull&lt; Type extends Qualified &gt; Class Reference</title>
+<title>My Project: OuterHull&lt; Type extends PartialOrder &gt; Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -64,46 +64,46 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="classOuterHull_3_01Type_01extends_01Qualified_01_4-members.html">List of all members</a>  </div>
+<a href="classOuterHull_3_01Type_01extends_01PartialOrder_01_4-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">OuterHull&lt; Type extends Qualified &gt; Class Reference</div>  </div>
+<div class="title">OuterHull&lt; Type extends PartialOrder &gt; Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="dynheader">
-Inheritance diagram for OuterHull&lt; Type extends Qualified &gt;:</div>
+Inheritance diagram for OuterHull&lt; Type extends PartialOrder &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classOuterHull_3_01Type_01extends_01Qualified_01_4.png" alt=""/>
+  <img src="classOuterHull_3_01Type_01extends_01PartialOrder_01_4.png" alt=""/>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a309d409873bdec5a81e364a86dfe6cec"><td class="memItemLeft" align="right" valign="top">*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classOuterHull_3_01Type_01extends_01Qualified_01_4.html#a309d409873bdec5a81e364a86dfe6cec">constructor</a> (a:Iterable&lt; Type &gt;)</td></tr>
-<tr class="separator:a309d409873bdec5a81e364a86dfe6cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca30ae7ed7a5753383fa0f7286a0710e"><td class="memItemLeft" align="right" valign="top">*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classOuterHull_3_01Type_01extends_01PartialOrder_01_4.html#aca30ae7ed7a5753383fa0f7286a0710e">constructor</a> (a:Iterable&lt; Type &gt;)</td></tr>
+<tr class="separator:aca30ae7ed7a5753383fa0f7286a0710e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a04b801e4b17e438a3b739fbb1ec020a9"><td class="memItemLeft" align="right" valign="top"><a id="a04b801e4b17e438a3b739fbb1ec020a9"></a>
+<tr class="memitem:ad36b36757912059f4df95024806433bb"><td class="memItemLeft" align="right" valign="top"><a id="ad36b36757912059f4df95024806433bb"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>length</b>: number</td></tr>
-<tr class="separator:a04b801e4b17e438a3b739fbb1ec020a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50916f173bfaba86cdba220f8b5a201f"><td class="memItemLeft" align="right" valign="top"><a id="a50916f173bfaba86cdba220f8b5a201f"></a>
+<tr class="separator:ad36b36757912059f4df95024806433bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8459ccb945801a616183b135c74b201c"><td class="memItemLeft" align="right" valign="top"><a id="a8459ccb945801a616183b135c74b201c"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>start</b>: Type</td></tr>
-<tr class="separator:a50916f173bfaba86cdba220f8b5a201f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a49acfd5e52b10b52ff6861138b4bd5a4"><td class="memItemLeft" align="right" valign="top"><a id="a49acfd5e52b10b52ff6861138b4bd5a4"></a>
+<tr class="separator:a8459ccb945801a616183b135c74b201c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed16fd5cd6377cdb8cf3cccb590e614f"><td class="memItemLeft" align="right" valign="top"><a id="aed16fd5cd6377cdb8cf3cccb590e614f"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>end</b>: Type</td></tr>
-<tr class="separator:a49acfd5e52b10b52ff6861138b4bd5a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:aed16fd5cd6377cdb8cf3cccb590e614f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>template class for an outer hull for a generic Qualified value.</p>
+<div class="textblock"><p>template class for an outer hull for a generic PartialOrder value.</p>
 <p>Why? Because the date/time range stuff needs this exact feature, and I don't see any need for it to actually be a special implementation for date ranges when there's not need for that.</p>
 <p>Note: the outer hull in a 1D context is effectively a range:</p>
-<p>Let's say A, B and C implement Qualified by being <a class="el" href="classQValue.html">QValue</a> instance, and those qvalues are between -1 and 1. The outer hull in this case is intuitively the range from A to C, because there's only one way to define a consistent "inside" in 1D, assuming we want "inside" to not have "holes" (and a lot of confusion because B is part of the points we want to be "inside"; the problem with anything other than A-C is that it becomes ambiguous which of the hulls we want).</p>
+<p>Let's say A, B and C implement PartialOrder by being <a class="el" href="classQValue.html">QValue</a> instance, and those qvalues are between -1 and 1. The outer hull in this case is intuitively the range from A to C, because there's only one way to define a consistent "inside" in 1D, assuming we want "inside" to not have "holes" (and a lot of confusion because B is part of the points we want to be "inside"; the problem with anything other than A-C is that it becomes ambiguous which of the hulls we want).</p>
 <p>Assuming the ASCII art is readable to you, it should clarify what's going on: A, B and C are points we want "inside", point o is "outside" and point i is "inside" as well. A, B and C span an unambiguous outer HULL in the // area.</p>
 <p>-1 | 0 | | 1 -&mdash;A-----&mdash;B--&mdash;C&mdash; o | | i | |///// HULL ///|</p>
-<p>We only need one thing to construct the comparator: the "compare" function from the Qualified interface; we don't actually need to know or care what kind of "point" we have, so this works just the same with Dates. </p>
+<p>We only need one thing to construct the comparator: the "compare" function from the PartialOrder interface; we don't actually need to know or care what kind of "point" we have, so this works just the same with Dates. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a309d409873bdec5a81e364a86dfe6cec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a309d409873bdec5a81e364a86dfe6cec">&#9670;&nbsp;</a></span>constructor()</h2>
+<a id="aca30ae7ed7a5753383fa0f7286a0710e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca30ae7ed7a5753383fa0f7286a0710e">&#9670;&nbsp;</a></span>constructor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -112,7 +112,7 @@ readonly&#160;</td><td class="memItemRight" valign="bottom"><b>end</b>: Type</td
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">* OuterHull&lt; Type extends Qualified &gt;::constructor </td>
+          <td class="memname">* OuterHull&lt; Type extends PartialOrder &gt;::constructor </td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname"><em>a:Iterable&lt; Type &gt;</em></td><td>)</td>
