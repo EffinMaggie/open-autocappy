@@ -48,6 +48,7 @@ export class Branches extends OuterHull<Branch> {
 }
 
 export class Transcript extends OuterHull<Branches> {
+/*
   static *affected(bs: Iterable<Branches>, idx: number = 0): Generator<Branches> {
     for(const b of bs) {
       if((b.index ?? 0) >= idx) {
@@ -55,12 +56,11 @@ export class Transcript extends OuterHull<Branches> {
       }
     }
   }
+*/
 
-  static *merge(bs: Iterable<Branches>, idx?: number): Generator<Branches> {
-    console.warn('before: ', bs);
-
+  static *merge(bs: Iterable<Branches>): Generator<Branches> {
     let m = new Map<string, Branches>();
-    for (const b of Transcript.affected(bs, idx)) {
+    for (const b of bs) {
       if (b.index === undefined) {
         console.warn('emitting without index: ', b);
         yield b;
@@ -80,8 +80,8 @@ export class Transcript extends OuterHull<Branches> {
     }
   }
 
-  constructor(ts: Iterable<Branches>, idx?: number) {
-    super (Transcript.merge(ts, idx));
+  constructor(ts: Iterable<Branches>) {
+    super (Transcript.merge(ts));
   }
 
   *final(): Generator<Branches> {
@@ -191,8 +191,11 @@ export const DOM = {
       return;
     }
 
-    const _index = node.getAttribute('data-index') ?? '';
-    const idx = Number(_index) ?? undefined;
+    const _index = node.getAttribute('data-index');
+    let idx: number | undefined = undefined;
+    if (_index || (_index === '0')) {
+      idx = Number(_index) ?? undefined;
+    }
     const f = hasClass(node, 'final');
 
     return new Branches(bs, idx, f);
@@ -332,7 +335,7 @@ export const SpeechAPI = {
       ds.push(branches);
     }
 
-    return new Transcript(ds, idx);
+    return new Transcript(ds);
   },
 
   fromEvent: (event: SpeechAPIEvent): Transcript => {

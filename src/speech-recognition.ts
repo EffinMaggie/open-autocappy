@@ -152,8 +152,23 @@ export var isCaptioning = registerEventHandlers(
         handler: function (event) {
           r.end.handler(event);
 
-          for (let o of document.querySelectorAll('ol#transcript > li')) {
-            o.removeAttribute('data-index');
+          
+          let ol = document.getElementById('prior-session-transcript')
+          for (let li of document.querySelectorAll('ol#transcript > li[data-index]')) {
+            li.removeAttribute('data-index');
+            if (ol) {
+              li.parentNode?.removeChild(li);
+              ol.appendChild(li);
+            }
+                  }
+          if (ol) {
+            canStoreTranscript(ol);
+            const ts = DOM.fromOl(ol);
+            if (ts) {
+              clearContent(ol);
+
+              DOM.toOl(ts, ol);
+            }
           }
 
           // reset speech API and get back in there.
