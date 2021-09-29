@@ -116,11 +116,21 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
   }
 
   *absorber(b: Type): Generator<Type> {
-    yield *this;
-    yield b;
+    let d: boolean = false;
+
+    for (const v of this) {
+      if (!d &&(v.compare(b) >= 0)) {
+        d = true;
+        yield b;
+      }
+      yield v;
+    }
+
+    if (!d) {
+      yield b;
+    }
   }
 
-  // deliberate similarity to Array<Type>
   *catter(bs: Iterable<Type>): Generator<Type> {
     yield* this;
     for (const b of bs) {
@@ -128,10 +138,16 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
     }
   }
 
-  *convertor<O>(f: (val: Type) => O): Generator<O> {
+  *convertor<O>(f: (val: Type) => O, p: (val: Type) => boolean): Generator<O> {
     for (const val of this) {
-      yield f(val);
+      if (p(val)) {
+        yield f(val);
+      }
     }
+  }
+
+  *filter(p: (val: Type) => boolean): Generator<Type> {
+    yield* this.convertor<Type>(((v: Type): Type => v), p);
   }
 
   absorb(b: Type): OuterHull<Type> {
@@ -143,7 +159,7 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
   }
 
   map<O>(f: (val: Type) => O): Iterable<O> {
-    return this.convertor<O>(f);
+    return this.convertor<O>(f, (): boolean => true);
   }
 
   /**

@@ -109,7 +109,7 @@ registerEventHandlers(recognition, {
 
       let ts = SpeechAPI.fromEvent(event);
 
-      // DOM.merge(caption, ts);
+      DOM.merge(caption, ts);
       DOM.merge(transcript, ts);
     },
   },
@@ -152,6 +152,10 @@ export var isCaptioning = registerEventHandlers(
         handler: function (event) {
           r.end.handler(event);
 
+          for (let o of document.querySelectorAll('ol#transcript > li')) {
+            o.removeAttribute('data-index');
+          }
+
           // reset speech API and get back in there.
           // there ought to be some error checking and somesuch, but in general the
           // intent for this project is to be used in OBS to add closed captions,
@@ -161,7 +165,7 @@ export var isCaptioning = registerEventHandlers(
           // future versions will require flags and proper configurations and the like.
           window.setTimeout(function () {
             if (!r.status()) {
-              // setupCaptions(recognition);
+              setupCaptions(recognition);
             }
           }, 5000);
         },
