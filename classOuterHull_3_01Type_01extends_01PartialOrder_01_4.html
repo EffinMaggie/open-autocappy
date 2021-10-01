@@ -78,8 +78,9 @@ Inheritance diagram for OuterHull&lt; Type extends PartialOrder &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aca30ae7ed7a5753383fa0f7286a0710e"><td class="memItemLeft" align="right" valign="top">*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classOuterHull_3_01Type_01extends_01PartialOrder_01_4.html#aca30ae7ed7a5753383fa0f7286a0710e">constructor</a> (a:Iterable&lt; Type &gt;)</td></tr>
-<tr class="separator:aca30ae7ed7a5753383fa0f7286a0710e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d714e3eed3c7e17a2a2e3697f7c19e4"><td class="memItemLeft" align="right" valign="top"><a id="a2d714e3eed3c7e17a2a2e3697f7c19e4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (!mine.length)</td></tr>
+<tr class="separator:a2d714e3eed3c7e17a2a2e3697f7c19e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -92,6 +93,20 @@ readonly&#160;</td><td class="memItemRight" valign="bottom"><b>start</b>: Type</
 <tr class="memitem:aed16fd5cd6377cdb8cf3cccb590e614f"><td class="memItemLeft" align="right" valign="top"><a id="aed16fd5cd6377cdb8cf3cccb590e614f"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>end</b>: Type</td></tr>
 <tr class="separator:aed16fd5cd6377cdb8cf3cccb590e614f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2eab354b9eff8b22c260f26baae5308d"><td class="memItemLeft" align="right" valign="top"><a id="a2eab354b9eff8b22c260f26baae5308d"></a>
+b&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: Type) =&gt; a.compare(b))</td></tr>
+<tr class="separator:a2eab354b9eff8b22c260f26baae5308d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adce9b0896abf1dadfdb524db3881bc9b"><td class="memItemLeft" align="right" valign="top"><a id="adce9b0896abf1dadfdb524db3881bc9b"></a>
+this&#160;</td><td class="memItemRight" valign="bottom"><b>length</b> = mine.length</td></tr>
+<tr class="separator:adce9b0896abf1dadfdb524db3881bc9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f64c9d8e5678d594148624977a87e2f"><td class="memItemLeft" align="right" valign="top"><a id="a4f64c9d8e5678d594148624977a87e2f"></a>
+this&#160;</td><td class="memItemRight" valign="bottom"><b>start</b> = mine[0]</td></tr>
+<tr class="separator:a4f64c9d8e5678d594148624977a87e2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b388360863d09da7a0a213cca1be7cd"><td class="memItemLeft" align="right" valign="top"><a id="a7b388360863d09da7a0a213cca1be7cd"></a>
+this&#160;</td><td class="memItemRight" valign="bottom"><b>end</b> = mine[mine.length - 1]</td></tr>
+<tr class="separator:a7b388360863d09da7a0a213cca1be7cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b337ce7a4820e14c9ef4df06f8606cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>this</b> [Symbol.iterator]</td></tr>
+<tr class="separator:a1b337ce7a4820e14c9ef4df06f8606cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>template class for an outer hull for a generic PartialOrder value.</p>
@@ -101,35 +116,22 @@ readonly&#160;</td><td class="memItemRight" valign="bottom"><b>end</b>: Type</td
 <p>Assuming the ASCII art is readable to you, it should clarify what's going on: A, B and C are points we want "inside", point o is "outside" and point i is "inside" as well. A, B and C span an unambiguous outer HULL in the // area.</p>
 <p>-1 | 0 | | 1 -&mdash;A-----&mdash;B--&mdash;C&mdash; o | | i | |///// HULL ///|</p>
 <p>We only need one thing to construct the comparator: the "compare" function from the PartialOrder interface; we don't actually need to know or care what kind of "point" we have, so this works just the same with Dates. </p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="aca30ae7ed7a5753383fa0f7286a0710e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca30ae7ed7a5753383fa0f7286a0710e">&#9670;&nbsp;</a></span>constructor()</h2>
+</div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="a1b337ce7a4820e14c9ef4df06f8606cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b337ce7a4820e14c9ef4df06f8606cd">&#9670;&nbsp;</a></span>this</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">* OuterHull&lt; Type extends PartialOrder &gt;::constructor </td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>a:Iterable&lt; Type &gt;</em></td><td>)</td>
-          <td></td>
+          <td class="memname">OuterHull&lt; Type extends PartialOrder &gt;::this[Symbol.iterator]</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
-<p>construct with a "plain" array of Type.</p>
-<p>Note: the array MUST have at least 1 item; it doesn't make sense to find a hull over no items - everything is "outside" by default, in exchange for a lot of the code being more complicated; for example, if begin() can't rely on at least 1 item being in the array, this[0] would be an out of bounds access, throwing an error and making us sad. Conversely, by always requiring at least one point, and sorting out list of points, begin() is simply always the first element (this[0]). Thus: win! </p>
-<p>this sort() is important: this, here, is the Array base class' sort();</p>
-<p>We should only ever need to sort upon inserting, and Array.sort() should be a linear scan without changes (i.e.: fast) if it's already sorted, so should be fine in the constructor.</p>
-
+<b>Initial value:</b><div class="fragment"><div class="line">= <span class="keyword">function</span>* () {</div>
+<div class="line">      yield* mine;</div>
+<div class="line">    }</div>
+</div><!-- fragment -->
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>

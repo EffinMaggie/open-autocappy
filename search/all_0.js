@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['branch_0',['Branch',['../classBranch.html',1,'']]],
-  ['branches_1',['Branches',['../classBranches.html',1,'']]]
+  ['boilerplate_3c_20type_20_3e_0',['Boilerplate&lt; Type &gt;',['../classBoilerplate_3_01Type_01_4.html',1,'']]],
+  ['branch_1',['Branch',['../classBranch.html',1,'']]],
+  ['branches_2',['Branches',['../classBranches.html',1,'']]]
 ];
