@@ -3,11 +3,11 @@
 import {
   clearContent,
   addContent,
-  replaceContent,
-  updateNodeText,
-  updateClasses,
   hasClass,
 } from './dom-manipulation.js';
+import {
+  Status
+} from './dom-interface.js';
 import { makeStatusHandlers, registerEventHandlers } from './declare-events.js';
 import {
   DOM,
@@ -36,7 +36,10 @@ function pickAPI(): usable | undefined {
 function assertUsableAPI(api): asserts api is usable {
   // TODO: consider adding additional runtime checks here
 
-  console.assert(api !== undefined, 'SpeechRecognition API implementation must be available at runtime');
+  console.assert(
+    api !== undefined,
+    'SpeechRecognition API implementation must be available at runtime'
+  );
 }
 
 let api = pickAPI();
@@ -59,12 +62,12 @@ var setupCaptions = function (recognition: Recogniser) {
       // documentation says this is only thrown if speech recognition is on,
       // so ignore this problem.
     } else {
-      updateNodeText('status-last-error', e.name);
+      Status.lastError.value = e.name;
       throw e;
     }
   }
 
-  updateNodeText('status-service', recognition.serviceURI);
+  Status.serviceURI.value = recognition.serviceURI ?? '[service URL not disclosed]';
 };
 
 // REFACTOR: make event handlers declarative
@@ -119,8 +122,8 @@ registerEventHandlers(recognition, {
     handler: function (event) {
       console.warn('SpeechRecognition API error', event.error, event.message);
 
-      updateNodeText('status-last-error', event.error);
-      updateNodeText('status-last-error-message', event.message);
+      Status.lastError.value = event.error;
+      Status.lastErrorMessage.value = event.message;
     },
   },
 
@@ -141,8 +144,8 @@ export var isCaptioning = registerEventHandlers(
       start: {
         name: 'start',
         handler: function (event) {
-          updateNodeText('status-last-error');
-          updateNodeText('status-last-error-message');
+          Status.lastError.value = '';
+          Status.lastErrorMessage.value = '';
 
           r.start.handler(event);
         },
@@ -152,15 +155,14 @@ export var isCaptioning = registerEventHandlers(
         handler: function (event) {
           r.end.handler(event);
 
-          
-          let ol = document.getElementById('prior-session-transcript')
+          let ol = document.getElementById('prior-session-transcript');
           for (let li of document.querySelectorAll('ol#transcript > li[data-index]')) {
             li.removeAttribute('data-index');
             if (ol) {
               li.parentNode?.removeChild(li);
               ol.appendChild(li);
             }
-                  }
+          }
           if (ol) {
             canStoreTranscript(ol);
             const ts = DOM.fromOl(ol);

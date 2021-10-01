@@ -2,10 +2,8 @@
 
 import {
   clearContent,
-  updateNodeText,
   updateText,
   updateClasses,
-  replaceContent,
   hasClass,
 } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
@@ -48,16 +46,6 @@ export class Branches extends OuterHull<Branch> {
 }
 
 export class Transcript extends OuterHull<Branches> {
-/*
-  static *affected(bs: Iterable<Branches>, idx: number = 0): Generator<Branches> {
-    for(const b of bs) {
-      if((b.index ?? 0) >= idx) {
-        yield b;
-      }
-    }
-  }
-*/
-
   static *merge(bs: Iterable<Branches>): Generator<Branches> {
     let m = new Map<string, Branches>();
     for (const b of bs) {
@@ -75,13 +63,13 @@ export class Transcript extends OuterHull<Branches> {
 
       m.set(id, b);
     }
-    for(const [_, b] of m) {
+    for (const [_, b] of m) {
       yield b;
     }
   }
 
   constructor(ts: Iterable<Branches>) {
-    super (Transcript.merge(ts));
+    super(Transcript.merge(ts));
   }
 
   *final(): Generator<Branches> {
@@ -179,13 +167,16 @@ export const DOM = {
   },
 
   fromLi: (node: HTMLLIElement): Branches | undefined => {
-   const bs = Array.from(node.querySelectorAll('span')).reduce((b: Branch[], e: HTMLSpanElement): Branch[] => {
-     let branch = DOM.fromSpan(e);
-     if (branch) {
+    const bs = Array.from(node.querySelectorAll('span')).reduce(
+      (b: Branch[], e: HTMLSpanElement): Branch[] => {
+        let branch = DOM.fromSpan(e);
+        if (branch) {
           b.push(branch);
         }
         return b;
-      }, []);
+      },
+      []
+    );
 
     if (!bs.length) {
       return;
@@ -193,7 +184,7 @@ export const DOM = {
 
     const _index = node.getAttribute('data-index');
     let idx: number | undefined = undefined;
-    if (_index || (_index === '0')) {
+    if (_index || _index === '0') {
       idx = Number(_index) ?? undefined;
     }
     const f = hasClass(node, 'final');
@@ -202,13 +193,16 @@ export const DOM = {
   },
 
   fromOl: (node: HTMLOListElement): Transcript | undefined => {
-    const bs = Array.from(node.querySelectorAll('li')).reduce((bs: Branches[], e: HTMLLIElement): Branches[] => {
+    const bs = Array.from(node.querySelectorAll('li')).reduce(
+      (bs: Branches[], e: HTMLLIElement): Branches[] => {
         let branches = DOM.fromLi(e);
         if (branches) {
           bs.push(branches);
         }
         return bs;
-      }, []);
+      },
+      []
+    );
 
     if (!bs.length) {
       return;
@@ -227,12 +221,9 @@ export const DOM = {
       span.setAttribute('data-q', b.confidence.toString());
     }
     const when: Iterable<string> = b.when.map((when: QDate): string => {
-          return when.valueOf().getTime().toString();
-        });
-    span.setAttribute(
-      'data-when',
-      Array.from(when).join(' ')
-    );
+      return when.valueOf().getTime().toString();
+    });
+    span.setAttribute('data-when', Array.from(when).join(' '));
     updateText(span, b.text);
     return span;
   },

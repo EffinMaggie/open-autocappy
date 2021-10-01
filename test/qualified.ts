@@ -26,13 +26,29 @@ function testSort(log: LogFunction): boolean {
     },
     {
       name: 'invert',
-      expect: [new extendedPartialOrder(0.1), new extendedPartialOrder(0.2), new extendedPartialOrder(0.3)],
-      have: [new extendedPartialOrder(0.3), new extendedPartialOrder(0.2), new extendedPartialOrder(0.1)],
+      expect: [
+        new extendedPartialOrder(0.1),
+        new extendedPartialOrder(0.2),
+        new extendedPartialOrder(0.3),
+      ],
+      have: [
+        new extendedPartialOrder(0.3),
+        new extendedPartialOrder(0.2),
+        new extendedPartialOrder(0.1),
+      ],
     },
     {
       name: 'negative',
-      expect: [new extendedPartialOrder(-0.1), new extendedPartialOrder(0), new extendedPartialOrder(0.3)],
-      have: [new extendedPartialOrder(0.3), new extendedPartialOrder(0), new extendedPartialOrder(-0.1)],
+      expect: [
+        new extendedPartialOrder(-0.1),
+        new extendedPartialOrder(0),
+        new extendedPartialOrder(0.3),
+      ],
+      have: [
+        new extendedPartialOrder(0.3),
+        new extendedPartialOrder(0),
+        new extendedPartialOrder(-0.1),
+      ],
     },
     {
       name: 'negative with extra fields',

@@ -4,41 +4,111 @@ export type CompareResult = -1 | 0 | 1;
 
 const valueSymbol = Symbol('value');
 
+export const valueSetSymbol = Symbol('value-set');
+export const valueChangedSymbol = Symbol('value-changed');
+
 export interface PartialOrder {
   compare(b: PartialOrder): CompareResult;
 }
 
-export interface Equatable {
-  equal(b: PartialOrder): boolean;
+export interface Equivalence {
+  equal(b: Equivalence): boolean;
 }
 
-export class Q<Type> implements PartialOrder, Equatable {
-  readonly [valueSymbol]: Type;
+export interface Value<Type> {
+  get value(): Type | undefined;
+
+  valueOf(): Type | undefined;
+}
+
+export interface MutableValue<Type> {
+  set value(val: Type);
+}
+
+export interface ToString {
+  get string(): string;
+
+  toString(): string;
+}
+
+export interface FromString {
+  set string(s: string);
+}
+
+export interface Observant<Type> extends MutableValue<Type> {
+  [valueSetSymbol]: Observer<Type>;
+  [valueChangedSymbol]: Observer<Type>;
+}
+
+export type Observer<Type> = (o: Observant<Type>, nv: Type, ov: Type) => boolean;
+
+export abstract class Boilerplate<Type> implements Value<Type>, ToString {
+  abstract get value(): Type;
 
   valueOf(): Type {
-    return this[valueSymbol];
+    return this.value;
+  }
+
+  get string(): string {
+    return String(this.value);
   }
 
   toString(): string {
-    return String(this[valueSymbol]);
+    return this.string;
   }
+}
 
-  constructor(readonly qval: Type) {
+export class Q<Type>
+  extends Boilerplate<Type>
+  implements PartialOrder, Equivalence, Value<Type>, ToString
+{
+  private [valueSymbol]: Type;
+
+  constructor(qval: Type) {
+    super();
     this[valueSymbol] = qval;
   }
 
+  get value(): Type {
+    return this[valueSymbol];
+  }
+
   equal(b: Q<Type>): boolean {
-    return this.valueOf() === b.valueOf();
+    return this.value === b.value;
   }
 
   compare(b: Q<Type>): CompareResult {
-    if (b[valueSymbol] == this[valueSymbol]) {
+    if (b.value === this.value) {
       return 0;
     }
-    if (b[valueSymbol] < this[valueSymbol]) {
+    if (b.value < this.value) {
       return 1;
     }
     return -1;
+  }
+}
+
+export class M<Type> extends Q<Type> implements MutableValue<Type> {
+  set value(val: Type) {
+    this[valueSymbol] = val;
+  }
+}
+
+export class O<Type> extends Q<Type> implements Observant<Type> {
+  [valueSetSymbol]: Observer<Type> = () => true;
+  [valueChangedSymbol]: Observer<Type> = () => true;
+
+  set value(val: Type) {
+    const og = this.value;
+    const changed = this[valueSetSymbol](this, val, og);
+
+    if (changed) {
+      this[valueSymbol] = val;
+
+      if (!this[valueChangedSymbol](this, val, og)) {
+        this[valueSymbol] = og;
+      }
+    }
   }
 }
 
@@ -79,7 +149,7 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
   readonly start?: Type;
   readonly end?: Type;
 
-  *[Symbol.iterator](): Generator<Type> {};
+  *[Symbol.iterator](): Generator<Type> {}
 
   /**
    * construct with a "plain" array of Type.
@@ -108,18 +178,18 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
 
     this.length = mine.length;
     this.start = mine[0];
-    this.end = mine[mine.length-1];
+    this.end = mine[mine.length - 1];
 
     this[Symbol.iterator] = function* () {
       yield* mine;
-    }
+    };
   }
 
   *absorber(b: Type): Generator<Type> {
     let d: boolean = false;
 
     for (const v of this) {
-      if (!d &&(v.compare(b) >= 0)) {
+      if (!d && v.compare(b) >= 0) {
         d = true;
         yield b;
       }
@@ -147,7 +217,7 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
   }
 
   *filter(p: (val: Type) => boolean): Generator<Type> {
-    yield* this.convertor<Type>(((v: Type): Type => v), p);
+    yield* this.convertor<Type>((v: Type): Type => v, p);
   }
 
   absorb(b: Type): OuterHull<Type> {
