@@ -6,19 +6,16 @@ body {
   margin: 5px 50px;
 }
 
-.captions ol li {
+.captions > ol > li {
   display: block;
   margin: 0.3em -50px;
   padding: 0.5em 50px;
 }
 
-.captions ol li span[data-confidence]:after {
+.captions ol > li > span[data-confidence]:hover:after {
   content: ' @' attr(data-confidence);
   color: gray;
   font-size: 0.8em;
-}
-
-.captions ol span {
 }
 
 #status-service,
@@ -62,7 +59,7 @@ span {
   font-weight: bold;
 }
 
-.captions ol li.final {
+.captions ol > li.final {
   color: gray;
   font-weight: bold;
 }
@@ -74,18 +71,14 @@ span {
   padding-right: 0.5em;
 }
 
-.captions ol li span.interim {
+.captions ol > li > span {
   display: none;
 }
 
-.captions ol li span.interim:last-child {
+.captions ol > li:hover > span,
+.captions ol > li > span.final:last-child,
+.captions ol > li > span.interim:last-child {
   display: inline;
-}
-
-.captions ol li.final:hover span.interim,
-.captions ol li.final:focus span.interim,
-.captions ol li.final:active span.interim {
-  display: inline-block;
 }
 
 .captions ol {

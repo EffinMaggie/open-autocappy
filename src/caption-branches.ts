@@ -1,11 +1,6 @@
 /** @format */
 
-import {
-  clearContent,
-  updateText,
-  updateClasses,
-  hasClass,
-} from './dom-manipulation.js';
+import { clearContent, updateText, updateClasses, hasClass } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, QDate, now } from './dated.js';
 
@@ -25,13 +20,35 @@ export class Branch implements PartialOrder {
   }
 
   compare(b: Branch): CompareResult {
-    return this.when.compare(b.when) || this.confidence.compare(b.confidence);
+    const q = this.confidence.compare(b.confidence);
+    const w = this.when.compare(b.when);
+
+    return w || q;
   }
 }
 
 export class Branches extends OuterHull<Branch> {
   index?: number;
   final: boolean;
+
+  get abandoned(): boolean {
+    return !this.final && this.index === undefined;
+  }
+
+  *whenHull(): Generator<QDate> {
+    for (const b of this) {
+      yield* b.when;
+    }
+  }
+
+  get when(): DateBetween {
+    const hull = new DateBetween(this.whenHull());
+    if (hull.start && hull.end) {
+      return new DateBetween([hull.start, hull.end]);
+    } else {
+      return hull;
+    }
+  }
 
   constructor(bs: Iterable<Branch>, idx: number | undefined, final: boolean) {
     super(bs);
@@ -43,20 +60,52 @@ export class Branches extends OuterHull<Branch> {
   concat(bs: Branches): Branches {
     return new Branches(this.catter(bs), this.index, this.final || bs.final);
   }
+
+  /*
+  compare(bs: Branches): CompareResult {
+    if ((this.index !== undefined) && (bs.index !== undefined)) {
+      if (bs.index === this.index) {
+        // return 0;
+      } else if (this.index < bs.index) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }
+
+    return this.when.compare(bs.when) || (this.equal(bs) ? 0 : -1);
+  }
+*/
+
+  /*
+  equal(bs: Branches): boolean {
+    if (this.index === bs.index) {
+      if ((this.when.compare(bs.when) == 0) && (bs.when.compare(this.when) == 0)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+*/
 }
 
 export class Transcript extends OuterHull<Branches> {
   static *merge(bs: Iterable<Branches>): Generator<Branches> {
     let m = new Map<string, Branches>();
     for (const b of bs) {
+      let append = false;
+      let replace = false;
+
       if (b.index === undefined) {
-        console.warn('emitting without index: ', b);
         yield b;
         continue;
       }
 
       const id = 'index-' + b.index;
-      if (m.has(id)) {
+      let current = m.get(id);
+
+      if (current) {
         m.set(id, m?.get(id)?.concat(b) ?? b);
         continue;
       }
@@ -151,7 +200,7 @@ export class Transcript extends OuterHull<Branches> {
  */
 export const DOM = {
   fromSpan: (node: HTMLSpanElement): Branch => {
-    const _q = node.getAttribute('data-q') ?? '';
+    const _q = node.getAttribute('data-confidence') ?? '';
     const _when = node.getAttribute('data-when') ?? '';
 
     const f = hasClass(node, 'final') ?? !hasClass(node, 'interim') ?? false;
@@ -218,7 +267,7 @@ export const DOM = {
       updateClasses(span, ['final'], ['interim']);
     }
     if (b.confidence) {
-      span.setAttribute('data-q', b.confidence.toString());
+      span.setAttribute('data-confidence', b.confidence.toString());
     }
     const when: Iterable<string> = b.when.map((when: QDate): string => {
       return when.valueOf().getTime().toString();
@@ -229,14 +278,20 @@ export const DOM = {
   },
 
   toLi: (bs: Branches, li: HTMLLIElement = document.createElement('li')): HTMLLIElement => {
-    if (bs.final) {
-      updateClasses(li, undefined, ['final']);
+    if (bs.abandoned) {
+      updateClasses(li, ['final'], ['abandoned']);
+    } else if (bs.final) {
+      updateClasses(li, ['abandoned'], ['final']);
     } else {
-      updateClasses(li, ['final']);
+      updateClasses(li, ['final', 'abandoned']);
     }
     if (bs.index !== undefined) {
       li.setAttribute('data-index', bs.index.toString());
     }
+    const when: Iterable<string> = bs.when.map((when: QDate): string => {
+      return when.valueOf().getTime().toString();
+    });
+    li.setAttribute('data-when', Array.from(when).join(' '));
     for (const b of bs) {
       let span = DOM.toSpan(b);
       li.appendChild(span);
@@ -298,6 +353,11 @@ export interface SpeechAPIResultList {
 export interface SpeechAPIEvent extends Event {
   resultIndex: number;
   results: SpeechAPIResultList;
+}
+
+export interface SpeechAPIErrorEvent extends Event {
+  error: string;
+  message: string;
 }
 
 export const SpeechAPI = {

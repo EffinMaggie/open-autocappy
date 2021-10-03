@@ -1,66 +1,153 @@
 /** @format */
 
-import { Boilerplate, Observer, Observant, ToString, FromString, valueSetSymbol, valueChangedSymbol } from './qualified.js';
+import {
+  ValueBoilerplate,
+  Observer,
+  Observant,
+  ToString,
+  FromString,
+  onValueWasSet,
+  onValueHasChanged,
+  defaultValue,
+} from './qualified.js';
 
 const nodeSymbol = Symbol('node');
-const nodeIDSymbol = Symbol('node-id');
-const nodeQuerySymbol = Symbol('node-query');
-const nodeAttributeSymbol = Symbol('node-attribute');
+const nodeID = Symbol('node-id');
+const nodeQuery = Symbol('node-query');
+const nodeAttribute = Symbol('node-attribute');
 
-export abstract class ONodeUpdater extends Boilerplate<string> implements Observant<string>, FromString {
-  [valueSetSymbol]: Observer<string> = () => true;
-  [valueChangedSymbol]: Observer<string> = () => true;
+const defaultStringValue: string = '[default value]';
 
-  private [nodeAttributeSymbol]?: string;
+type valueSet = Set<string | undefined>;
 
-  abstract get nodes(): Iterable<HTMLElement>;
+const superfluousValue: valueSet = new Set([undefined, '']);
 
-  text(node: HTMLElement, coalesce: string = ''): string {
-    const attr = this[nodeAttributeSymbol];
+function attributeText(attribute: string, coalesce: string, element: HTMLElement): string {
+  return element.getAttribute(attribute) ?? coalesce;
+}
 
-    if (attr) {
-      return node?.getAttribute(attr) ?? coalesce;
-    }
-
-    return node?.textContent ?? coalesce;
+function elementText(coalesce: string, element: HTMLElement): string {
+  if (element.innerText == '') {
+    return coalesce;
   }
-  
-  change(node: HTMLElement, nv?: string): void {
-    const attr = this[nodeAttributeSymbol];
+
+  return element.innerText;
+}
+
+function attributeChange(
+  attribute: string,
+  superfluous: valueSet,
+  coalesce: string,
+  element: HTMLElement,
+  value?: string
+): boolean {
+  const currentValue: string = attributeText(attribute, coalesce, element);
+
+  if (superfluous.has(value)) {
+    element.removeAttribute(attribute);
+    return true;
+  }
+
+  const wantValue: string = value ?? coalesce;
+
+  if (currentValue != wantValue) {
+    element.setAttribute(attribute, wantValue);
+    return true;
+  }
+
+  return false;
+}
+
+function elementChange(
+  superfluous: valueSet,
+  coalesce: string,
+  element: HTMLElement,
+  value?: string
+): boolean {
+  const currentValue: string = elementText(coalesce, element);
+  const wantValue: string = value ?? coalesce;
+
+  console.log('text update: ', value, currentValue, wantValue);
+
+  if (superfluous.has(value) || wantValue === coalesce || wantValue === currentValue) {
+    if (element.innerText != '') {
+      element.innerText = '';
+      return false;
+    }
+
+    console.warn('no text update: ', value, currentValue, wantValue);
+    return false;
+  } else if (element.innerText != wantValue) {
+    element.innerText = wantValue;
+    return true;
+  }
+
+  console.warn('no text update: ', value, currentValue, wantValue);
+  return false;
+}
+
+export class ONodeUpdater extends ValueBoilerplate<string> implements Observant<string>, FromString {
+  [onValueWasSet]?: Observer<string>;
+  [onValueHasChanged]?: Observer<string>;
+
+  private readonly [nodeAttribute]?: string;
+  private readonly [defaultValue]: string;
+
+  get nodes(): Iterable<HTMLElement> {
+    return [];
+  }
+
+  text(node: HTMLElement): string {
+    const attr = this[nodeAttribute];
+    const coalesce = this[defaultValue];
 
     if (attr) {
-      if (nv) {
-        node.setAttribute(attr, nv);
-      } else {
-        node.removeAttribute(attr);
-      }
-    } else if (node?.textContent) {
-      node.textContent = nv ?? '';
+      return attributeText(attr, coalesce, node);
     }
+
+    return elementText(coalesce, node);
+  }
+
+  change(node: HTMLElement, nv?: string): boolean {
+    const attr = this[nodeAttribute];
+    const coalesce = this[defaultValue];
+
+    if (attr) {
+      return attributeChange(attr, superfluousValue, coalesce, node, nv);
+    }
+
+    return elementChange(superfluousValue, coalesce, node, nv);
   }
 
   get value(): string {
-    let rv: string[] = [];
+    const onHasChanged = this[onValueHasChanged];
+    let rv: string | undefined = undefined;
     for (let node of this.nodes) {
-      rv.push(this.text(node));
+      const nv = this.text(node);
+
+      if (nv !== rv) {
+        if (rv !== undefined && onHasChanged) {
+          onHasChanged(this, nv, rv ?? this[defaultValue]);
+        }
+        rv = nv;
+      }
     }
-    return rv.join(' ');
+    return rv ?? this[defaultValue];
   }
 
-  set value(val: string) {
-    const og = this.value;
-    const ogv = og.split(' ');
+  set value(to: string) {
+    const was = this.value;
+    const onWasSet = this[onValueWasSet];
+    const onHasChanged = this[onValueHasChanged];
 
     for (let node of this.nodes) {
-      const changed = this[valueSetSymbol](this, val, og);
-
-      if (changed) {
-        this.change(node, val);
-
-        if (!this[valueChangedSymbol](this, val, og)) {
-          this.change(node, og);
-        }
+      if (this.change(node, to) && onWasSet) {
+        onWasSet(this, to, was);
       }
+    }
+
+    if (to !== was && onHasChanged) {
+      onHasChanged(this, to, was);
     }
   }
 
@@ -72,9 +159,11 @@ export abstract class ONodeUpdater extends Boilerplate<string> implements Observ
     this.value = s;
   }
 
-  constructor(attr?: string) {
+  constructor(attr?: string, coalesce: string = '[default value]') {
     super();
-    this[nodeAttributeSymbol] = attr;
+
+    this[nodeAttribute] = attr;
+    this[defaultValue] = coalesce;
   }
 }
 
@@ -97,12 +186,12 @@ export class OExplicitNodeUpdater extends ONodeUpdater {
 }
 
 export class ONodeQueryUpdater extends ONodeUpdater {
-  private [nodeQuerySymbol]?: string;
+  private [nodeQuery]?: string;
 
   get nodes(): Iterable<HTMLElement> {
-    let q = this[nodeQuerySymbol];
+    const q = this[nodeQuery];
     if (q) {
-    return document.querySelectorAll(q);
+      return document.querySelectorAll(q);
     }
 
     return [];
@@ -110,7 +199,7 @@ export class ONodeQueryUpdater extends ONodeUpdater {
 
   constructor(query?: string, attr?: string) {
     super(attr);
-    this[nodeQuerySymbol] = query;
+    this[nodeQuery] = query;
   }
 }
 

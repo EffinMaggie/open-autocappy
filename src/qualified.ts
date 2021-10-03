@@ -2,10 +2,11 @@
 
 export type CompareResult = -1 | 0 | 1;
 
-const valueSymbol = Symbol('value');
+export const onValueWasSet = Symbol('on-value-was-set');
+export const onValueHasChanged = Symbol('on-value-has-changed');
 
-export const valueSetSymbol = Symbol('value-set');
-export const valueChangedSymbol = Symbol('value-changed');
+export const valueSymbol = Symbol('value');
+export const defaultValue = Symbol('default-value');
 
 export interface PartialOrder {
   compare(b: PartialOrder): CompareResult;
@@ -36,13 +37,13 @@ export interface FromString {
 }
 
 export interface Observant<Type> extends MutableValue<Type> {
-  [valueSetSymbol]: Observer<Type>;
-  [valueChangedSymbol]: Observer<Type>;
+  [onValueWasSet]?: Observer<Type>;
+  [onValueHasChanged]?: Observer<Type>;
 }
 
-export type Observer<Type> = (o: Observant<Type>, nv: Type, ov: Type) => boolean;
+export type Observer<Type> = (observant: Observant<Type>, now: Type, was: Type) => boolean;
 
-export abstract class Boilerplate<Type> implements Value<Type>, ToString {
+export abstract class ValueBoilerplate<Type> implements Value<Type>, ToString {
   abstract get value(): Type;
 
   valueOf(): Type {
@@ -59,7 +60,7 @@ export abstract class Boilerplate<Type> implements Value<Type>, ToString {
 }
 
 export class Q<Type>
-  extends Boilerplate<Type>
+  extends ValueBoilerplate<Type>
   implements PartialOrder, Equivalence, Value<Type>, ToString
 {
   private [valueSymbol]: Type;
@@ -95,18 +96,18 @@ export class M<Type> extends Q<Type> implements MutableValue<Type> {
 }
 
 export class O<Type> extends Q<Type> implements Observant<Type> {
-  [valueSetSymbol]: Observer<Type> = () => true;
-  [valueChangedSymbol]: Observer<Type> = () => true;
+  set value(to: Type) {
+    const was = this.value;
 
-  set value(val: Type) {
-    const og = this.value;
-    const changed = this[valueSetSymbol](this, val, og);
+    this[valueSymbol] = to;
 
-    if (changed) {
-      this[valueSymbol] = val;
+    if (this[onValueWasSet]) {
+      this[onValueWasSet](this, to, was);
+    }
 
-      if (!this[valueChangedSymbol](this, val, og)) {
-        this[valueSymbol] = og;
+    if (was !== to) {
+      if (this[onValueHasChanged]) {
+        this[onValueHasChanged](this, to, was);
       }
     }
   }

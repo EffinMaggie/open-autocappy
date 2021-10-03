@@ -5,44 +5,33 @@ import { QDate, DateBetween, now } from './dated.js';
 
 type EventHandler = (event: Event) => void;
 
-export interface EventDeclaration {
-  name: string;
-  handler: EventHandler;
-}
-
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {
   let active = false;
   let started: QDate | undefined = undefined;
 
   return {
-    status: function () {
+    status: () => {
       return active;
     },
 
-    start: {
-      name: onstart,
-      handler: function (event) {
-        active = true;
-        started = now();
+    [onstart]: (event) => {
+      active = true;
+      started = now();
 
-        updateNodeClasses(id, ['end'], ['active']);
-      },
+      updateNodeClasses(id, ['end'], ['active']);
     },
 
-    end: {
-      name: onend,
-      handler: function (event) {
-        active = false;
-        started = undefined;
+    [onend]: (event) => {
+      active = false;
+      started = undefined;
 
-        updateNodeClasses(id, ['active'], ['end']);
-      },
+      updateNodeClasses(id, ['active'], ['end']);
     },
   };
 }
 
-export function registerEventHandlers(emitter: EventTarget, events) {
-  var status = undefined;
+export function registerEventHandlers(emitter: EventTarget, events): () => boolean {
+  var status = () => false;
 
   for (const key in events) {
     const ev = events[key];
@@ -50,7 +39,7 @@ export function registerEventHandlers(emitter: EventTarget, events) {
     if (key === 'status') {
       status = ev;
     } else {
-      emitter.addEventListener(ev.name, ev.handler);
+      emitter.addEventListener(key, ev);
     }
   }
 
