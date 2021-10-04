@@ -2,7 +2,7 @@
 
 import { clearContent, updateText, updateClasses, hasClass } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
-import { DateBetween, QDate, now } from './dated.js';
+import { DateBetween, MDate, now } from './dated.js';
 
 export class Branch implements PartialOrder {
   when: DateBetween;
@@ -35,7 +35,7 @@ export class Branches extends OuterHull<Branch> {
     return !this.final && this.index === undefined;
   }
 
-  *whenHull(): Generator<QDate> {
+  *whenHull(): Generator<MDate> {
     for (const b of this) {
       yield* b.when;
     }
@@ -91,46 +91,24 @@ export class Branches extends OuterHull<Branch> {
 }
 
 export class Transcript extends OuterHull<Branches> {
-  static *merge(bs: Iterable<Branches>): Generator<Branches> {
-    let m = new Map<string, Branches>();
+  readonly resultIndex?: number;
+  readonly resultLength?: number;
+
+  static *merge(bs: Iterable<Branches>, resultIndex?: number, resultLength?: number): Generator<Branches> {
     for (const b of bs) {
-      let append = false;
-      let replace = false;
-
-      if (b.index === undefined) {
-        yield b;
-        continue;
-      }
-
-      const id = 'index-' + b.index;
-      let current = m.get(id);
-
-      if (current) {
-        m.set(id, m?.get(id)?.concat(b) ?? b);
-        continue;
-      }
-
-      m.set(id, b);
-    }
-    for (const [_, b] of m) {
       yield b;
     }
   }
 
-  constructor(ts: Iterable<Branches>) {
-    super(Transcript.merge(ts));
+  constructor(ts: Iterable<Branches>, resultIndex?: number, resultLength?: number) {
+    super(Transcript.merge(ts, resultIndex, resultLength));
+
+    this.resultIndex = resultIndex;
+    this.resultLength = resultLength;
   }
 
-  *final(): Generator<Branches> {
-    return this.filter((bs: Branches): boolean => bs.final);
-  }
-
-  *interim(): Generator<Branches> {
-    return this.filter((bs: Branches): boolean => !bs.final);
-  }
-
-  concat(bs: Iterable<Branches>): Transcript {
-    return new Transcript(this.catter(bs));
+  concat(bs: Iterable<Branches>, resultIndex?: number, resultLength?: number): Transcript {
+    return new Transcript(this.catter(bs), resultIndex ?? this.resultIndex ?? 0, resultLength ?? this.resultLength);
   }
 }
 
@@ -139,7 +117,7 @@ export class Transcript extends OuterHull<Branches> {
  *
  * Format:
  *     <span class='interim | final'
- *           data-q?='confidence'
+ *           data-confidence?='confidence'
  *           data-when?='[point...]'>caption<span>
  *
  * All data members of Branch are covered by this represantion, so conceptually we expect that:
@@ -205,11 +183,7 @@ export const DOM = {
 
     const f = hasClass(node, 'final') ?? !hasClass(node, 'interim') ?? false;
     const c = new QValue(Number(_q));
-    const w = new DateBetween(
-      _when.split(' ').map((point): QDate => {
-        return new QDate(new Date(Number(point)));
-      })
-    );
+    const w = new DateBetween(DateBetween.diffcat(_when));
     const text = node.textContent ?? undefined;
 
     return new Branch(w, c, f, text);
@@ -227,21 +201,16 @@ export const DOM = {
       []
     );
 
-    if (!bs.length) {
-      return;
-    }
-
-    const _index = node.getAttribute('data-index');
     let idx: number | undefined = undefined;
-    if (_index || _index === '0') {
-      idx = Number(_index) ?? undefined;
+    if (node.hasAttribute('data-index')) {
+      idx = Number(node.getAttribute('data-index'));
     }
     const f = hasClass(node, 'final');
 
     return new Branches(bs, idx, f);
   },
 
-  fromOl: (node: HTMLOListElement): Transcript | undefined => {
+  fromOl: (node: HTMLOListElement): Transcript => {
     const bs = Array.from(node.querySelectorAll('li')).reduce(
       (bs: Branches[], e: HTMLLIElement): Branches[] => {
         let branches = DOM.fromLi(e);
@@ -252,10 +221,6 @@ export const DOM = {
       },
       []
     );
-
-    if (!bs.length) {
-      return;
-    }
 
     return new Transcript(bs);
   },
@@ -268,11 +233,10 @@ export const DOM = {
     }
     if (b.confidence) {
       span.setAttribute('data-confidence', b.confidence.toString());
+    } else if (span.hasAttribute('data-confidence')) {
+      span.removeAttribute('data-confidence');
     }
-    const when: Iterable<string> = b.when.map((when: QDate): string => {
-      return when.valueOf().getTime().toString();
-    });
-    span.setAttribute('data-when', Array.from(when).join(' '));
+    span.setAttribute('data-when', b.when.string)
     updateText(span, b.text);
     return span;
   },
@@ -287,34 +251,61 @@ export const DOM = {
     }
     if (bs.index !== undefined) {
       li.setAttribute('data-index', bs.index.toString());
+    } else if (li.hasAttribute('data-index')) {
+      li.removeAttribute('data-index');
     }
-    const when: Iterable<string> = bs.when.map((when: QDate): string => {
-      return when.valueOf().getTime().toString();
-    });
-    li.setAttribute('data-when', Array.from(when).join(' '));
+    li.setAttribute('data-when', bs.when.string);
+    const spans = li.getElementsByTagName('span');
+    const slen = spans.length;
+    let i: number = 0;
+
     for (const b of bs) {
-      let span = DOM.toSpan(b);
-      li.appendChild(span);
+      if (i < slen) {
+        const child = spans[i];
+        DOM.toSpan(b, child);
+        i++;
+      } else {
+        let span = DOM.toSpan(b);
+        li.appendChild(span);
+      }
+    }
+
+    for (const k = i; i < slen; i++) {
+      li.removeChild(spans[k]);
+      i++;
     }
     return li;
   },
 
   toOl: (ts: Transcript, ol: HTMLOListElement = document.createElement('ol')): HTMLOListElement => {
+    let i: number = 0;
+    const t = ol.getElementsByTagName('li');
+    const tlen = t.length;
+
     for (const bs of ts) {
-      let li = DOM.toLi(bs);
-      ol.appendChild(li);
+      if (i < tlen) {
+        const child = t[i];
+        DOM.toLi(bs, child);
+        i++;
+      } else {
+        const li = DOM.toLi(bs);
+        ol.appendChild(li);
+      }
     }
+
+    while (i < tlen) {
+      ol.removeChild(t[i]);
+      i++;
+    }
+
     return ol;
   },
 
   merge: (where: HTMLOListElement, ts: Transcript): HTMLOListElement => {
-    let t = DOM.fromOl(where);
-    let c: Transcript = t?.concat(ts) ?? ts;
-    let k = where.id === 'caption' ? new Transcript(c.interim()) : c;
+    const t = DOM.fromOl(where);
+    const c: Transcript = t.concat(ts);
 
-    clearContent(where);
-
-    return DOM.toOl(k, where);
+    return DOM.toOl(c, where);
   },
 };
 
@@ -378,18 +369,18 @@ export const SpeechAPI = {
     return new Branches(bs, idx, result.isFinal);
   },
 
-  fromList: (list: SpeechAPIResultList, idx?: number): Transcript => {
+  fromList: (list: SpeechAPIResultList, idx?: number, length?: number): Transcript => {
     var ds: Branches[] = [];
-    for (let i = idx || 0; i < list.length; i++) {
+    for (let i = (idx ?? 0); i < (length ?? list.length); i++) {
       const result: SpeechAPIResult = list.item(i);
       const branches = SpeechAPI.fromResult(result, i);
       ds.push(branches);
     }
 
-    return new Transcript(ds);
+    return new Transcript(ds, idx, length);
   },
 
   fromEvent: (event: SpeechAPIEvent): Transcript => {
-    return SpeechAPI.fromList(event.results, event.resultIndex);
+    return SpeechAPI.fromList(event.results, event.resultIndex, event.results.length);
   },
 };

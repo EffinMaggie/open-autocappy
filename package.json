@@ -4,13 +4,13 @@
   "description": "create subtitles with your browser's VoiceRecognition API",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js",
+    "test": "tsc && node test.js",
     "doxygen": "node doxygen.cjs",
     "build": "tsc",
     "release": "standard-version",
     "prepare": "node prepare.cjs",
-    "lint": "node lint.js",
-    "fix": "node fix.js"
+    "lint": "tsc && node lint.js",
+    "fix": "tsc && node fix.js"
   },
   "repository": {
     "type": "git",

@@ -168,7 +168,7 @@ export class ONodeUpdater extends ValueBoilerplate<string> implements Observant<
 }
 
 export class OExplicitNodeUpdater extends ONodeUpdater {
-  private [nodeSymbol]?: HTMLElement;
+  private [nodeSymbol]: HTMLElement;
 
   get nodes(): Iterable<HTMLElement> {
     const node = this[nodeSymbol];
@@ -179,14 +179,15 @@ export class OExplicitNodeUpdater extends ONodeUpdater {
     return [];
   }
 
-  constructor(node?: HTMLElement, attr?: string) {
-    super(attr);
+  constructor(node: HTMLElement, attr?: string, coalesce?: string) {
+    super(attr, coalesce);
+
     this[nodeSymbol] = node;
   }
 }
 
 export class ONodeQueryUpdater extends ONodeUpdater {
-  private [nodeQuery]?: string;
+  private [nodeQuery]: string;
 
   get nodes(): Iterable<HTMLElement> {
     const q = this[nodeQuery];
@@ -197,8 +198,9 @@ export class ONodeQueryUpdater extends ONodeUpdater {
     return [];
   }
 
-  constructor(query?: string, attr?: string) {
-    super(attr);
+  constructor(query: string, attr?: string, coalesce?: string) {
+    super(attr, coalesce);
+
     this[nodeQuery] = query;
   }
 }

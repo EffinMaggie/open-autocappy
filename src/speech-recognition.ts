@@ -45,7 +45,7 @@ let recognition: Recogniser = new api();
 recognition.continuous = true;
 recognition.lang = 'en';
 recognition.interimResults = true;
-recognition.maxAlternatives = 4;
+recognition.maxAlternatives = 5;
 
 export const isAudioActive = registerEventHandlers(
   recognition,
@@ -67,11 +67,23 @@ export const isCaptioning = registerEventHandlers(
   makeStatusHandlers('status-captioning', 'start', 'end')
 );
 
+let tick = 0;
+let work = Promise.resolve();
+
 // TODO: allow for user settings instead of hardcoded defaults
 // TODO: allow users to turn captions on and off
 var setupCaptions = function (recognition: Recogniser) {
+  work = work.then(() => {
+  const isOn: undefined | (() => boolean) = isCaptioning;
+  if (isOn && isOn()) {
+    return;
+  }
+
+  work = Promise.resolve();
+
   try {
     recognition.start();
+    tick = 0;
   } catch (e) {
     if (e.name == 'InvalidStateError') {
       // documentation says this is only thrown if speech recognition is on,
@@ -83,6 +95,7 @@ var setupCaptions = function (recognition: Recogniser) {
   }
 
   Status.serviceURI.value = recognition.serviceURI ?? '[service URL not disclosed]';
+  });
 };
 
 function canStoreTranscript(where?: HTMLElement | null): asserts where is HTMLOListElement {
@@ -90,25 +103,28 @@ function canStoreTranscript(where?: HTMLElement | null): asserts where is HTMLOL
   console.assert(where && where.nodeName.toLowerCase() === 'ol');
 }
 
-let lastEvent: SpeechAPIEvent | undefined;
-let tick = 0;
-
 function resultProcessor(event: SpeechAPIEvent) {
+  const data = {
+    results: event.results,
+    resultIndex: event.resultIndex,
+    resultLength: event.results.length,
+  };
   tick = 0;
-  lastEvent = event;
 
-  console.log('result handler: ', event);
+  work = work.then(() => {
+    return new Promise<void>((resolve, reject) => {
+      let ts = SpeechAPI.fromList(data.results, data.resultIndex, data.resultLength);
 
-  let transcript = document.getElementById('transcript');
+      let transcript = document.getElementById('transcript');
 
-  // assert that the document is set properly to carry transcriptions
-  canStoreTranscript(transcript);
+      // assert that the document is set properly to carry transcriptions
+      canStoreTranscript(transcript);
 
-  let ts = SpeechAPI.fromEvent(event);
+      DOM.merge(transcript, ts);
 
-  DOM.merge(transcript, ts);
-
-  console.log('result handler complete: ', transcript);
+      resolve();
+    });
+  });
 }
 
 recognition.addEventListener('result', resultProcessor);
@@ -144,27 +160,31 @@ recognition.addEventListener('end', (event) => {
       DOM.toOl(ts, ol);
     }
   }
+
+  work = work.then(() => setupCaptions(recognition));
 });
 
-window.setInterval(function () {
+window.setInterval(() => {
   if (isCaptioning) {
     const isOn: boolean = isCaptioning();
     if (isOn) {
-      if (tick == 10) {
+      if (tick > 35) {
+        tick = 0;
+      } else if (tick == 25) {
+        console.warn('stopping');
+        recognition.stop();
+      } else if (tick == 10) {
+        console.warn('event listener reset');
         recognition.removeEventListener('result', resultProcessor);
         recognition.addEventListener('result', resultProcessor);
-        tick++;
-      } else if (tick > 25) {
-        recognition.stop();
-        tick = 0;
-      } else {
-        tick++;
       }
+      tick++;
+      Status.ticks.value = 'I' + tick;
       return;
     }
   }
 
-  setupCaptions(recognition);
+  work = work.then(() => setupCaptions(recognition));
 }, 500);
 
 window.addEventListener('load', () => {

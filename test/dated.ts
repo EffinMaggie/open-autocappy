@@ -1,17 +1,17 @@
 /** @format */
 
 import { LogFunction, TestFunction, Testable } from './run.js';
-import { QDate, DateBetween } from '../src/dated.js';
+import { MDate, DateBetween } from '../src/dated.js';
 import { sort } from '../src/qualified.js';
 
 class carrier extends DateBetween {
   message: string;
 
   constructor(when: Array<Date>, msg: string) {
-    let a = Array<QDate>(when.length);
+    let a = Array<MDate>(when.length);
 
     for (const i in when) {
-      a[i] = new QDate(when[i]);
+      a[i] = new MDate(when[i]);
     }
     super(a);
 

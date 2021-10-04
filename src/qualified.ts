@@ -26,6 +26,14 @@ export interface MutableValue<Type> {
   set value(val: Type);
 }
 
+export interface ToNumber {
+  get number(): number;
+}
+
+export interface FromNumber {
+  set number(n: number);
+}
+
 export interface ToString {
   get string(): string;
 
@@ -63,7 +71,7 @@ export class Q<Type>
   extends ValueBoilerplate<Type>
   implements PartialOrder, Equivalence, Value<Type>, ToString
 {
-  private [valueSymbol]: Type;
+  protected [valueSymbol]: Type;
 
   constructor(qval: Type) {
     super();
@@ -79,7 +87,7 @@ export class Q<Type>
   }
 
   compare(b: Q<Type>): CompareResult {
-    if (b.value === this.value) {
+    if (this.equal(b)) {
       return 0;
     }
     if (b.value < this.value) {
@@ -89,9 +97,36 @@ export class Q<Type>
   }
 }
 
-export class M<Type> extends Q<Type> implements MutableValue<Type> {
+export class M<Type>
+  extends ValueBoilerplate<Type>
+  implements PartialOrder, Equivalence, Value<Type>, ToString, MutableValue<Type> {
+  protected [valueSymbol]: Type;
+
+  constructor(qval: Type) {
+    super();
+    this[valueSymbol] = qval;
+  }
+
+  get value(): Type {
+    return this[valueSymbol];
+  }
+
   set value(val: Type) {
     this[valueSymbol] = val;
+  }
+
+  equal(b: Q<Type>): boolean {
+    return this.value === b.value;
+  }
+
+  compare(b: Q<Type>): CompareResult {
+    if (this.equal(b)) {
+      return 0;
+    }
+    if (b.value < this.value) {
+      return 1;
+    }
+    return -1;
   }
 }
 
@@ -146,31 +181,13 @@ export class QValue extends Q<number> {}
  * kind of "point" we have, so this works just the same with Dates.
  */
 export class OuterHull<Type extends PartialOrder> implements PartialOrder, Iterable<Type> {
-  readonly length?: number;
-  readonly start?: Type;
-  readonly end?: Type;
+  length?: number;
+  start?: Type;
+  end?: Type;
 
   *[Symbol.iterator](): Generator<Type> {}
 
-  /**
-   * construct with a "plain" array of Type.
-   *
-   * Note: the array MUST have at least 1 item; it doesn't make sense to find
-   * a hull over no items - everything is "outside" by default, in exchange for
-   * a lot of the code being more complicated; for example, if begin() can't
-   * rely on at least 1 item being in the array, this[0] would be an out of
-   * bounds access, throwing an error and making us sad. Conversely, by always
-   * requiring at least one point, and sorting out list of points, begin() is
-   * simply always the first element (this[0]). Thus: win!
-   */
-  constructor(a: Iterable<Type>) {
-    /**
-     * this sort() is important: this, here, is the Array base class' sort();
-     *
-     * We should only ever need to sort upon inserting, and Array.sort() should
-     * be a linear scan without changes (i.e.: fast) if it's already sorted, so
-     * should be fine in the constructor.
-     */
+  set value(a: Iterable<Type>) {
     const mine = Array.from(a).sort((a: Type, b: Type) => a.compare(b));
 
     if (!mine.length) {
@@ -184,6 +201,21 @@ export class OuterHull<Type extends PartialOrder> implements PartialOrder, Itera
     this[Symbol.iterator] = function* () {
       yield* mine;
     };
+  }
+
+  /**
+   * construct with a "plain" array of Type.
+   *
+   * Note: the array MUST have at least 1 item; it doesn't make sense to find
+   * a hull over no items - everything is "outside" by default, in exchange for
+   * a lot of the code being more complicated; for example, if begin() can't
+   * rely on at least 1 item being in the array, this[0] would be an out of
+   * bounds access, throwing an error and making us sad. Conversely, by always
+   * requiring at least one point, and sorting out list of points, begin() is
+   * simply always the first element (this[0]). Thus: win!
+   */
+  constructor(a: Iterable<Type>) {
+    this.value = a;
   }
 
   *absorber(b: Type): Generator<Type> {

@@ -1,13 +1,13 @@
 /** @format */
 
 import { updateNodeClasses } from './dom-manipulation.js';
-import { QDate, DateBetween, now } from './dated.js';
+import { MDate, DateBetween, now } from './dated.js';
 
 type EventHandler = (event: Event) => void;
 
 export function makeStatusHandlers(id: string, onstart: string, onend: string) {
   let active = false;
-  let started: QDate | undefined = undefined;
+  let started: MDate | undefined = undefined;
 
   return {
     status: () => {
