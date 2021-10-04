@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['m_3c_20type_20_3e_20',['M&lt; Type &gt;',['../classM_3_01Type_01_4.html',1,'']]]
+  ['m_3c_20type_20_3e_21',['M&lt; Type &gt;',['../classM_3_01Type_01_4.html',1,'']]],
+  ['mdate_22',['MDate',['../classMDate.html',1,'']]]
 ];
