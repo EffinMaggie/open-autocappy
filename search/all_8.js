@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['transcript_14',['Transcript',['../classTranscript.html',1,'']]]
+  ['speech_14',['speech',['../classspeech.html',1,'']]]
 ];

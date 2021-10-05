@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['changelog_30',['CHANGELOG',['../md_CHANGELOG.html',1,'']]]
+  ['changelog_32',['CHANGELOG',['../md_CHANGELOG.html',1,'']]]
 ];
