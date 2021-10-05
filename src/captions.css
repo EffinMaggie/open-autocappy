@@ -18,35 +18,70 @@ body {
   font-size: 0.8em;
 }
 
-#status-ticks,
+#status-ticks {
+  display: block;
+  color: red;
+  margin: 0;
+  padding: 0;
+  margin-top: 15px;
+  margin-left: -5px;
+  height: 15px;
+}
+
 #status-service,
 #status-captioning.active,
 #status-audio.active,
 #status-sound.active,
 #status-speech.active {
-  display: inline-block;
   font-weight: bold;
   color: green;
 }
 
 #status-last-error {
-  display: inline-block;
+  display: block;
+  position: absolute;
+  top: 5px;
+  right: 50px;
   font-weight: bold;
   color: red;
 }
 
 #status-last-error-message {
-  display: inline-block;
-  font-weight: bold;
-  color: red;
+  display: block;
+  position: absolute;
+  top: 25px;
+  right: 50px;
+  color: gray;
+  size: .8em;
 }
 
+#status-service,
 #status-captioning,
 #status-audio,
 #status-sound,
 #status-speech {
-  display: inline-block;
+  display: block;
+  position: absolute;
+  top: 25px;
+  left: 50px;
+  font-weight: bold;
   color: gray;
+}
+
+#status-captioning {
+}
+#status-audio {
+  left: 140px;
+}
+#status-sound {
+  left: 190px;
+}
+#status-speech {
+  left: 240px;
+}
+
+#status-service {
+  top: 50px;
 }
 
 span {

@@ -2,13 +2,13 @@
 
 import { CompareResult, PartialOrder, Q, M, OuterHull, FromNumber, ToNumber, FromString, ToString } from './qualified.js';
 
-export class MDate extends M<Date> implements FromNumber, ToString, FromString {
+export class MDate extends M<number> implements FromNumber, ToString, FromString {
   get number(): number {
-    return this.valueOf().getTime();
+    return this.value;
   }
 
   set number(n: number) {
-    this.value = new Date(n);
+    this.value = n;
   }
 
   set string(s: string) {
@@ -43,7 +43,7 @@ export class DateBetween extends OuterHull<MDate> implements FromString, ToStrin
      let a = 0;
      for (const dv of s.split('Δ')) {
        a += Number(dv);
-       yield new MDate(new Date(a));
+       yield new MDate(a);
      }
   }
 
@@ -53,5 +53,5 @@ export class DateBetween extends OuterHull<MDate> implements FromString, ToStrin
 }
 
 export function now(): MDate {
-  return new MDate(new Date(Date.now()));
+  return new MDate(Date.now());
 }

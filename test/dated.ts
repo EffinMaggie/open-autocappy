@@ -7,11 +7,11 @@ import { sort } from '../src/qualified.js';
 class carrier extends DateBetween {
   message: string;
 
-  constructor(when: Array<Date>, msg: string) {
-    let a = Array<MDate>(when.length);
+  constructor(when: Array<number>, msg: string) {
+    let a = Array<MDate>();
 
-    for (const i in when) {
-      a[i] = new MDate(when[i]);
+    for (const ts of when) {
+      a.push(new MDate(ts));
     }
     super(a);
 
@@ -28,21 +28,21 @@ function testSort(log: LogFunction): boolean {
     {
       name: 'ensure correct sorting by date',
       have: [
-        new carrier([new Date('2020-01-01')], 'Y2k'),
-        new carrier([new Date('1986-06-06')], 'sunglasses at night'),
-        new carrier([new Date('1995-12-01')], 'pokemon?'),
+        new carrier([2020], 'Y2k'),
+        new carrier([1986], 'sunglasses at night'),
+        new carrier([1995], 'pokemon?'),
       ],
       expect: ['sunglasses at night', 'pokemon?', 'Y2k'],
     },
     {
       name: 'validate expected overlap behavior',
       have: [
-        new carrier([new Date('2020-01-01'), new Date('2021-01-01')], 'last'),
-        new carrier([new Date('2020-01-01'), new Date('2020-02-01')], 'shorter'),
-        new carrier([new Date('1995-12-01')], 'first'),
-        new carrier([new Date('2020-05-01'), new Date('2024-05-01')], 'tail'),
-        new carrier([new Date('2021-06-01'), new Date('2020-05-01')], 'strange'),
-        new carrier([new Date('2020-05-01'), new Date('2021-05-01')], 'charm'),
+        new carrier([(20200101), (20210101)], 'last'),
+        new carrier([(20200101), (20200201)], 'shorter'),
+        new carrier([(19951201)], 'first'),
+        new carrier([(20200501), (20240501)], 'tail'),
+        new carrier([(20210601), (20200501)], 'strange'),
+        new carrier([(20200501), (20210501)], 'charm'),
       ],
       expect: ['first', 'shorter', 'last', 'charm', 'strange', 'tail'],
     },

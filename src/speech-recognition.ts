@@ -40,12 +40,41 @@ function assertUsableAPI(api): asserts api is usable {
 let api = pickAPI();
 assertUsableAPI(api);
 
-let recognition: Recogniser = new api();
+class speech extends api implements Recogniser {
+  stop(...rest: any) {
+    console.error('caption mode: avoiding stopping', this, rest);
+    super.stop();
+  }
 
-recognition.continuous = true;
-recognition.lang = 'en';
-recognition.interimResults = true;
-recognition.maxAlternatives = 5;
+  abort(...rest: any) {
+    console.error('caption mode: avoiding aborting', this, rest);
+    super.abort();
+  }
+
+  removeEventListener(...rest: any) {
+    console.error('caption mode: will avoid death', this, rest);
+    super.removeEventListener(rest[0], rest[1], rest[2]);
+  }
+
+  addEventListener(...rest: any) {
+    console.warn('adding: ', this, rest);
+    super.addEventListener(rest[0], rest[1], rest[2]);
+  }
+
+  dispatchEvent(event: Event): boolean {
+    console.log('dipatch: ', this, event);
+    return super.dispatchEvent(event);
+  }
+}
+
+let recognition: Recogniser = new speech();
+
+function applySettings(recognition: Recogniser) {
+  recognition.continuous = true;
+  recognition.lang = 'en';
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 5;
+}
 
 export const isAudioActive = registerEventHandlers(
   recognition,
@@ -74,14 +103,16 @@ let work = Promise.resolve();
 // TODO: allow users to turn captions on and off
 var setupCaptions = function (recognition: Recogniser) {
   work = work.then(() => {
-  const isOn: undefined | (() => boolean) = isCaptioning;
-  if (isOn && isOn()) {
+  if (isCaptioning()) {
     return;
   }
 
   work = Promise.resolve();
 
   try {
+    applySettings(recognition);
+    resetResultProc();
+
     recognition.start();
     tick = 0;
   } catch (e) {
@@ -90,6 +121,7 @@ var setupCaptions = function (recognition: Recogniser) {
       // so ignore this problem.
     } else {
       Status.lastError.value = e.name;
+      console.error(e);
       throw e;
     }
   }
@@ -103,18 +135,43 @@ function canStoreTranscript(where?: HTMLElement | null): asserts where is HTMLOL
   console.assert(where && where.nodeName.toLowerCase() === 'ol');
 }
 
+const resultProcOpts = {
+  capture: false,
+  once: false,
+  passive: true,
+  signal: undefined,
+};
+
+const ensureResultProc = () => {
+  if (!isCaptioning()) {
+    recognition.addEventListener('result', resultProcessor, resultProcOpts);
+  }
+}
+
+const resetResultProc = () => {
+  console.warn('reset handler');
+  recognition.removeEventListener('result', resultProcessor, resultProcOpts);
+
+  ensureResultProc();
+}
+
 function resultProcessor(event: SpeechAPIEvent) {
   const data = {
     results: event.results,
     resultIndex: event.resultIndex,
     resultLength: event.results.length,
+    timestamp: event.timeStamp,
+    newfinal: event.results[event.resultIndex ?? 0].isFinal,
   };
   tick = 0;
 
+  if (data.newfinal) {
+    work = work.then(ensureResultProc);
+  }
+
   work = work.then(() => {
     return new Promise<void>((resolve, reject) => {
-      let ts = SpeechAPI.fromList(data.results, data.resultIndex, data.resultLength);
-
+      let ts = SpeechAPI.fromList(data.results, data.resultIndex, data.resultLength, data.timestamp);
       let transcript = document.getElementById('transcript');
 
       // assert that the document is set properly to carry transcriptions
@@ -122,12 +179,14 @@ function resultProcessor(event: SpeechAPIEvent) {
 
       DOM.merge(transcript, ts);
 
+      if (data.newfinal) {
+        snapshot();
+      }
+
       resolve();
     });
   });
 }
-
-recognition.addEventListener('result', resultProcessor);
 
 recognition.addEventListener('error', (event: SpeechAPIErrorEvent) => {
   console.warn('SpeechRecognition API error', event.error, event.message, event);
@@ -135,14 +194,18 @@ recognition.addEventListener('error', (event: SpeechAPIErrorEvent) => {
   Status.lastError.value = event.error;
   Status.lastErrorMessage.value = event.message;
 
-  return recognition.abort();
+  work = work.then(recognition.stop.bind(recognition));
 });
 
-recognition.addEventListener('nomatch', (event) => {
-  console.warn('SpeechRecognition API nomatch event', event);
+recognition.addEventListener('nomatch', (event: SpeechAPIEvent) => {
+  Status.lastError.value = 'no-match';
+  Status.lastError.value = 'timeout trying to transcribe audio, last update before stop()/reset';
+  resultProcessor(event);
+  work = work.then(recognition.stop.bind(recognition));
 });
 
-recognition.addEventListener('end', (event) => {
+function snapshot() {
+  work = work.then(() => {
   let ol = document.getElementById('prior-session-transcript');
   for (let li of document.querySelectorAll('ol#transcript > li')) {
     li.removeAttribute('data-index');
@@ -154,38 +217,46 @@ recognition.addEventListener('end', (event) => {
   if (ol) {
     canStoreTranscript(ol);
     const ts = DOM.fromOl(ol);
-    if (ts) {
-      clearContent(ol);
-
-      DOM.toOl(ts, ol);
-    }
+    DOM.toOl(ts, ol);
   }
+  }).then(ensureResultProc);
+}
 
-  work = work.then(() => setupCaptions(recognition));
-});
+recognition.addEventListener('end', snapshot);
 
-window.setInterval(() => {
-  if (isCaptioning) {
-    const isOn: boolean = isCaptioning();
-    if (isOn) {
-      if (tick > 35) {
-        tick = 0;
-      } else if (tick == 25) {
-        console.warn('stopping');
+const intervalID = window.setInterval(() => {
+  if (isCaptioning()) {
+      let tickmod = tick % 30;
+      if (tickmod == 28) {
+        Status.lastError.value = 'voluntary-reset';
+        Status.lastErrorMessage.value = 'no results in >= 25 ticks';
+
+        work = work.then(() => setupCaptions(recognition));
         recognition.stop();
-      } else if (tick == 10) {
-        console.warn('event listener reset');
-        recognition.removeEventListener('result', resultProcessor);
-        recognition.addEventListener('result', resultProcessor);
+      } else if (tickmod % 12 == 8) {
+        Status.lastError.value = 'no-result-events';
+        Status.lastErrorMessage.value = 'trying to re-register result events';
+        resetResultProc();
+      } else if (tickmod % 7 == 4) {
+        Status.lastError.value = 'stale-event-callback';
+        Status.lastErrorMessage.value = 'delayed result event, trying to add handler again';
+        ensureResultProc();
       }
       tick++;
-      Status.ticks.value = 'I' + tick;
+      let [l, r] = (tick >= 15) ?
+              ['⚪', '⚫'] :
+              ['⚫', '⚪'];
+
+      let tickv = l.repeat(tick % 15);
+      if (tick >= 15) {
+        tickv = tickv.padEnd(15, r);
+      }
+      Status.ticks.value = tickv; 
       return;
-    }
   }
 
   work = work.then(() => setupCaptions(recognition));
-}, 500);
+}, 666);
 
 window.addEventListener('load', () => {
   setupCaptions(recognition);

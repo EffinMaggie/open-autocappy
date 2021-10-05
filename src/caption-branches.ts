@@ -102,7 +102,6 @@ export class Transcript extends OuterHull<Branches> {
 
   constructor(ts: Iterable<Branches>, resultIndex?: number, resultLength?: number) {
     super(Transcript.merge(ts, resultIndex, resultLength));
-
     this.resultIndex = resultIndex;
     this.resultLength = resultLength;
   }
@@ -352,16 +351,18 @@ export interface SpeechAPIErrorEvent extends Event {
 }
 
 export const SpeechAPI = {
-  fromAlternative: (alt: SpeechAPIAlternative, final?: boolean): Branch => {
-    return new Branch(new DateBetween([now()]), new QValue(alt.confidence), final, alt.transcript);
+  fromAlternative: (alt: SpeechAPIAlternative, final?: boolean, timestamp?: number): Branch => {
+    let ets: number = timestamp || Date.now();
+    return new Branch(new DateBetween([new MDate(ets)]), new QValue(alt.confidence), final, alt.transcript, 'speech-api');
   },
 
-  fromResult: (result: SpeechAPIResult, idx?: number): Branches => {
-    var bs: Branch[] = [];
+  fromResult: (result: SpeechAPIResult, idx?: number, timestamp?: number): Branches => {
+    let bs: Branch[] = [];
+    let ets: number = timestamp || Date.now();
     for (let i = 0; i < result.length; i++) {
       const alt = result.item(i);
       if (alt) {
-        const branch = SpeechAPI.fromAlternative(alt, result.isFinal);
+        const branch = SpeechAPI.fromAlternative(alt, result.isFinal, ets);
         bs.push(branch);
       }
     }
@@ -369,11 +370,12 @@ export const SpeechAPI = {
     return new Branches(bs, idx, result.isFinal);
   },
 
-  fromList: (list: SpeechAPIResultList, idx?: number, length?: number): Transcript => {
-    var ds: Branches[] = [];
+  fromList: (list: SpeechAPIResultList, idx?: number, length?: number, timestamp?: number): Transcript => {
+    let ets: number = timestamp || Date.now();
+    let ds: Branches[] = [];
     for (let i = (idx ?? 0); i < (length ?? list.length); i++) {
       const result: SpeechAPIResult = list.item(i);
-      const branches = SpeechAPI.fromResult(result, i);
+      const branches = SpeechAPI.fromResult(result, i, ets);
       ds.push(branches);
     }
 
