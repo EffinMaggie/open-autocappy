@@ -2,7 +2,11 @@
 
 import { clearContent, addContent, hasClass } from './dom-manipulation.js';
 import { Status } from './dom-interface.js';
-import { makeStatusHandlers, registerEventHandlers } from './declare-events.js';
+import {
+  makeStatusHandlers,
+  registerEventHandlers,
+  unregisterEventHandlers,
+} from './declare-events.js';
 import {
   DOM,
   Recogniser,
@@ -37,227 +41,278 @@ function assertUsableAPI(api): asserts api is usable {
   );
 }
 
-let api = pickAPI();
+const api = pickAPI();
 assertUsableAPI(api);
 
-class speech extends api implements Recogniser {
-  stop(...rest: any) {
-    console.error('caption mode: avoiding stopping', this, rest);
-    super.stop();
-  }
-
-  abort(...rest: any) {
-    console.error('caption mode: avoiding aborting', this, rest);
-    super.abort();
-  }
-
-  removeEventListener(...rest: any) {
-    console.error('caption mode: will avoid death', this, rest);
-    super.removeEventListener(rest[0], rest[1], rest[2]);
-  }
-
-  addEventListener(...rest: any) {
-    console.warn('adding: ', this, rest);
-    super.addEventListener(rest[0], rest[1], rest[2]);
-  }
-
-  dispatchEvent(event: Event): boolean {
-    console.log('dipatch: ', this, event);
-    return super.dispatchEvent(event);
-  }
-}
-
-let recognition: Recogniser = new speech();
-
-function applySettings(recognition: Recogniser) {
-  recognition.continuous = true;
-  recognition.lang = 'en';
-  recognition.interimResults = true;
-  recognition.maxAlternatives = 5;
-}
-
-export const isAudioActive = registerEventHandlers(
-  recognition,
-  makeStatusHandlers('status-audio', 'audiostart', 'audioend')
-);
-
-export const isSoundActive = registerEventHandlers(
-  recognition,
-  makeStatusHandlers('status-sound', 'soundstart', 'soundend')
-);
-
-export const isSpeechActive = registerEventHandlers(
-  recognition,
-  makeStatusHandlers('status-speech', 'speechstart', 'speechend')
-);
-
-export const isCaptioning = registerEventHandlers(
-  recognition,
-  makeStatusHandlers('status-captioning', 'start', 'end')
-);
-
-let tick = 0;
-let work = Promise.resolve();
-
-// TODO: allow for user settings instead of hardcoded defaults
-// TODO: allow users to turn captions on and off
-var setupCaptions = function (recognition: Recogniser) {
-  work = work.then(() => {
-  if (isCaptioning()) {
-    return;
-  }
-
-  work = Promise.resolve();
-
-  try {
-    applySettings(recognition);
-    resetResultProc();
-
-    recognition.start();
-    tick = 0;
-  } catch (e) {
-    if (e.name == 'InvalidStateError') {
-      // documentation says this is only thrown if speech recognition is on,
-      // so ignore this problem.
-    } else {
-      Status.lastError.value = e.name;
-      console.error(e);
-      throw e;
-    }
-  }
-
-  Status.serviceURI.value = recognition.serviceURI ?? '[service URL not disclosed]';
-  });
-};
-
-function canStoreTranscript(where?: HTMLElement | null): asserts where is HTMLOListElement {
+function canStoreTranscript(where: Element): asserts where is HTMLOListElement {
   console.assert(where);
   console.assert(where && where.nodeName.toLowerCase() === 'ol');
 }
 
-const resultProcOpts = {
-  capture: false,
-  once: false,
-  passive: true,
-  signal: undefined,
-};
+type thunk = () => void;
+type predicate = () => boolean;
 
-const ensureResultProc = () => {
-  if (!isCaptioning()) {
-    recognition.addEventListener('result', resultProcessor, resultProcOpts);
-  }
-}
-
-const resetResultProc = () => {
-  console.warn('reset handler');
-  recognition.removeEventListener('result', resultProcessor, resultProcOpts);
-
-  ensureResultProc();
-}
-
-function resultProcessor(event: SpeechAPIEvent) {
-  const data = {
-    results: event.results,
-    resultIndex: event.resultIndex,
-    resultLength: event.results.length,
-    timestamp: event.timeStamp,
-    newfinal: event.results[event.resultIndex ?? 0].isFinal,
-  };
-  tick = 0;
-
-  if (data.newfinal) {
-    work = work.then(ensureResultProc);
+class speech extends api implements Recogniser {
+  static readonly yes: predicate = (): boolean => {
+    return true;
   }
 
-  work = work.then(() => {
-    return new Promise<void>((resolve, reject) => {
-      let ts = SpeechAPI.fromList(data.results, data.resultIndex, data.resultLength, data.timestamp);
-      let transcript = document.getElementById('transcript');
+  static readonly no: predicate = (): boolean => {
+    return false;
+  }
 
-      // assert that the document is set properly to carry transcriptions
-      canStoreTranscript(transcript);
+  isAudioActive: predicate = speech.no;
+  isSoundActive: predicate = speech.no;
+  isSpeechActive: predicate = speech.no;
+  isRegistered: predicate = speech.no;
+  isStarted: predicate = speech.no;
+  isRunning: predicate = speech.no;
+  isAbandoned: predicate = speech.no;
 
-      DOM.merge(transcript, ts);
+  get hasAudio(): boolean {
+    return this.isAudioActive();
+  }
+  get hasSound(): boolean {
+    return this.isSoundActive();
+  }
+  get hasSpeech(): boolean {
+    return this.isSpeechActive();
+  }
+  get registered(): boolean {
+    return this.isRegistered();
+  }
+  get started(): boolean {
+    return this.isStarted();
+  }
+  get running(): boolean {
+    return this.isRunning();
+  }
+  get abandoned(): boolean {
+    return this.isAbandoned();
+  }
+  get stoppable(): boolean {
+    if (this.tick >= 25) {
+      console.warn('reset allowed due to excessive ticks without results', this.tick);
+      return true;
+    }
 
-      if (data.newfinal) {
-        snapshot();
-      }
+    return false;
+  }
 
-      resolve();
-    });
-  });
-}
 
-recognition.addEventListener('error', (event: SpeechAPIErrorEvent) => {
-  console.warn('SpeechRecognition API error', event.error, event.message, event);
+  readonly audioHandlers = makeStatusHandlers('status-audio', 'audiostart', 'audioend');
+  readonly soundHandlers = makeStatusHandlers('status-sound', 'soundstart', 'soundend');
+  readonly speechHandlers = makeStatusHandlers('status-speech', 'speechstart', 'speechend');
+  readonly statusHandlers = makeStatusHandlers('status-captioning', 'start', 'end');
+  readonly stopHandler: thunk = this.stop.bind(this);
+  readonly abortHandler: thunk = this.abort.bind(this);
+  readonly setupHandler: thunk = this.setup.bind(this);
+  readonly snapshotHandler: thunk = this.snapshot.bind(this);
+  readonly pingHandler: thunk = this.ping.bind(this);
+  readonly resultHandler: thunk = this.resultProcessor.bind(this);
+  readonly errorEventHandler: thunk = this.errorHandler.bind(this);
+  readonly nomatchEventHandler: thunk = this.nomatchHandler.bind(this);
 
-  Status.lastError.value = event.error;
-  Status.lastErrorMessage.value = event.message;
+  readonly continuous: boolean = true;
+  readonly lang: string = 'en';
+  readonly interimResults: boolean = true;
+  readonly maxAlternatives: number = 5;
+  readonly intervalID: number = window.setInterval(this.pingHandler, 1200);
 
-  work = work.then(recognition.stop.bind(recognition));
-});
+  tick: number = 0;
+  work: Promise<void> = Promise.resolve();
 
-recognition.addEventListener('nomatch', (event: SpeechAPIEvent) => {
-  Status.lastError.value = 'no-match';
-  Status.lastError.value = 'timeout trying to transcribe audio, last update before stop()/reset';
-  resultProcessor(event);
-  work = work.then(recognition.stop.bind(recognition));
-});
+  constructor() {
+    super();
+    this.setup();
+  }
 
-function snapshot() {
-  work = work.then(() => {
-  let ol = document.getElementById('prior-session-transcript');
-  for (let li of document.querySelectorAll('ol#transcript > li')) {
-    li.removeAttribute('data-index');
-    if (ol) {
-      li.parentNode?.removeChild(li);
-      ol.appendChild(li);
+  registerEvents(): void {
+    if (this.registered) {
+      return;
+    }
+
+    this.isRegistered = speech.yes;
+
+    this.isAudioActive = registerEventHandlers(this, this.audioHandlers);
+
+    this.isSoundActive = registerEventHandlers(this, this.soundHandlers);
+
+    this.isSpeechActive = registerEventHandlers(this, this.speechHandlers);
+
+    this.isRunning = registerEventHandlers(this, this.statusHandlers);
+
+    this.addEventListener('end', this.snapshotHandler);
+    this.addEventListener('result', this.resultProcessor);
+    this.addEventListener('error', this.errorEventHandler);
+    this.addEventListener('nomatch', this.nomatchEventHandler);
+  }
+
+  unregisterEvents(): void {
+    if (!this.registered) {
+      return;
+    }
+
+    this.removeEventListener('nomatch', this.nomatchEventHandler);
+    this.removeEventListener('error', this.errorEventHandler);
+    this.removeEventListener('result', this.resultProcessor);
+    this.removeEventListener('end', this.snapshotHandler);
+
+    this.isRunning = unregisterEventHandlers(this, this.statusHandlers);
+
+    this.isSpeechActive = unregisterEventHandlers(this, this.speechHandlers);
+
+    this.isSoundActive = unregisterEventHandlers(this, this.soundHandlers);
+
+    this.isAudioActive = unregisterEventHandlers(this, this.audioHandlers);
+
+    this.isRegistered = speech.no;
+  }
+
+  start(): void {
+    if (!this.started && !this.abandoned) {
+      this.registerEvents();
+
+      super.start();
+
+      this.isStarted = speech.yes;
     }
   }
-  if (ol) {
-    canStoreTranscript(ol);
-    const ts = DOM.fromOl(ol);
-    DOM.toOl(ts, ol);
+
+  stop(): void {
+    if (!this.stoppable) {
+      console.error('caption mode: avoiding stopping', this);
+    } else {
+      super.stop();
+
+      this.isStarted = speech.no;
+    }
   }
-  }).then(ensureResultProc);
-}
 
-recognition.addEventListener('end', snapshot);
+  abort(): void {
+    super.abort();
 
-const intervalID = window.setInterval(() => {
-  if (isCaptioning()) {
-      let tickmod = tick % 30;
-      if (tickmod == 28) {
+    this.unregisterEvents();
+
+    this.isStarted = speech.no;
+  }
+
+  abandon() {
+    if (!this.abandoned) {
+      this.isAbandoned = speech.yes;
+
+      this.stop();
+      this.unregisterEvents();
+    }
+  }
+
+  // TODO: allow for user settings instead of hard-coded defaults
+  // TODO: allow users to turn captions on and off
+  setup(): void {
+    if (this.running || this.abandoned) {
+      return;
+    }
+
+    this.work = Promise.resolve();
+
+    try {
+      this.start();
+    } catch (e) {
+      Status.lastError.value = e.name;
+      Status.lastErrorMessage.value = String(e);
+      console.error(e);
+      throw e;
+    }
+
+    Status.serviceURI.value = this.serviceURI || '[service URL not disclosed]';
+  }
+
+  snapshot() {
+    for (const ol of document.querySelectorAll('.captions ol.history')) {
+      canStoreTranscript(ol);
+
+      for (const li of document.querySelectorAll('.captions ol.transcript > li')) {
+        li.removeAttribute('data-index');
+        if (ol) {
+          li.parentNode?.removeChild(li);
+          ol.appendChild(li);
+        }
+      }
+      const ts = DOM.fromOl(ol);
+      DOM.toOl(ts, ol);
+    }
+  }
+
+  resultProcessor(event: SpeechAPIEvent) {
+    const results = event.results;
+    const idx = event.resultIndex;
+    const len = event.results.length;
+    const timestamp = event.timeStamp;
+
+    this.tick = 0;
+
+    this.work = this.work.then(() => {
+      let ts = SpeechAPI.fromList(results, idx, len, timestamp);
+      for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
+        canStoreTranscript(transcript);
+
+        DOM.merge(transcript, ts);
+      }
+    });
+  }
+
+  errorHandler(event: SpeechAPIErrorEvent) {
+    console.warn('SpeechRecognition API error', event.error, event.message, event);
+
+    Status.lastError.value = event.error;
+    Status.lastErrorMessage.value = event.message;
+
+    this.work = this.work.then(this.abortHandler);
+  }
+
+  nomatchHandler(event: SpeechAPIEvent) {
+    Status.lastError.value = 'no-match';
+    Status.lastErrorMessage.value = 'timeout trying to transcribe audio, last update before stop()/reset';
+    this.resultProcessor(event);
+  }
+
+  ping() {
+    if (this.abandoned) {
+      window.clearInterval(this.intervalID);
+      this.snapshot();
+      return;
+    }
+
+    if (this.running) {
+      const tickmod = this.tick & 63;
+      if(tickmod == 60) {
+        Status.lastError.value = 'abandoned';
+        Status.lastErrorMessage.value = 'still no results after reset, abandoning instance';
+
+        this.abandon();
+        new speech();
+      } else if (tickmod == 28) {
         Status.lastError.value = 'voluntary-reset';
         Status.lastErrorMessage.value = 'no results in >= 25 ticks';
 
-        work = work.then(() => setupCaptions(recognition));
-        recognition.stop();
-      } else if (tickmod % 12 == 8) {
-        Status.lastError.value = 'no-result-events';
-        Status.lastErrorMessage.value = 'trying to re-register result events';
-        resetResultProc();
-      } else if (tickmod % 7 == 4) {
-        Status.lastError.value = 'stale-event-callback';
-        Status.lastErrorMessage.value = 'delayed result event, trying to add handler again';
-        ensureResultProc();
+        this.stop(); // this is expected to cause a restart automatically
       }
-      tick++;
-      let [l, r] = (tick >= 15) ?
-              ['⚪', '⚫'] :
-              ['⚫', '⚪'];
+ 
+      this.tick++;
+      const [l, r] = this.tick >= 15 ? ['⚪', '⚫'] : ['⚫', '⚪'];
 
-      let tickv = l.repeat(tick % 15);
-      if (tick >= 15) {
+      let tickv = l.repeat(this.tick % 15);
+      if (this.tick >= 15) {
         tickv = tickv.padEnd(15, r);
       }
-      Status.ticks.value = tickv; 
+      Status.ticks.value = tickv;
       return;
+    }
+
+    if (!this.running && !this.abandoned) {
+      this.work = this.work.then(this.setupHandler);
+    }
   }
+}
 
-  work = work.then(() => setupCaptions(recognition));
-}, 666);
-
-window.addEventListener('load', () => {
-  setupCaptions(recognition);
-});
+window.addEventListener('load', () => new speech());

@@ -1,6 +1,16 @@
 /** @format */
 
-import { CompareResult, PartialOrder, Q, M, OuterHull, FromNumber, ToNumber, FromString, ToString } from './qualified.js';
+import {
+  CompareResult,
+  PartialOrder,
+  Q,
+  M,
+  OuterHull,
+  FromNumber,
+  ToNumber,
+  FromString,
+  ToString,
+} from './qualified.js';
 
 export class MDate extends M<number> implements FromNumber, ToString, FromString {
   get number(): number {
@@ -40,11 +50,11 @@ export class DateBetween extends OuterHull<MDate> implements FromString, ToStrin
   }
 
   static *diffcat(s: string): Generator<MDate> {
-     let a = 0;
-     for (const dv of s.split('Δ')) {
-       a += Number(dv);
-       yield new MDate(a);
-     }
+    let a = 0;
+    for (const dv of s.split('Δ')) {
+      a += Number(dv);
+      yield new MDate(a);
+    }
   }
 
   set string(s: string) {

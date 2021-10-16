@@ -37,12 +37,12 @@ function testSort(log: LogFunction): boolean {
     {
       name: 'validate expected overlap behavior',
       have: [
-        new carrier([(20200101), (20210101)], 'last'),
-        new carrier([(20200101), (20200201)], 'shorter'),
-        new carrier([(19951201)], 'first'),
-        new carrier([(20200501), (20240501)], 'tail'),
-        new carrier([(20210601), (20200501)], 'strange'),
-        new carrier([(20200501), (20210501)], 'charm'),
+        new carrier([20200101, 20210101], 'last'),
+        new carrier([20200101, 20200201], 'shorter'),
+        new carrier([19951201], 'first'),
+        new carrier([20200501, 20240501], 'tail'),
+        new carrier([20210601, 20200501], 'strange'),
+        new carrier([20200501, 20210501], 'charm'),
       ],
       expect: ['first', 'shorter', 'last', 'charm', 'strange', 'tail'],
     },

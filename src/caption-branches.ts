@@ -50,11 +50,11 @@ export class Branches extends OuterHull<Branch> {
     }
   }
 
-  constructor(bs: Iterable<Branch>, idx: number | undefined, final: boolean) {
+  constructor(bs: Iterable<Branch>, idx: number | undefined, fin: boolean) {
     super(bs);
 
     this.index = idx;
-    this.final = final;
+    this.final = fin;
   }
 
   concat(bs: Branches): Branches {
@@ -94,7 +94,11 @@ export class Transcript extends OuterHull<Branches> {
   readonly resultIndex?: number;
   readonly resultLength?: number;
 
-  static *merge(bs: Iterable<Branches>, resultIndex?: number, resultLength?: number): Generator<Branches> {
+  static *merge(
+    bs: Iterable<Branches>,
+    resultIndex?: number,
+    resultLength?: number
+  ): Generator<Branches> {
     for (const b of bs) {
       yield b;
     }
@@ -107,7 +111,11 @@ export class Transcript extends OuterHull<Branches> {
   }
 
   concat(bs: Iterable<Branches>, resultIndex?: number, resultLength?: number): Transcript {
-    return new Transcript(this.catter(bs), resultIndex ?? this.resultIndex ?? 0, resultLength ?? this.resultLength);
+    return new Transcript(
+      this.catter(bs),
+      resultIndex ?? this.resultIndex ?? 0,
+      resultLength ?? this.resultLength
+    );
   }
 }
 
@@ -177,6 +185,7 @@ export class Transcript extends OuterHull<Branches> {
  */
 export const DOM = {
   fromSpan: (node: HTMLSpanElement): Branch => {
+    // console.warn(node);
     const _q = node.getAttribute('data-confidence') ?? '';
     const _when = node.getAttribute('data-when') ?? '';
 
@@ -185,6 +194,7 @@ export const DOM = {
     const w = new DateBetween(DateBetween.diffcat(_when));
     const text = node.textContent ?? undefined;
 
+    // console.log(_q, c);
     return new Branch(w, c, f, text);
   },
 
@@ -235,7 +245,7 @@ export const DOM = {
     } else if (span.hasAttribute('data-confidence')) {
       span.removeAttribute('data-confidence');
     }
-    span.setAttribute('data-when', b.when.string)
+    span.setAttribute('data-when', b.when.string);
     updateText(span, b.text);
     return span;
   },
@@ -353,7 +363,13 @@ export interface SpeechAPIErrorEvent extends Event {
 export const SpeechAPI = {
   fromAlternative: (alt: SpeechAPIAlternative, final?: boolean, timestamp?: number): Branch => {
     let ets: number = timestamp || Date.now();
-    return new Branch(new DateBetween([new MDate(ets)]), new QValue(alt.confidence), final, alt.transcript, 'speech-api');
+    return new Branch(
+      new DateBetween([new MDate(ets)]),
+      new QValue(alt.confidence),
+      final,
+      alt.transcript,
+      'speech-api'
+    );
   },
 
   fromResult: (result: SpeechAPIResult, idx?: number, timestamp?: number): Branches => {
@@ -370,10 +386,15 @@ export const SpeechAPI = {
     return new Branches(bs, idx, result.isFinal);
   },
 
-  fromList: (list: SpeechAPIResultList, idx?: number, length?: number, timestamp?: number): Transcript => {
+  fromList: (
+    list: SpeechAPIResultList,
+    idx?: number,
+    length?: number,
+    timestamp?: number
+  ): Transcript => {
     let ets: number = timestamp || Date.now();
     let ds: Branches[] = [];
-    for (let i = (idx ?? 0); i < (length ?? list.length); i++) {
+    for (let i = idx ?? 0; i < (length ?? list.length); i++) {
       const result: SpeechAPIResult = list.item(i);
       const branches = SpeechAPI.fromResult(result, i, ets);
       ds.push(branches);

@@ -52,7 +52,7 @@ body {
   top: 25px;
   right: 50px;
   color: gray;
-  size: .8em;
+  size: 0.8em;
 }
 
 #status-service,
@@ -135,6 +135,10 @@ p#last-final {
   display: none;
 }
 
+.captions ol li {
+  display: none;
+}
+
 .captions ol li:nth-last-child(2),
 .captions ol li:last-child {
   display: block;
@@ -149,4 +153,10 @@ p#last-final {
 
 .captions ol li:nth-last-child(2) {
   font-size: 1.5em;
+}
+
+.captions ol li.final,
+.captions ol li.abandoned:last-child,
+.captions ol li.interim:last-child {
+  display: block;
 }

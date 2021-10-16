@@ -99,7 +99,8 @@ export class Q<Type>
 
 export class M<Type>
   extends ValueBoilerplate<Type>
-  implements PartialOrder, Equivalence, Value<Type>, ToString, MutableValue<Type> {
+  implements PartialOrder, Equivalence, Value<Type>, ToString, MutableValue<Type>
+{
   protected [valueSymbol]: Type;
 
   constructor(qval: Type) {
