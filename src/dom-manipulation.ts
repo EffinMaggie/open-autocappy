@@ -67,22 +67,20 @@ function elementChange(
   const currentValue: string = elementText(coalesce, element);
   const wantValue: string = value ?? coalesce;
 
-  // console.log('text update: ', value, currentValue, wantValue);
-
-  if (superfluous.has(value) || wantValue === coalesce || wantValue === currentValue) {
+  if (superfluous.has(value)) {
     if (element.innerText != '') {
       element.innerText = '';
       return false;
     }
 
-    // console.warn('no text update: ', value, currentValue, wantValue);
+    return false;
+  } else if (wantValue === currentValue) {
     return false;
   } else if (element.innerText != wantValue) {
     element.innerText = wantValue;
     return true;
   }
 
-  // console.warn('no text update: ', value, currentValue, wantValue);
   return false;
 }
 
