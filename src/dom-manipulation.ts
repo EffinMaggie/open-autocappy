@@ -23,11 +23,11 @@ type valueSet = Set<string | undefined>;
 const superfluousValue: valueSet = new Set([undefined, '']);
 
 function attributeText(attribute: string, coalesce: string, element: HTMLElement): string {
-  return element.getAttribute(attribute) ?? coalesce;
+  return element.getAttribute(attribute) || coalesce;
 }
 
 function elementText(coalesce: string, element: HTMLElement): string {
-  if (element.innerText == '') {
+  if (!element.innerText) {
     return coalesce;
   }
 

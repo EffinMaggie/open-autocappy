@@ -63,8 +63,9 @@ export function unregisterEventHandlers(emitter: EventTarget, events): () => boo
 // REFACTOR: make events composable and declarative
 // TODO: add sanity checking for event states
 
-export type handler = (event?: Event | null) => void;
-export type predicate = (event?: Event | null) => boolean;
+export type maybe = boolean | undefined;
+export type handler = (event: Event) => void;
+export type predicate = (event: Event) => maybe;
 
 /** event handling with extra constraints.
  *
@@ -138,10 +139,9 @@ export const poke = (observer: EventTarget, event: string | CustomEvent, relay?:
   return observer.dispatchEvent(event);
 }
 
-export const bookendEmit = (call: handler, name: string = call.name, detail?: any, observer?: EventTarget): handler => {
+export const bookend = (call: handler, name: string = call.name, detail?: any, observer?: EventTarget): handler => {
   const starting: string = `${name}...`;
   const done: string = `${name}!`;
-
   const fn = {
     [name]:  (event: Event) => {
     const target: EventTarget | null = observer ?? event?.target ?? null;
@@ -196,4 +196,15 @@ export const must = (call: handler, terms: Iterable<predicate>, name: string = c
   return fn[name].bind(observer);
 }
 
+export const between = (after: Event, before: Event, now?: boolean, observer?: EventTarget): predicate => {
+  let state: maybe = now;
+
+  const fn = {
+    between: (): maybe => {
+          return state
+    }
+  }
+
+  return fn.between;
+}
 

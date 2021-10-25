@@ -1,14 +1,14 @@
 /** @format */
 
 import { clearContent, addContent, hasClass } from './dom-manipulation.js';
-import { Status } from './dom-interface.js';
+import { Status, Settings } from './dom-interface.js';
 import {
   makeStatusHandlers,
   registerEventHandlers,
   unregisterEventHandlers,
   handler,
   on,
-  bookendEmit,
+  bookend,
   must
 } from './declare-events.js';
 import {
@@ -20,6 +20,7 @@ import {
   SpeechAPIResultList,
   SpeechAPIResult,
   SpeechAPIAlternative,
+  UpdateData,
 } from './caption-branches.js';
 
 type usable = new () => Recogniser;
@@ -89,11 +90,18 @@ class speech extends api implements Recogniser {
     return this.isStarted();
   }
   get running(): boolean {
-    return this.isRunning();
+    
+    return this.started && this.isRunning();
   }
-  get abandoned(): boolean {
-    return this.isAbandoned();
+
+  notRunning(): boolean {
+    return !this.running;
   }
+  unstarted(): boolean {
+    return !this.started;
+  }
+
+
   get stoppable(): boolean {
     if (this.tick >= 25) {
       console.warn('reset allowed due to excessive ticks without results', this.tick);
@@ -104,26 +112,18 @@ class speech extends api implements Recogniser {
   }
 
   private static registerEventsWhen: string[] = ['start?'];
-  private static registerEventsUntil: string[] = ['abort!', 'stop!', 'driftwood!'];
+  private static registerEventsUntil: string[] = ['abort!', 'stop!'];
 
   on(upon: Iterable<string>, call: handler, after: Iterable<string> = speech.registerEventsWhen, until: Iterable<string> = speech.registerEventsUntil): handler {
     return on(this, upon, call.bind(this), after, until);
   }
 
-  bookendEmit(call: handler, name: string = call.name, detail?: any): handler {
-    return bookendEmit(call, name, detail, this);
+  bookend(call: handler, name: string = call.name, detail?: any): handler {
+    return bookend(call, name, detail, this);
   }
 
   must(call: handler, terms: Iterable<predicate>, name: string = call.name, detail?: any): handler {
     return must(call, terms, name, detail, this);
-  }
-
-  notAbandoned(): boolean {
-    return !this.abandoned;
-  }
-
-  notStartedAndRunning(): boolean {
-    return !(this.started && this.running);
   }
 
   readonly audioHandlers = makeStatusHandlers('status-audio', 'audiostart', 'audioend');
@@ -132,33 +132,63 @@ class speech extends api implements Recogniser {
   readonly statusHandlers = makeStatusHandlers('status-captioning', 'start', 'end');
 
   readonly registerOn: handler = this.on(['start...'], this.registerEvents);
+  readonly fortifyOn: handler = this.on(
+    ['start...'],
+    this.fortify);
 
   readonly startOn: handler = this.on(
     ['start?'],
-    this.must(this.bookendEmit(this.start),
-              [this.notAbandoned, this.notStartedAndRunning]),
-    ['Creation'],
-    ['driftwood!']);
-  readonly stopOn: handler = this.on(['stop?'], this.stop, ['start!'], ['abort!', 'stop!']);
-  readonly abortOn: handler = this.on(['abort?'], this.abort, ['start!'], ['stop!']);
+    this.must(this.bookend(this.start),
+              [this.notRunning]),
+    ['Creation']);
 
-  readonly snapshotOn: handler = this.on(['end', 'idle', 'driftwood!'], this.snapshot, ['result?'], ['snapshot!']);
+  readonly stopOn: handler = this.on(
+    ['stop?'],
+    this.stop,
+    ['start!'],
+    ['abort!', 'stop!']);
+
+  readonly abortOn: handler = this.on(
+    ['abort?'],
+    this.abort,
+    ['start!'],
+    ['stop!']);
+
+  readonly snapshotOn: handler = this.on(
+    ['speechend', 'end', 'slow', 'idle'],
+    this.bookend(this.snapshot),
+    ['process!'],
+    ['snapshot...']);
 
   readonly idleOn: handler = this.on(['pulse'], this.idle);
   readonly pulseOn: handler = this.on(['pulse'], this.pulse);
-  readonly reviveOn: handler = this.on(['pulse', 'end'], this.revive, ['Creation'], ['driftwood!']);
+  readonly reviveOn: handler = this.on(['pulse', 'end'], this.revive, ['Creation']);
   readonly tickerOn: handler = this.on(['tick', 'tock'], this.ticker);
   readonly refreshOn: handler = this.on(['start!'], this.refresh);
   readonly deadPOn: handler = this.on(['dead?'], this.dead);
   readonly errorOn: handler = this.on(['error'], this.error);
   readonly nomatchOn: handler = this.on(['nomatch'], this.nomatch);
   readonly resultOn: handler = this.on(['result', 'nomatch'], this.result);
-  readonly processOn: handler = this.on(['result?'], this.process);
+  readonly processOn: handler = this.on(
+    ['process?'],
+    this.bookend(this.process));
 
-  readonly continuous: boolean = true;
-  readonly lang: string = 'en';
-  readonly interimResults: boolean = true;
-  readonly maxAlternatives: number = 4;
+  get lang(): string {
+    console.log(Settings.language.value);
+    return Settings.language.value;
+  }
+  get continuous(): boolean {
+    console.log(Settings.continuous.value);
+    return Settings.continuous.value == 'true';
+  }
+  get interimResults(): boolean {
+    console.log(Settings.interim.value);
+    return Settings.interim.value == 'true';
+  }
+  get maxAlternatives(): number {
+    console.log(Settings.alternatives.value);
+    return Number(Settings.alternatives.value);
+  }
   readonly intervalID: number = window.setInterval(this.ping.bind(this), 1200);
 
   private ticks: number = 0;
@@ -180,6 +210,8 @@ class speech extends api implements Recogniser {
     } else {
       this.poke('tick');
     }
+
+    Status.ticks.value = this.ticks.toString();
   }
 
   ticker() {
@@ -189,14 +221,14 @@ class speech extends api implements Recogniser {
     if (this.tick >= 15) {
       tickv = tickv.padEnd(15, r);
     }
-    Status.ticks.value = tickv;
+    Status.tickVisual.value = tickv;
   }
 
   refresh() {
     Status.serviceURI.value = this.serviceURI || '[service URL not disclosed]';
   }
 
-  poke(ev: string, relay?: Event) {
+  poke(ev: string, relay?: Event | UpdateData) {
     return this.dispatchEvent(new CustomEvent(ev, { detail: relay })); 
   }
 
@@ -219,13 +251,21 @@ class speech extends api implements Recogniser {
     this.isRunning = registerEventHandlers(this, this.statusHandlers);
   }
 
-  start(): void {
+  fortify(): void {
+    super.lang = this.lang;
+    super.continuous = this.continuous;
+    super.interimResults = this.interimResults;
+    super.maxAlternatives = this.maxAlternatives;
+  }
+
+  start(event?: Event): void {
     try {
       this.tick = 0;
       super.start();
     } catch (e) {
       Status.lastError.value = e.name;
       Status.lastErrorMessage.value = String(e);
+      Status.lastErrorTime.value = event?.timeStamp.toString() ?? 'NaN';
       console.error(e);
       throw e;
     }
@@ -258,24 +298,7 @@ class speech extends api implements Recogniser {
     this.poke('abort!');
   }
 
-  abandon() {
-    if (this.abandoned) {
-      this.poke('=abandon');
-      return;
-    }
-
-    this.poke('abondon...');
-
-    this.isAbandoned = speech.yes;
-
-    this.stop();
-
-    this.poke('abondon!');
-  }
-
   snapshot(): void {
-    this.poke('snapshot...');
-
     for (const ol of document.querySelectorAll('.captions ol.history')) {
       canStoreTranscript(ol);
 
@@ -289,28 +312,21 @@ class speech extends api implements Recogniser {
       const ts = DOM.fromOl(ol);
       DOM.toOl(ts, ol);
     }
-
-    this.poke('snapshot!');
   }
 
   result(event: SpeechAPIEvent) {
     this.tick = 0;
-    this.poke('result?', event);
+    this.poke('process?', new UpdateData(event));
   }
 
-  process(cevent: CustomEvent) {
-    const event: SpeechAPIEvent = cevent.detail;
+  process(event: CustomEvent) {
+    const data: UpdateData = event.detail;
 
-    if (!event) {
+    if (!data) {
       console.error('bogus event from SpeechRecognition API: ', event);
     }
 
-    const results = event.results;
-    const idx = event.resultIndex;
-    const len = event.results?.length ?? 0;
-    const timestamp = event.timeStamp;
-
-    let ts = SpeechAPI.fromList(results, idx, len, timestamp);
+    let ts = SpeechAPI.fromData(data);
     for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
       canStoreTranscript(transcript);
 
@@ -364,21 +380,10 @@ class speech extends api implements Recogniser {
       return;
     }
 
-    if (this.abandoned) {
-      // will not revive when abandoned
-      return;
-    }
-
     this.poke('start?');
   }
 
   ping() {
-    if (this.abandoned) {
-      window.clearInterval(this.intervalID);
-      this.poke('driftwood!');
-      return;
-    }
-
     this.poke('pulse');
   }
 }

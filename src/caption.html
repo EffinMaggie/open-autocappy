@@ -2,27 +2,32 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang='en'>
   <head>
-    <title id="last-line">[ Open AutoCappy ]</title>
+    <meta charset='utf-8'>
 
-    <link rel="stylesheet" type="text/css" href="captions.css" />
-    <script type="module" src="speech-recognition.js"></script>
+    <title id='last-line'>[ Open AutoCappy ]</title>
+    <link rel='stylesheet' type='text/css' href='captions.css' />
+
+    <meta name='continuous' content='true'>
+    <meta name='interim-results' content='true'>
+    <meta name='max-alternatives' content='4'>
+    <script type='module' src='speech-recognition.js'></script>
   </head>
 
-  <body class="captions">
-    <p id="status-ticks"></p>
-    <p id="status-captioning">Captioning</p>
-    <p id="status-audio">Audio</p>
-    <p id="status-sound">Sound</p>
-    <p id="status-speech">Speech</p>
-    <p id="status-service"></p>
-    <p id="last-final">[ OwO ]</p>
+  <body class='captions'>
+    <p id='status-ticks'></p>
+    <p id='status-captioning'>Captioning</p>
+    <p id='status-audio'>Audio</p>
+    <p id='status-sound'>Sound</p>
+    <p id='status-speech'>Speech</p>
+    <p id='status-service'></p>
+    <p id='last-final'>[ OwO ]</p>
 
-    <p id="status-last-error"></p>
-    <p id="status-last-error-message"></p>
+    <p id='status-last-error'></p>
+    <p id='status-last-error-message'></p>
 
-    <ol class="transcript"></ol>
-    <ol class="history"></ol>
+    <ol class='transcript'></ol>
+    <ol class='history'></ol>
   </body>
 </html>

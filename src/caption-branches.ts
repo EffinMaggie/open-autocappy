@@ -360,6 +360,20 @@ export interface SpeechAPIErrorEvent extends Event {
   message: string;
 }
 
+export class UpdateData {
+  results: SpeechAPIResultList;
+  index: number;
+  length: number;
+  timestamp: number;
+
+  constructor(event: SpeechAPIEvent) {
+    this.results = event.results;
+    this.index = event.resultIndex ?? 0;
+    this.length = event.results?.length ?? 0;
+    this.timestamp = event.timeStamp ?? -1;
+  }
+}
+
 export const SpeechAPI = {
   fromAlternative: (alt: SpeechAPIAlternative, final?: boolean, timestamp?: number): Branch => {
     let ets: number = timestamp || Date.now();
@@ -403,7 +417,11 @@ export const SpeechAPI = {
     return new Transcript(ds, idx, length);
   },
 
+  fromData: (data: UpdateData): Transcript => {
+    return SpeechAPI.fromList(data.results, data.index, data.length, data.timestamp);
+  },
+
   fromEvent: (event: SpeechAPIEvent): Transcript => {
-    return SpeechAPI.fromList(event.results, event.resultIndex, event.results.length);
+    return SpeechAPI.fromData(new UpdateData(event));
   },
 };
