@@ -1,29 +1,38 @@
 /** @format */
 
-import { updateNodeClasses } from './dom-manipulation.js';
+import { ONodeUpdater, updateClasses } from './dom-manipulation.js';
 import { MDate, DateBetween, now } from './dated.js';
 
 type EventHandler = (event: Event) => void;
 
-export function makeStatusHandlers(id: string, onstart: string, onend: string) {
-  let active = false;
+export function makeStatusHandlers(
+  observer: EventTarget,
+  updater: ONodeUpdater,
+  onstart: string,
+  onend: string
+) {
+  let active: predicate = between(observer, onstart, onend);
   let started: number | undefined = undefined;
 
+  let update = () => {
+    if (active()) {
+      updateClasses(updater, ['inactive', 'end'], ['active']);
+    } else {
+      updateClasses(updater, ['inactive', 'active'], ['end']);
+    }
+  };
+
   return {
-    status: () => active,
+    status: active,
 
     [onstart]: (event: Event) => {
-      active = true;
       started = event.timeStamp;
-
-      updateNodeClasses(id, ['end'], ['active']);
+      update();
     },
 
     [onend]: (event) => {
-      active = false;
       started = undefined;
-
-      updateNodeClasses(id, ['active'], ['end']);
+      update();
     },
   };
 }
@@ -65,14 +74,20 @@ export function unregisterEventHandlers(emitter: EventTarget, events): () => boo
 
 export type maybe = boolean | undefined;
 export type handler = (event: Event) => void;
-export type predicate = (event: Event) => maybe;
+export type predicate = (event?: Event) => maybe;
 
 /** event handling with extra constraints.
  *
  *  A wrapper around browser event handling that can automatically add and
  *  remove event handlers based on other events firing.
  */
-export const on = (observer: EventTarget, upon: Iterable<string>, call: handler, when?: Iterable<string>, until?: Iterable<string>): handler => {
+export const on = (
+  observer: EventTarget,
+  upon: Iterable<string>,
+  call: handler,
+  when?: Iterable<string>,
+  until?: Iterable<string>
+): handler => {
   let registered = false;
 
   const listen = (add: boolean = true) => {
@@ -81,15 +96,15 @@ export const on = (observer: EventTarget, upon: Iterable<string>, call: handler,
     }
 
     return observer.removeEventListener.bind(observer);
-  }
+  };
 
   const setWhen = (add: boolean = true) => {
     if (when) {
-       for (const w of when) {
-         listen(add)(w, adder);
-       }
+      for (const w of when) {
+        listen(add)(w, adder);
+      }
     }
-  }
+  };
 
   const adder = () => {
     if (registered) {
@@ -106,21 +121,21 @@ export const on = (observer: EventTarget, upon: Iterable<string>, call: handler,
           for (const u of until) {
             listen(add)(u, cleaner);
           }
-        }
+        };
 
         const cleaner = () => {
           listen(false)(condition, call);
           setUntil(false);
           setWhen();
           registered = false;
-        }
+        };
 
         setUntil();
       }
     }
 
     registered = true;
-  }
+  };
 
   if (when) {
     setWhen();
@@ -129,7 +144,7 @@ export const on = (observer: EventTarget, upon: Iterable<string>, call: handler,
   }
 
   return call;
-}
+};
 
 export const poke = (observer: EventTarget, event: string | CustomEvent, relay?: Event) => {
   if (typeof event === 'string') {
@@ -137,74 +152,99 @@ export const poke = (observer: EventTarget, event: string | CustomEvent, relay?:
   }
 
   return observer.dispatchEvent(event);
-}
+};
 
-export const bookend = (call: handler, name: string = call.name, detail?: any, observer?: EventTarget): handler => {
+export const bookend = (
+  call: handler,
+  name: string = call.name,
+  detail?: any,
+  observer?: EventTarget
+): handler => {
   const starting: string = `${name}...`;
   const done: string = `${name}!`;
   const fn = {
-    [name]:  (event: Event) => {
-    const target: EventTarget | null = observer ?? event?.target ?? null;
-    const relay = detail ?? event ?? undefined;
-    const options = {
-      detail: relay,
-    };
-    const startingCE: CustomEvent = new CustomEvent(starting, options);
-    const doneCE: CustomEvent = new CustomEvent(done, options);
-    const method = call.bind(target);
+    [name]: (event: Event) => {
+      const target: EventTarget | null = observer ?? event?.target ?? null;
+      const relay = detail ?? event ?? undefined;
+      const options = {
+        detail: relay,
+      };
+      const startingCE: CustomEvent = new CustomEvent(starting, options);
+      const doneCE: CustomEvent = new CustomEvent(done, options);
+      const method = call.bind(target);
 
-    if (target) {
-      poke(target, startingCE);
-      method(event);
-      poke(target, doneCE);
-    } else {
-      method(event);
-    }
-  }
-  }
+      if (target) {
+        poke(target, startingCE);
+        method(event);
+        poke(target, doneCE);
+      } else {
+        method(event);
+      }
+    },
+  };
 
   return fn[name].bind(observer);
-}
+};
 
-export const must = (call: handler, terms: Iterable<predicate>, name: string = call.name, detail?: any, observer?: EventTarget): handler => {
+export const must = (
+  call: handler,
+  terms: Iterable<predicate>,
+  name: string = call.name,
+  detail?: any,
+  observer?: EventTarget
+): handler => {
   const fail: string = `!${name}`;
 
   const fn = {
-     [name]: (event: Event) => {
-    const target: EventTarget | null = observer ?? event?.target ?? null;
-    const relay = detail ?? event ?? undefined;
-    const options = {
-      detail: relay,
-    };
-    const failCE: CustomEvent = new CustomEvent(fail, options);
+    [name]: (event: Event) => {
+      const target: EventTarget | null = observer ?? event?.target ?? null;
+      const relay = detail ?? event ?? undefined;
+      const options = {
+        detail: relay,
+      };
+      const failCE: CustomEvent = new CustomEvent(fail, options);
 
-    for (const condition of terms) {
-    const pass = condition.bind(target);
+      for (const condition of terms) {
+        const pass = condition.bind(target);
 
-    if (!pass(event)) {
-      if (target) {
-        poke(target, failCE);
+        if (!pass(event)) {
+          if (target) {
+            poke(target, failCE);
+          }
+          return;
+        }
       }
-      return;
-    }
-    }
 
-    call.bind(target)(event);
-  }
-  }
+      call.bind(target)(event);
+    },
+  };
 
   return fn[name].bind(observer);
-}
+};
 
-export const between = (after: Event, before: Event, now?: boolean, observer?: EventTarget): predicate => {
+export const between = (
+  observer: EventTarget,
+  after: string,
+  before: string,
+  value: boolean = true,
+  now?: boolean
+): predicate => {
   let state: maybe = now;
 
   const fn = {
     between: (): maybe => {
-          return state
-    }
-  }
+      return state;
+    },
+    [after]: () => {
+      state = true;
+    },
+    [before]: () => {
+      state = false;
+    },
+  };
+
+  on(observer, [after], fn[after]);
+  on(observer, [before], fn[before]);
 
   return fn.between;
-}
-
+};

@@ -19,13 +19,48 @@ body {
 }
 
 #status-ticks {
-  display: block;
-  color: red;
+  color: blue;
   margin: 0;
   padding: 0;
   margin-top: 15px;
   margin-left: -5px;
   height: 15px;
+}
+
+#status-ticks[data-ticks]:before {
+  content: attr(data-ticks);
+}
+
+#status-ticks[data-ticks^='1'] {
+  color: purple;
+}
+
+#status-ticks[data-ticks^='2'] {
+  color: red;
+  font-weight: bold;
+}
+
+#status-ticks[data-ticks^='1']:after {
+  content: '?';
+}
+
+#status-ticks[data-ticks^='2']:after {
+  content: '!';
+}
+
+p#status-ticks[data-ticks='0'],
+p#status-ticks[data-ticks='1'],
+p#status-ticks[data-ticks='2'] {
+  color: pink;
+}
+
+p#status-ticks[data-ticks='0']:after {
+  content: ' UwU';
+}
+
+p#status-ticks[data-ticks='1']:after,
+p#status-ticks[data-ticks='2']:after {
+  content: none;
 }
 
 #status-service,

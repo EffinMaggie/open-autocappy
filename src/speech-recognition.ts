@@ -1,6 +1,5 @@
 /** @format */
 
-import { clearContent, addContent, hasClass } from './dom-manipulation.js';
 import { Status, Settings } from './dom-interface.js';
 import {
   makeStatusHandlers,
@@ -9,7 +8,7 @@ import {
   handler,
   on,
   bookend,
-  must
+  must,
 } from './declare-events.js';
 import {
   DOM,
@@ -60,11 +59,11 @@ type predicate = () => boolean;
 class speech extends api implements Recogniser {
   static readonly yes: predicate = (): boolean => {
     return true;
-  }
+  };
 
   static readonly no: predicate = (): boolean => {
     return false;
-  }
+  };
 
   isAudioActive: predicate = speech.no;
   isSoundActive: predicate = speech.no;
@@ -90,7 +89,6 @@ class speech extends api implements Recogniser {
     return this.isStarted();
   }
   get running(): boolean {
-    
     return this.started && this.isRunning();
   }
 
@@ -100,7 +98,6 @@ class speech extends api implements Recogniser {
   unstarted(): boolean {
     return !this.started;
   }
-
 
   get stoppable(): boolean {
     if (this.tick >= 25) {
@@ -114,7 +111,12 @@ class speech extends api implements Recogniser {
   private static registerEventsWhen: string[] = ['start?'];
   private static registerEventsUntil: string[] = ['abort!', 'stop!'];
 
-  on(upon: Iterable<string>, call: handler, after: Iterable<string> = speech.registerEventsWhen, until: Iterable<string> = speech.registerEventsUntil): handler {
+  on(
+    upon: Iterable<string>,
+    call: handler,
+    after: Iterable<string> = speech.registerEventsWhen,
+    until: Iterable<string> = speech.registerEventsUntil
+  ): handler {
     return on(this, upon, call.bind(this), after, until);
   }
 
@@ -126,52 +128,40 @@ class speech extends api implements Recogniser {
     return must(call, terms, name, detail, this);
   }
 
-  readonly audioHandlers = makeStatusHandlers('status-audio', 'audiostart', 'audioend');
-  readonly soundHandlers = makeStatusHandlers('status-sound', 'soundstart', 'soundend');
-  readonly speechHandlers = makeStatusHandlers('status-speech', 'speechstart', 'speechend');
-  readonly statusHandlers = makeStatusHandlers('status-captioning', 'start', 'end');
+  readonly audioHandlers = makeStatusHandlers(this, Status.audio, 'audiostart', 'audioend');
+  readonly soundHandlers = makeStatusHandlers(this, Status.sound, 'soundstart', 'soundend');
+  readonly speechHandlers = makeStatusHandlers(this, Status.speech, 'speechstart', 'speechend');
+  readonly statusHandlers = makeStatusHandlers(this, Status.captioning, 'start', 'end');
 
   readonly registerOn: handler = this.on(['start...'], this.registerEvents);
-  readonly fortifyOn: handler = this.on(
-    ['start...'],
-    this.fortify);
+  readonly fortifyOn: handler = this.on(['start...'], this.fortify);
 
   readonly startOn: handler = this.on(
     ['start?'],
-    this.must(this.bookend(this.start),
-              [this.notRunning]),
-    ['Creation']);
+    this.must(this.bookend(this.start), [this.notRunning]),
+    ['Creation']
+  );
 
-  readonly stopOn: handler = this.on(
-    ['stop?'],
-    this.stop,
-    ['start!'],
-    ['abort!', 'stop!']);
+  readonly stopOn: handler = this.on(['stop?'], this.stop, ['start!'], ['abort!', 'stop!']);
 
-  readonly abortOn: handler = this.on(
-    ['abort?'],
-    this.abort,
-    ['start!'],
-    ['stop!']);
+  readonly abortOn: handler = this.on(['abort?'], this.abort, ['start!'], ['stop!']);
 
   readonly snapshotOn: handler = this.on(
     ['speechend', 'end', 'slow', 'idle'],
     this.bookend(this.snapshot),
     ['process!'],
-    ['snapshot...']);
+    ['snapshot...']
+  );
 
   readonly idleOn: handler = this.on(['pulse'], this.idle);
   readonly pulseOn: handler = this.on(['pulse'], this.pulse);
   readonly reviveOn: handler = this.on(['pulse', 'end'], this.revive, ['Creation']);
-  readonly tickerOn: handler = this.on(['tick', 'tock'], this.ticker);
   readonly refreshOn: handler = this.on(['start!'], this.refresh);
   readonly deadPOn: handler = this.on(['dead?'], this.dead);
   readonly errorOn: handler = this.on(['error'], this.error);
   readonly nomatchOn: handler = this.on(['nomatch'], this.nomatch);
   readonly resultOn: handler = this.on(['result', 'nomatch'], this.result);
-  readonly processOn: handler = this.on(
-    ['process?'],
-    this.bookend(this.process));
+  readonly processOn: handler = this.on(['process?'], this.bookend(this.process));
 
   get lang(): string {
     console.log(Settings.language.value);
@@ -214,22 +204,12 @@ class speech extends api implements Recogniser {
     Status.ticks.value = this.ticks.toString();
   }
 
-  ticker() {
-    const [l, r] = this.tick >= 15 ? ['⚪', '⚫'] : ['⚫', '⚪'];
-
-    let tickv = l.repeat(this.tick % 15);
-    if (this.tick >= 15) {
-      tickv = tickv.padEnd(15, r);
-    }
-    Status.tickVisual.value = tickv;
-  }
-
   refresh() {
     Status.serviceURI.value = this.serviceURI || '[service URL not disclosed]';
   }
 
   poke(ev: string, relay?: Event | UpdateData) {
-    return this.dispatchEvent(new CustomEvent(ev, { detail: relay })); 
+    return this.dispatchEvent(new CustomEvent(ev, { detail: relay }));
   }
 
   constructor() {
@@ -239,8 +219,8 @@ class speech extends api implements Recogniser {
   }
 
   registerEvents(): void {
-    if(this.registered) {
-       return;
+    if (this.registered) {
+      return;
     }
 
     this.isRegistered = speech.yes;
@@ -340,7 +320,8 @@ class speech extends api implements Recogniser {
     switch (event.error) {
       case 'no-speech':
         console.warn('still there?');
-        Status.lastErrorMessage.value = 'microphone is not hearing your voice; if you are still talking, please speak up';
+        Status.lastErrorMessage.value =
+          'microphone is not hearing your voice; if you are still talking, please speak up';
         return;
     }
 

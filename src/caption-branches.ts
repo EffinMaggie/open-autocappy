@@ -1,6 +1,6 @@
 /** @format */
 
-import { clearContent, updateText, updateClasses, hasClass } from './dom-manipulation.js';
+import { OExplicitNodeUpdater, updateClasses, hasClass } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
 
@@ -185,20 +185,27 @@ export class Transcript extends OuterHull<Branches> {
  */
 export const DOM = {
   fromSpan: (node: HTMLSpanElement): Branch => {
+    const updateClass = new OExplicitNodeUpdater(node, 'class', '');
+    const updateConfidence = new OExplicitNodeUpdater(node, 'data-confidence', '-1');
+    const updateWhen = new OExplicitNodeUpdater(node, 'data-when', '0');
+    const updateText = new OExplicitNodeUpdater(node, undefined, '0');
+
     // console.warn(node);
     const _q = node.getAttribute('data-confidence') ?? '';
     const _when = node.getAttribute('data-when') ?? '';
 
-    const f = hasClass(node, 'final') ?? !hasClass(node, 'interim') ?? false;
-    const c = new QValue(Number(_q));
-    const w = new DateBetween(DateBetween.diffcat(_when));
-    const text = node.textContent ?? undefined;
+    const f = hasClass(updateClass, 'final') ?? !hasClass(updateClass, 'interim') ?? false;
+    const c = new QValue(Number(updateConfidence.value));
+    const w = new DateBetween(DateBetween.diffcat(updateWhen.value));
+    const t = updateText.value;
 
     // console.log(_q, c);
-    return new Branch(w, c, f, text);
+    return new Branch(w, c, f, t);
   },
 
   fromLi: (node: HTMLLIElement): Branches | undefined => {
+    const updateClass = new OExplicitNodeUpdater(node, 'class', '');
+
     const bs = Array.from(node.querySelectorAll('span')).reduce(
       (b: Branch[], e: HTMLSpanElement): Branch[] => {
         let branch = DOM.fromSpan(e);
@@ -214,7 +221,7 @@ export const DOM = {
     if (node.hasAttribute('data-index')) {
       idx = Number(node.getAttribute('data-index'));
     }
-    const f = hasClass(node, 'final');
+    const f = hasClass(updateClass, 'final');
 
     return new Branches(bs, idx, f);
   },
@@ -235,35 +242,39 @@ export const DOM = {
   },
 
   toSpan: (b: Branch, span: HTMLSpanElement = document.createElement('span')): HTMLSpanElement => {
+    const updateClass = new OExplicitNodeUpdater(span, 'class', '');
+    const updateConfidence = new OExplicitNodeUpdater(span, 'data-confidence', '-1');
+    const updateWhen = new OExplicitNodeUpdater(span, 'data-when', '0');
+    const updateText = new OExplicitNodeUpdater(span, undefined, '');
+
     if (b.final) {
-      updateClasses(span, ['interim'], ['final']);
+      updateClasses(updateClass, ['interim'], ['final']);
     } else {
-      updateClasses(span, ['final'], ['interim']);
+      updateClasses(updateClass, ['final'], ['interim']);
     }
-    if (b.confidence) {
-      span.setAttribute('data-confidence', b.confidence.toString());
-    } else if (span.hasAttribute('data-confidence')) {
-      span.removeAttribute('data-confidence');
-    }
-    span.setAttribute('data-when', b.when.string);
-    updateText(span, b.text);
+
+    updateConfidence.value = b.confidence?.string;
+    updateWhen.value = b.when.string;
+    updateText.value = b.text ?? '';
     return span;
   },
 
   toLi: (bs: Branches, li: HTMLLIElement = document.createElement('li')): HTMLLIElement => {
+    const updateClass = new OExplicitNodeUpdater(li, 'class', '');
+    const updateIndex = new OExplicitNodeUpdater(li, 'data-index', '-1');
+    const updateWhen = new OExplicitNodeUpdater(li, 'data-when', '0');
+
     if (bs.abandoned) {
-      updateClasses(li, ['final'], ['abandoned']);
+      updateClasses(updateClass, ['final'], ['abandoned']);
     } else if (bs.final) {
-      updateClasses(li, ['abandoned'], ['final']);
+      updateClasses(updateClass, ['abandoned'], ['final']);
     } else {
-      updateClasses(li, ['final', 'abandoned']);
+      updateClasses(updateClass, ['final', 'abandoned']);
     }
-    if (bs.index !== undefined) {
-      li.setAttribute('data-index', bs.index.toString());
-    } else if (li.hasAttribute('data-index')) {
-      li.removeAttribute('data-index');
-    }
-    li.setAttribute('data-when', bs.when.string);
+
+    updateIndex.value = bs.index?.toString() ?? '-1';
+    updateWhen.value = bs.when.string;
+
     const spans = li.getElementsByTagName('span');
     const slen = spans.length;
     let i: number = 0;
