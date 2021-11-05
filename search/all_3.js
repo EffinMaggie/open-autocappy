@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['extendedpartialorder_6',['extendedPartialOrder',['../classextendedPartialOrder.html',1,'']]]
+  ['datebetween_8',['DateBetween',['../classDateBetween.html',1,'']]]
 ];

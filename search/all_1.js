@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['carrier_2',['carrier',['../classcarrier.html',1,'']]],
-  ['changelog_3',['CHANGELOG',['../md_CHANGELOG.html',1,'']]],
-  ['constructor_4',['constructor',['../classOuterHull_3_01Type_01extends_01PartialOrder_01_4.html#aa64cdeaa12d8fb339c26b73a3581b3e4',1,'OuterHull&lt; Type extends PartialOrder &gt;']]]
+  ['branch_3',['Branch',['../classBranch.html',1,'']]],
+  ['branches_4',['Branches',['../classBranches.html',1,'']]]
 ];
