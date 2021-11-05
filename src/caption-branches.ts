@@ -11,7 +11,8 @@ export class Branch implements PartialOrder {
     public final?: boolean,
     public text?: string,
     public source?: string,
-    public language?: string) {
+    public language?: string
+  ) {
     // trivial constructor
   }
 
@@ -24,10 +25,7 @@ export class Branch implements PartialOrder {
 }
 
 export class Branches extends OuterHull<Branch> {
-  constructor(
-    bs: Iterable<Branch>,
-    public index?: number,
-    public final?: boolean) {
+  constructor(bs: Iterable<Branch>, public index?: number, public final?: boolean) {
     super(bs);
   }
 
@@ -87,7 +85,8 @@ export class Transcript extends OuterHull<Branches> {
   constructor(
     ts: Iterable<Branches>,
     public readonly resultIndex?: number,
-    public readonly resultLength?: number) {
+    public readonly resultLength?: number
+  ) {
     super(Transcript.merge(ts, resultIndex, resultLength));
   }
 
@@ -177,12 +176,17 @@ export class Transcript extends OuterHull<Branches> {
 export const DOM = {
   models: {
     branch: class {
-       constructor(
+      constructor(
         public readonly node: HTMLSpanElement,
         public readonly classes: ONodeUpdater = new OExplicitNodeUpdater(node, 'class', ''),
-        public readonly confidence: ONodeUpdater = new OExplicitNodeUpdater(node, 'data-confidence', '-1'),
+        public readonly confidence: ONodeUpdater = new OExplicitNodeUpdater(
+          node,
+          'data-confidence',
+          '-1'
+        ),
         public readonly when: ONodeUpdater = new OExplicitNodeUpdater(node, 'data-when', '0'),
-        public readonly text: ONodeUpdater = new OExplicitNodeUpdater(node, undefined, '0')) {}
+        public readonly text: ONodeUpdater = new OExplicitNodeUpdater(node, undefined, '0')
+      ) {}
     },
 
     alternatives: class {
@@ -190,7 +194,8 @@ export const DOM = {
         public readonly node: HTMLLIElement,
         public readonly classes = new OExplicitNodeUpdater(node, 'class', ''),
         public readonly index = new OExplicitNodeUpdater(node, 'data-index', '-1'),
-        public readonly when = new OExplicitNodeUpdater(node, 'data-when', '0')) {}
+        public readonly when = new OExplicitNodeUpdater(node, 'data-when', '0')
+      ) {}
     },
   },
 

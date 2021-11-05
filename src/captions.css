@@ -67,7 +67,8 @@ p#status-ticks[data-ticks='2']:after {
 #status-captioning.active,
 #status-audio.active,
 #status-sound.active,
-#status-speech.active {
+#status-speech.active,
+#transcript-pending.active {
   font-weight: bold;
   color: green;
 }
@@ -94,7 +95,8 @@ p#status-ticks[data-ticks='2']:after {
 #status-captioning,
 #status-audio,
 #status-sound,
-#status-speech {
+#status-speech,
+#transcript-pending {
   display: block;
   position: absolute;
   top: 25px;
@@ -106,13 +108,16 @@ p#status-ticks[data-ticks='2']:after {
 #status-captioning {
 }
 #status-audio {
-  left: 140px;
+  left: 150px;
 }
 #status-sound {
-  left: 190px;
+  left: 210px;
 }
 #status-speech {
-  left: 240px;
+  left: 270px;
+}
+#transcript-pending {
+  left: 340px;
 }
 
 #status-service {

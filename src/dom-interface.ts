@@ -20,6 +20,8 @@ export const Status = {
   sound: new ONodeQueryUpdater('#status-sound', 'class', 'inactive'),
   speech: new ONodeQueryUpdater('#status-speech', 'class', 'inactive'),
 
+  transcriptPending: new ONodeQueryUpdater('#transcript-pending', 'class', 'inactive'),
+
   lastFinal: new ONodeQueryUpdater('#last-final'),
   lastLine: new ONodeQueryUpdater('#last-line'),
 };

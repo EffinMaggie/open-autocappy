@@ -3,78 +3,109 @@
 import { ONodeUpdater, updateClasses } from './dom-manipulation.js';
 import { MDate, DateBetween, now } from './dated.js';
 
-type EventHandler = (event: Event) => void;
-
-export function makeStatusHandlers(
-  observer: EventTarget,
-  updater: ONodeUpdater,
-  onstart: string,
-  onend: string
-) {
-  let active: predicate = between(observer, onstart, onend);
-  let started: number | undefined = undefined;
-
-  let update = () => {
-    if (active()) {
-      updateClasses(updater, ['inactive', 'end'], ['active']);
-    } else {
-      updateClasses(updater, ['inactive', 'active'], ['end']);
-    }
-  };
-
-  return {
-    status: active,
-
-    [onstart]: (event: Event) => {
-      started = event.timeStamp;
-      update();
-    },
-
-    [onend]: (event) => {
-      started = undefined;
-      update();
-    },
-  };
+class action {
+  constructor(public readonly action: EventListener, public readonly trigger: string = action.name) {}
 }
 
-export function registerEventHandlers(emitter: EventTarget, events): () => boolean {
-  var status = () => false;
+class actor {
+  protected added: boolean = false;
 
-  for (const key in events) {
-    const ev = events[key];
+  constructor(public readonly observer: EventTarget, public readonly action: action) {}
 
-    if (key === 'status') {
-      status = ev;
-    } else {
-      emitter.addEventListener(key, ev);
+  get on(): boolean {
+    return this.added;
+  }
+
+  set on(want: boolean) {
+    if (this.added !== want) {
+      this.added = want;
+
+      if (this.added) {
+        this.observer.addEventListener(this.action.trigger, this.action.action);
+      } else {
+        this.observer.removeEventListener(this.action.trigger, this.action.action);
+      }
+
+      console.log(this);
+    }
+  }
+}
+
+type actions = Iterable<action>;
+type observers = Iterable<EventTarget>;
+
+export class actors implements Iterable<actor> {
+  public static readonly none: actors = new actors([], []);
+
+  *[Symbol.iterator](): Generator<actor> {}
+
+  constructor(
+    protected readonly observers: observers,
+    protected readonly actions: actions,
+    auto: boolean = false
+  ) {
+    const mine: actor[] = Array.from(
+      (function* () {
+        for (const observer of observers) {
+          for (const action of actions) {
+            yield new actor(observer, action);
+          }
+        }
+      })()
+    );
+
+    this[Symbol.iterator] = function* () {
+      yield* mine;
+    };
+  }
+
+  get on(): boolean {
+    for (const a of this) {
+      if (!a.on) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  set on(want: boolean) {
+    for (const a of this) {
+      a.on = want;
     }
   }
 
-  return status;
-}
+  *enablers(triggers: Iterable<string>, want: boolean = true): Generator<action> {
+    for (const trigger of triggers) {
+      const fn = {
+        [trigger]: () => {
+          this.on = want;
+        },
+      };
 
-export function unregisterEventHandlers(emitter: EventTarget, events): () => boolean {
-  var status = () => false;
-
-  for (const key in events) {
-    const ev = events[key];
-
-    if (key === 'status') {
-      status = ev;
-    } else {
-      emitter.removeEventListener(key, ev);
+      yield new action(fn[trigger], trigger);
     }
   }
 
-  return status;
+  gated(after: Iterable<string>, before: Iterable<string> = [], auto: boolean = true): actors {
+    return new actors(
+      this.observers,
+      (function* (of: actors) {
+        yield* of.enablers(after, true);
+        yield* of.enablers(after, false);
+      })(this),
+      auto
+    );
+  }
 }
-
-// REFACTOR: make events composable and declarative
-// TODO: add sanity checking for event states
 
 export type maybe = boolean | undefined;
-export type handler = (event: Event) => void;
-export type predicate = (event?: Event) => maybe;
+export class predicate {
+  constructor(public readonly pass: () => maybe, public readonly actors: actors) {}
+
+  public compliant = (expectation: boolean): boolean =>
+    (expectation && this.pass()) || (!expectation && !this.pass());
+}
 
 /** event handling with extra constraints.
  *
@@ -83,168 +114,151 @@ export type predicate = (event?: Event) => maybe;
  */
 export const on = (
   observer: EventTarget,
-  upon: Iterable<string>,
-  call: handler,
+  triggers: Iterable<string>,
+  call: EventListener,
   when?: Iterable<string>,
   until?: Iterable<string>
-): handler => {
-  let registered = false;
-
-  const listen = (add: boolean = true) => {
-    if (add) {
-      return observer.addEventListener.bind(observer);
-    }
-
-    return observer.removeEventListener.bind(observer);
-  };
-
-  const setWhen = (add: boolean = true) => {
-    if (when) {
-      for (const w of when) {
-        listen(add)(w, adder);
-      }
+): actors => {
+  const actions = function* (): Generator<action> {
+    for (const trigger of triggers) {
+      yield new action(call, trigger);
     }
   };
 
-  const adder = () => {
-    if (registered) {
-      return;
-    }
-
-    for (const condition of upon) {
-      listen()(condition, call);
-
-      setWhen(false);
-
-      if (until) {
-        const setUntil = (add: boolean = true) => {
-          for (const u of until) {
-            listen(add)(u, cleaner);
-          }
-        };
-
-        const cleaner = () => {
-          listen(false)(condition, call);
-          setUntil(false);
-          setWhen();
-          registered = false;
-        };
-
-        setUntil();
-      }
-    }
-
-    registered = true;
-  };
-
+  let evs: actors = new actors([observer], actions(), false);
   if (when) {
-    setWhen();
-  } else {
-    adder();
+    evs = evs.gated(when, until, false);
   }
 
-  return call;
+  evs.on = true;
+
+  return evs;
 };
 
-export const poke = (observer: EventTarget, event: string | CustomEvent, relay?: Event) => {
-  if (typeof event === 'string') {
-    return observer.dispatchEvent(new CustomEvent(event, { detail: relay }));
-  }
+function assertTarget(target?: EventTarget | null): asserts target {
+  console.assert(target, 'All events must have a valid event.target');
+}
 
-  return observer.dispatchEvent(event);
+function assertValidEvent(event?: string): asserts event {
+  console.assert(event, 'Raised events must have a type name');
+  console.assert(event !== '!', 'Raised events must have a valid name');
+}
+
+export const poke = (observer: EventTarget, event: string, relay?: any) => {
+  assertValidEvent(event);
+
+  return observer.dispatchEvent.bind(observer)(new CustomEvent(event, { detail: relay }));
 };
 
 export const bookend = (
-  call: handler,
+  call: EventListener,
   name: string = call.name,
-  detail?: any,
-  observer?: EventTarget
-): handler => {
+  detail?: any
+): EventListener => {
   const starting: string = `${name}...`;
   const done: string = `${name}!`;
   const fn = {
-    [name]: (event: Event) => {
-      const target: EventTarget | null = observer ?? event?.target ?? null;
-      const relay = detail ?? event ?? undefined;
-      const options = {
-        detail: relay,
-      };
-      const startingCE: CustomEvent = new CustomEvent(starting, options);
-      const doneCE: CustomEvent = new CustomEvent(done, options);
-      const method = call.bind(target);
+    [name]: (event: CustomEvent<Event>) => {
+      const target = event.target ?? event.detail?.target ?? this;
 
-      if (target) {
-        poke(target, startingCE);
-        method(event);
-        poke(target, doneCE);
-      } else {
-        method(event);
-      }
+      assertTarget(target);
+
+      const options = {
+        detail: detail ?? event,
+      };
+
+      poke(target, starting, options.detail);
+      call(event);
+      poke(target, done, options.detail);
     },
   };
 
-  return fn[name].bind(observer);
+  return fn[name];
 };
 
-export const must = (
-  call: handler,
+export const expect = (
+  call: EventListener,
   terms: Iterable<predicate>,
+  want: boolean = true,
+  full: boolean = true,
   name: string = call.name,
-  detail?: any,
-  observer?: EventTarget
-): handler => {
+  detail?: any
+): EventListener => {
+  assertValidEvent(name);
+
   const fail: string = `!${name}`;
 
   const fn = {
-    [name]: (event: Event) => {
-      const target: EventTarget | null = observer ?? event?.target ?? null;
-      const relay = detail ?? event ?? undefined;
+    [name]: (event: CustomEvent<Event>) => {
+      const target = event.target ?? event.detail?.target ?? this;
+
+      assertTarget(target);
+
       const options = {
-        detail: relay,
+        detail: detail ?? event,
       };
-      const failCE: CustomEvent = new CustomEvent(fail, options);
+
+      let compliant: boolean = full;
 
       for (const condition of terms) {
-        const pass = condition.bind(target);
+        if (full) {
+          compliant = compliant && condition.compliant(want);
+        } else {
+          compliant = compliant || condition.compliant(want);
+        }
 
-        if (!pass(event)) {
-          if (target) {
-            poke(target, failCE);
-          }
-          return;
+        if (full !== compliant) {
+          break;
         }
       }
 
-      call.bind(target)(event);
+      if (compliant) {
+        call(event);
+      } else {
+        poke(target, fail, options.detail);
+      }
     },
   };
 
-  return fn[name].bind(observer);
+  return fn[name];
 };
 
-export const between = (
-  observer: EventTarget,
-  after: string,
-  before: string,
-  value: boolean = true,
-  now?: boolean
-): predicate => {
-  let state: maybe = now;
+export class tracker extends predicate {
+  private value: maybe = undefined;
 
-  const fn = {
-    between: (): maybe => {
-      return state;
-    },
-    [after]: () => {
-      state = true;
-    },
-    [before]: () => {
-      state = false;
-    },
-  };
+  constructor(
+    public readonly observer: EventTarget,
+    public readonly after: string,
+    public readonly before: string,
+    public readonly updater?: ONodeUpdater
+  ) {
+    super(
+      () => this.value,
+      new actors(
+        [observer],
+        [
+          new action(() => {
+            if (!this.value) {
+              this.value = true;
 
-  on(observer, [after], fn[after]);
-  on(observer, [before], fn[before]);
+              if (this.updater) {
+                updateClasses(this.updater, ['inactive', 'end'], ['active']);
+              }
+            }
+          }, after),
+          new action(() => {
+            if (this.value) {
+              this.value = false;
 
-  return fn.between;
-};
+              if (this.updater) {
+                updateClasses(this.updater, ['inactive', 'active'], ['end']);
+              }
+            }
+          }, before),
+        ]
+      )
+    );
+
+    this.actors.on = true;
+  }
+}

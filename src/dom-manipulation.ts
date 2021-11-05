@@ -203,19 +203,19 @@ export class ONodeQueryUpdater extends ONodeUpdater {
   }
 }
 
-type classList = Set<string> | Array<string> | false;
-
 export function updateClasses(
   updater: ONodeUpdater,
-  remove: string[] = [],
-  add: string[] = []
+  remove: Iterable<string> = [],
+  add: Iterable<string> = []
 ): string {
   const attr = updater.value.split(' ') || [];
-  const classes = add.concat(attr);
 
-  let s = new Set(classes);
-
+  let s = new Set(attr);
   s.delete('');
+
+  for (const cls of add) {
+    s.add(cls);
+  }
 
   for (const cls of remove) {
     s.delete(cls);
