@@ -1,22 +1,18 @@
 /** @format */
 
-import { OExplicitNodeUpdater, updateClasses, hasClass } from './dom-manipulation.js';
+import { ONodeUpdater, OExplicitNodeUpdater, updateClasses, hasClass } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
 
 export class Branch implements PartialOrder {
-  when: DateBetween;
-  confidence: QValue;
-  final?: boolean;
-  text?: string;
-  source?: string;
-
-  constructor(when: DateBetween, confidence: QValue, final?: boolean, text?: string, source?: string) {
-    this.when = when;
-    this.confidence = confidence;
-    this.final = final;
-    this.text = text;
-    this.source = source;
+  constructor(
+    public when: DateBetween,
+    public confidence: QValue,
+    public final?: boolean,
+    public text?: string,
+    public source?: string,
+    public language?: string) {
+    // trivial constructor
   }
 
   compare(b: Branch): CompareResult {
@@ -28,8 +24,12 @@ export class Branch implements PartialOrder {
 }
 
 export class Branches extends OuterHull<Branch> {
-  index?: number;
-  final: boolean;
+  constructor(
+    bs: Iterable<Branch>,
+    public index?: number,
+    public final?: boolean) {
+    super(bs);
+  }
 
   get abandoned(): boolean {
     return !this.final && this.index === undefined;
@@ -48,13 +48,6 @@ export class Branches extends OuterHull<Branch> {
     } else {
       return hull;
     }
-  }
-
-  constructor(bs: Iterable<Branch>, idx: number | undefined, fin: boolean) {
-    super(bs);
-
-    this.index = idx;
-    this.final = fin;
   }
 
   concat(bs: Branches): Branches {
@@ -91,8 +84,12 @@ export class Branches extends OuterHull<Branch> {
 }
 
 export class Transcript extends OuterHull<Branches> {
-  readonly resultIndex?: number;
-  readonly resultLength?: number;
+  constructor(
+    ts: Iterable<Branches>,
+    public readonly resultIndex?: number,
+    public readonly resultLength?: number) {
+    super(Transcript.merge(ts, resultIndex, resultLength));
+  }
 
   static *merge(
     bs: Iterable<Branches>,
@@ -102,12 +99,6 @@ export class Transcript extends OuterHull<Branches> {
     for (const b of bs) {
       yield b;
     }
-  }
-
-  constructor(ts: Iterable<Branches>, resultIndex?: number, resultLength?: number) {
-    super(Transcript.merge(ts, resultIndex, resultLength));
-    this.resultIndex = resultIndex;
-    this.resultLength = resultLength;
   }
 
   concat(bs: Iterable<Branches>, resultIndex?: number, resultLength?: number): Transcript {
@@ -184,20 +175,32 @@ export class Transcript extends OuterHull<Branches> {
  * the confidence values and the exact time span.
  */
 export const DOM = {
+  models: {
+    branch: class {
+       constructor(
+        public readonly node: HTMLSpanElement,
+        public readonly classes: ONodeUpdater = new OExplicitNodeUpdater(node, 'class', ''),
+        public readonly confidence: ONodeUpdater = new OExplicitNodeUpdater(node, 'data-confidence', '-1'),
+        public readonly when: ONodeUpdater = new OExplicitNodeUpdater(node, 'data-when', '0'),
+        public readonly text: ONodeUpdater = new OExplicitNodeUpdater(node, undefined, '0')) {}
+    },
+
+    alternatives: class {
+      constructor(
+        public readonly node: HTMLLIElement,
+        public readonly classes = new OExplicitNodeUpdater(node, 'class', ''),
+        public readonly index = new OExplicitNodeUpdater(node, 'data-index', '-1'),
+        public readonly when = new OExplicitNodeUpdater(node, 'data-when', '0')) {}
+    },
+  },
+
   fromSpan: (node: HTMLSpanElement): Branch => {
-    const updateClass = new OExplicitNodeUpdater(node, 'class', '');
-    const updateConfidence = new OExplicitNodeUpdater(node, 'data-confidence', '-1');
-    const updateWhen = new OExplicitNodeUpdater(node, 'data-when', '0');
-    const updateText = new OExplicitNodeUpdater(node, undefined, '0');
+    const value = new DOM.models.branch(node);
 
-    // console.warn(node);
-    const _q = node.getAttribute('data-confidence') ?? '';
-    const _when = node.getAttribute('data-when') ?? '';
-
-    const f = hasClass(updateClass, 'final') ?? !hasClass(updateClass, 'interim') ?? false;
-    const c = new QValue(Number(updateConfidence.value));
-    const w = new DateBetween(DateBetween.diffcat(updateWhen.value));
-    const t = updateText.value;
+    const f = hasClass(value.classes, 'final') ?? !hasClass(value.classes, 'interim') ?? false;
+    const c = new QValue(Number(value.confidence.value));
+    const w = new DateBetween(DateBetween.diffcat(value.when.value));
+    const t = value.text.value;
 
     // console.log(_q, c);
     return new Branch(w, c, f, t);
@@ -242,38 +245,33 @@ export const DOM = {
   },
 
   toSpan: (b: Branch, span: HTMLSpanElement = document.createElement('span')): HTMLSpanElement => {
-    const updateClass = new OExplicitNodeUpdater(span, 'class', '');
-    const updateConfidence = new OExplicitNodeUpdater(span, 'data-confidence', '-1');
-    const updateWhen = new OExplicitNodeUpdater(span, 'data-when', '0');
-    const updateText = new OExplicitNodeUpdater(span, undefined, '');
+    const value = new DOM.models.branch(span);
 
     if (b.final) {
-      updateClasses(updateClass, ['interim'], ['final']);
+      updateClasses(value.classes, ['interim'], ['final']);
     } else {
-      updateClasses(updateClass, ['final'], ['interim']);
+      updateClasses(value.classes, ['final'], ['interim']);
     }
 
-    updateConfidence.value = b.confidence?.string;
-    updateWhen.value = b.when.string;
-    updateText.value = b.text ?? '';
+    value.confidence.value = b.confidence?.string;
+    value.when.value = b.when.string;
+    value.text.value = b.text ?? '';
     return span;
   },
 
   toLi: (bs: Branches, li: HTMLLIElement = document.createElement('li')): HTMLLIElement => {
-    const updateClass = new OExplicitNodeUpdater(li, 'class', '');
-    const updateIndex = new OExplicitNodeUpdater(li, 'data-index', '-1');
-    const updateWhen = new OExplicitNodeUpdater(li, 'data-when', '0');
+    const value = new DOM.models.alternatives(li);
 
     if (bs.abandoned) {
-      updateClasses(updateClass, ['final'], ['abandoned']);
+      updateClasses(value.classes, ['final'], ['abandoned']);
     } else if (bs.final) {
-      updateClasses(updateClass, ['abandoned'], ['final']);
+      updateClasses(value.classes, ['abandoned'], ['final']);
     } else {
-      updateClasses(updateClass, ['final', 'abandoned']);
+      updateClasses(value.classes, ['final', 'abandoned']);
     }
 
-    updateIndex.value = bs.index?.toString() ?? '-1';
-    updateWhen.value = bs.when.string;
+    value.index.value = bs.index?.toString() ?? '-1';
+    value.when.value = bs.when.string;
 
     const spans = li.getElementsByTagName('span');
     const slen = spans.length;
