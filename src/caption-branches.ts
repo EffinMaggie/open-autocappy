@@ -52,7 +52,6 @@ export class Branches extends OuterHull<Branch> {
     return new Branches(this.catter(bs), this.index, this.final || bs.final);
   }
 
-  /*
   compare(bs: Branches): CompareResult {
     if ((this.index !== undefined) && (bs.index !== undefined)) {
       if (bs.index === this.index) {
@@ -66,9 +65,7 @@ export class Branches extends OuterHull<Branch> {
 
     return this.when.compare(bs.when) || (this.equal(bs) ? 0 : -1);
   }
-*/
 
-  /*
   equal(bs: Branches): boolean {
     if (this.index === bs.index) {
       if ((this.when.compare(bs.when) == 0) && (bs.when.compare(this.when) == 0)) {
@@ -78,7 +75,6 @@ export class Branches extends OuterHull<Branch> {
 
     return false;
   }
-*/
 }
 
 export class Transcript extends OuterHull<Branches> {
@@ -91,12 +87,70 @@ export class Transcript extends OuterHull<Branches> {
   }
 
   static *merge(
-    bs: Iterable<Branches>,
+    ts: Iterable<Branches>,
     resultIndex?: number,
     resultLength?: number
   ): Generator<Branches> {
-    for (const b of bs) {
-      yield b;
+    let indexSet = new Set<number>();
+    let finalIndices = new Set<number>();
+    let abandonedIndices = new Set<number>();
+    let interimIndices = new Set<number>();
+
+    let remainder: Branches[] = [];
+    let byId = new Map<number, Branches>();
+
+    for (const bs of ts) {
+      if (bs.index !== undefined) {
+        const isFinal: boolean = bs.final ?? finalIndices.has(bs.index) ?? ((resultIndex !== undefined) && (bs.index < resultIndex));
+        const isAbandoned: boolean = bs.abandoned ?? abandonedIndices.has(bs.index) ?? ((resultLength !== undefined) && (bs.index >= resultLength));
+        const isRemainder: boolean = !isFinal && !isAbandoned;
+
+        indexSet.add(bs.index);
+
+        if (isAbandoned) {
+          abandonedIndices.add(bs.index);
+          remainder.push(new Branches(bs, undefined, false));
+          continue;
+        }
+
+        if (isFinal) {
+          finalIndices.add(bs.index);
+        }
+
+        if (isRemainder) {
+          interimIndices.add(bs.index);
+        }
+
+        const idVal = byId.get(bs.index);
+
+        if (idVal !== undefined) {
+          byId.set(bs.index, idVal.concat(bs));
+        } else {
+          byId.set(bs.index, bs);
+        }
+
+        continue;
+      }
+
+      remainder.push(bs);
+    }
+
+    for (const pass of remainder) {
+      yield pass;
+    }
+
+    for (const index of indexSet) {
+      const idVal = byId.get(index);
+
+      if (idVal !== undefined) {
+        if (finalIndices.has(index)) {
+          yield new Branches(idVal, index, true);
+        } else if (abandonedIndices.has(index)) {
+          yield new Branches(idVal, undefined, false);
+        } else {
+          yield new Branches(idVal, index, false);
+        }
+      }
     }
   }
 
