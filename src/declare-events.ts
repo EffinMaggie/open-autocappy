@@ -25,8 +25,6 @@ class actor {
       } else {
         this.observer.removeEventListener(this.action.trigger, this.action.action);
       }
-
-      console.log(this);
     }
   }
 }
@@ -150,6 +148,9 @@ export const poke = (observer: EventTarget, event: string, relay?: any) => {
   return observer.dispatchEvent.bind(observer)(new CustomEvent(event, { detail: relay }));
 };
 
+export const pake = async (observer: EventTarget, event: string, relay?: any) =>
+  poke(observer, event, relay);
+
 export const bookend = (
   call: EventListener,
   name: string = call.name,
@@ -169,7 +170,7 @@ export const bookend = (
 
       poke(target, starting, options.detail);
       call(event);
-      poke(target, done, options.detail);
+      pake(target, done, options.detail);
     },
   };
 
@@ -215,7 +216,7 @@ export const expect = (
       if (compliant) {
         call(event);
       } else {
-        poke(target, fail, options.detail);
+        pake(target, fail, options.detail);
       }
     },
   };
@@ -237,7 +238,7 @@ export class tracker extends predicate {
       new actors(
         [observer],
         [
-          new action(() => {
+          new action(async () => {
             if (!this.value) {
               this.value = true;
 
@@ -246,7 +247,7 @@ export class tracker extends predicate {
               }
             }
           }, after),
-          new action(() => {
+          new action(async () => {
             if (this.value) {
               this.value = false;
 

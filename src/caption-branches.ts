@@ -53,7 +53,7 @@ export class Branches extends OuterHull<Branch> {
   }
 
   compare(bs: Branches): CompareResult {
-    if ((this.index !== undefined) && (bs.index !== undefined)) {
+    if (this.index !== undefined && bs.index !== undefined) {
       if (bs.index === this.index) {
         // return 0;
       } else if (this.index < bs.index) {
@@ -68,7 +68,7 @@ export class Branches extends OuterHull<Branch> {
 
   equal(bs: Branches): boolean {
     if (this.index === bs.index) {
-      if ((this.when.compare(bs.when) == 0) && (bs.when.compare(this.when) == 0)) {
+      if (this.when.compare(bs.when) == 0 && bs.when.compare(this.when) == 0) {
         return true;
       }
     }
@@ -91,65 +91,57 @@ export class Transcript extends OuterHull<Branches> {
     resultIndex?: number,
     resultLength?: number
   ): Generator<Branches> {
-    let indexSet = new Set<number>();
     let finalIndices = new Set<number>();
     let abandonedIndices = new Set<number>();
-    let interimIndices = new Set<number>();
 
-    let remainder: Branches[] = [];
-    let byId = new Map<number, Branches>();
+    let byIndex = new Map<number, Branches>();
 
     for (const bs of ts) {
-      if (bs.index !== undefined) {
-        const isFinal: boolean = bs.final ?? finalIndices.has(bs.index) ?? ((resultIndex !== undefined) && (bs.index < resultIndex));
-        const isAbandoned: boolean = bs.abandoned ?? abandonedIndices.has(bs.index) ?? ((resultLength !== undefined) && (bs.index >= resultLength));
-        const isRemainder: boolean = !isFinal && !isAbandoned;
+      const index = bs.index;
 
-        indexSet.add(bs.index);
-
-        if (isAbandoned) {
-          abandonedIndices.add(bs.index);
-          remainder.push(new Branches(bs, undefined, false));
-          continue;
-        }
-
-        if (isFinal) {
-          finalIndices.add(bs.index);
-        }
-
-        if (isRemainder) {
-          interimIndices.add(bs.index);
-        }
-
-        const idVal = byId.get(bs.index);
-
-        if (idVal !== undefined) {
-          byId.set(bs.index, idVal.concat(bs));
-        } else {
-          byId.set(bs.index, bs);
-        }
-
+      if (index === undefined) {
+        yield bs;
         continue;
       }
 
-      remainder.push(bs);
+      const indexVal = byIndex.get(index);
+
+      const isFinal: boolean =
+        bs.final ?? ((resultIndex !== undefined && index < resultIndex) || finalIndices.has(index));
+      const isAbandoned: boolean =
+        !isFinal &&
+        (bs.abandoned ??
+          ((resultLength !== undefined && index >= resultLength) || abandonedIndices.has(index)));
+
+      if (isFinal && !finalIndices.has(index)) {
+        finalIndices.add(index);
+
+        // it is possible that the index is also in the abandoned set; I mean,
+        // actually it shouldn't be possible, but the signal is weak and the
+        // API is hella funky.
+        //
+        // we don't need to remove the index from the other set, fortunately,
+        // as long as we always check for finality before abandonment. Yay.
+      }
+
+      if (isAbandoned && !abandonedIndices.has(index)) {
+        abandonedIndices.add(index);
+      }
+
+      byIndex.set(index, indexVal === undefined ? bs : indexVal.concat(bs));
     }
 
-    for (const pass of remainder) {
-      yield pass;
-    }
+    for (const idVal of byIndex) {
+      const index: number = idVal[0];
+      const bs: Branches = idVal[1];
 
-    for (const index of indexSet) {
-      const idVal = byId.get(index);
-
-      if (idVal !== undefined) {
-        if (finalIndices.has(index)) {
-          yield new Branches(idVal, index, true);
-        } else if (abandonedIndices.has(index)) {
-          yield new Branches(idVal, undefined, false);
-        } else {
-          yield new Branches(idVal, index, false);
-        }
+      if (finalIndices.has(index)) {
+        yield new Branches(bs, index, true);
+      } else if (abandonedIndices.has(index)) {
+        yield new Branches(bs, undefined, false);
+      } else {
+        // anything left is interim results
+        yield new Branches(bs, index, false);
       }
     }
   }
@@ -354,7 +346,7 @@ export const DOM = {
     return li;
   },
 
-  toOl: (ts: Transcript, ol: HTMLOListElement = document.createElement('ol')): HTMLOListElement => {
+  toOl: async (ts: Transcript, ol: HTMLOListElement = document.createElement('ol')) => {
     let i: number = 0;
     const t = ol.getElementsByTagName('li');
     const tlen = t.length;
@@ -374,15 +366,13 @@ export const DOM = {
       ol.removeChild(t[i]);
       i++;
     }
-
-    return ol;
   },
 
-  merge: (where: HTMLOListElement, ts: Transcript): HTMLOListElement => {
+  merge: async (where: HTMLOListElement, ts: Transcript) => {
     const t = DOM.fromOl(where);
     const c: Transcript = t.concat(ts);
 
-    return DOM.toOl(c, where);
+    DOM.toOl(c, where);
   },
 };
 

@@ -1,7 +1,7 @@
 /** @format */
 
 import { Status, Settings } from './dom-interface.js';
-import { actors, on, poke, bookend, expect, predicate, tracker } from './declare-events.js';
+import { actors, on, poke, pake, bookend, expect, predicate, tracker } from './declare-events.js';
 import {
   DOM,
   Recogniser,
@@ -102,10 +102,6 @@ class speech extends api implements Recogniser {
     started: new tracker(this, 'start...', 'end'),
     running: new tracker(this, 'start', 'end', Status.captioning),
 
-    stoppable: new predicate(() => {
-      return this.tick >= 25;
-    }, actors.none),
-
     transcribable: new tracker(this, 'process!', 'snapshot...', Status.transcriptPending),
   };
 
@@ -117,33 +113,15 @@ class speech extends api implements Recogniser {
 
   set tick(now: number) {
     if (now == this.tick) {
-      // don't update unless necessary
       return;
     }
 
     this.ticks = now;
 
-    if (this.tick === 0) {
-      poke(this, 'tock');
-    } else {
-      poke(this, 'tick');
-    }
-
-    Status.ticks.value = this.ticks.toString();
+    poke(this, 'tick');
   }
 
-  start = () => {
-    try {
-      super.start();
-    } catch (e) {
-      Status.lastError.value = e.name;
-      Status.lastErrorMessage.value = String(e);
-      console.error(e);
-      throw e;
-    }
-  };
-
-  snapshot = () => {
+  snapshot = async () => {
     for (const ol of document.querySelectorAll('.captions ol.history')) {
       canStoreTranscript(ol);
 
@@ -160,7 +138,7 @@ class speech extends api implements Recogniser {
   };
 
   result = (event: SpeechAPIEvent) => {
-    poke(this, 'process?', new UpdateData(event));
+    pake(this, 'process?', new UpdateData(event));
   };
 
   process = (event: CustomEvent) => {
@@ -199,61 +177,57 @@ class speech extends api implements Recogniser {
     Status.lastErrorMessage.value = 'API reached patience limit';
   };
 
-  idle = () => {
-    const tickmod = this.tick % 31;
-    if (tickmod == 30) {
-      poke(this, 'abort?');
-    } else if (tickmod == 25) {
+  ticker = () => {
+    if (this.tick >= 40) {
+      console.error('trying to quit', this);
       poke(this, 'stop?');
-    } else if (tickmod == 5) {
+    } else if (this.tick == 25) {
+      poke(this, 'stop?');
+    } else if (this.tick == 7) {
       poke(this, 'idle');
     }
   };
 
   private readonly weave = [
-    on(this, ['start...'], () => this.settings.adjust(this)),
-
     on(
       this,
-      ['start!'],
-      () => (Status.serviceURI.value = this.serviceURI || '[service URL not disclosed]')
+      ['start...'],
+      async () => (Status.serviceURI.value = this.serviceURI || '[service URL not disclosed]')
     ),
 
     on(
       this,
       ['start?'],
-      expect(bookend(this.start, 'start'), [this.predicates.started, this.predicates.running], false)
+      expect(bookend(() => this.start(), 'start'), [this.predicates.started, this.predicates.running], false, true)
     ),
 
     on(
       this,
       ['stop?'],
-      expect(bookend(super.stop, 'stop'), [this.predicates.stoppable], true),
+      bookend(() => this.stop(), 'stop'),
       ['start!'],
       ['abort...', 'stop...']
     ),
 
-    on(this, ['abort?'], bookend(super.abort, 'abort'), ['start!'], ['abort...', 'stop...']),
+    on(this, ['abort?'], bookend(() => this.abort(), 'abort'), ['start!'], ['abort...', 'stop...']),
 
     on(
       this,
       ['snapshot?', 'speechend', 'end', 'slow', 'idle'],
-      expect(bookend(this.snapshot, 'snapshot'), [this.predicates.transcribable], true)
+      expect(bookend(this.snapshot, 'snapshot'), [this.predicates.transcribable])
     ),
 
-    on(this, ['pulse'], () => {
-      this.tick++;
-    }),
-    on(this, ['start...', 'result...'], () => {
-      this.tick = 0;
-    }),
+    on(this, ['pulse'], () => this.tick++),
+    on(this, ['start...'], () => this.settings.adjust(this)),
+    on(this, ['start...', 'result...'], () => (this.tick = 0)),
 
-    on(this, ['pulse'], this.idle),
+    on(this, ['tick'], async () => (Status.ticks.value = this.ticks.toString())),
+    on(this, ['tick'], this.ticker),
 
     on(
       this,
       ['pulse', 'end!'],
-      expect(() => poke(this, 'start?'), [this.predicates.running], false, true, 'reset')
+      expect(() => pake(this, 'start?'), [this.predicates.running], false, true, 'reset')
     ),
 
     on(this, ['error'], this.error),
@@ -269,7 +243,7 @@ class speech extends api implements Recogniser {
   constructor() {
     super();
 
-    poke(this, 'start?');
+    pake(this, 'start?');
   }
 }
 
