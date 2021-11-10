@@ -4,25 +4,7 @@ import { ONodeUpdater, OExplicitNodeUpdater, Access } from './dom-manipulation.j
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
 
-export class Branch implements PartialOrder {
-  constructor(
-    public when: DateBetween,
-    public confidence: QValue,
-    public final?: boolean,
-    public text?: string,
-    public source?: string,
-    public language?: string
-  ) {
-    // trivial constructor
-  }
-
-  compare(b: Branch): CompareResult {
-    const q = this.confidence.compare(b.confidence);
-    const w = this.when.compare(b.when);
-
-    return w || q;
-  }
-}
+import { Branch } from './caption-branch.js';
 
 export class Branches extends OuterHull<Branch> {
   constructor(bs: Iterable<Branch>, public index?: number, public final?: boolean) {
@@ -250,24 +232,12 @@ export const DOM = {
     },
   },
 
-  fromSpan: (node: HTMLSpanElement): Branch => {
-    const value = new DOM.models.branch(node);
-
-    const f = value.classes.has('final') ?? !value.classes.has('interim') ?? false;
-    const c = new QValue(Number(value.confidence.number));
-    const w = new DateBetween(DateBetween.diffcat(value.when.string));
-    const t = value.text.string;
-
-    // console.log(_q, c);
-    return new Branch(w, c, f, t);
-  },
-
   fromLi: (node: HTMLLIElement): Branches | undefined => {
     const updateClass = new OExplicitNodeUpdater(node, 'class', '');
 
-    const bs = Array.from(node.querySelectorAll('span')).reduce(
+    const bs = Array.from(node.querySelectorAll('span[is="caption-branch"]')).reduce(
       (b: Branch[], e: HTMLSpanElement): Branch[] => {
-        let branch = DOM.fromSpan(e);
+        let branch = (e as Branch);
         if (branch) {
           b.push(branch);
         }
@@ -300,21 +270,6 @@ export const DOM = {
     return new Transcript(bs);
   },
 
-  toSpan: (b: Branch, span: HTMLSpanElement = document.createElement('span')): HTMLSpanElement => {
-    const value = new DOM.models.branch(span);
-
-    if (b.final) {
-      value.classes.modify(['interim'], ['final']);
-    } else {
-      value.classes.modify(['final'], ['interim']);
-    }
-
-    value.confidence.number = b.confidence.value;
-    value.when.string = b.when.string;
-    value.text.string = b.text ?? '';
-    return span;
-  },
-
   toLi: (bs: Branches, li: HTMLLIElement = document.createElement('li')): HTMLLIElement => {
     const value = new DOM.models.alternatives(li);
 
@@ -336,11 +291,10 @@ export const DOM = {
     for (const b of bs) {
       if (i < slen) {
         const child = spans[i];
-        DOM.toSpan(b, child);
+        li.replaceChild(b, child);
         i++;
       } else {
-        let span = DOM.toSpan(b);
-        li.appendChild(span);
+        li.appendChild(b);
       }
     }
 

@@ -133,13 +133,13 @@ class speech extends api implements Recogniser {
   protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
 
   snapshot = (event: Event) => {
-    const partial = event.type !== 'start' && event.type !== 'end';
+    const full = event.type === 'start' || event.type === 'end';
 
     for (const ol of document.querySelectorAll(speech.historySelector)) {
       canStoreTranscript(ol);
 
       for (const li of document.querySelectorAll(
-        partial ? speech.transcriptSafeLineSelector : speech.transcriptLineSelector
+        full ? speech.transcriptLineSelector : speech.transcriptSafeLineSelector
       )) {
         li.removeAttribute('data-index');
         if (ol) {
@@ -157,10 +157,10 @@ class speech extends api implements Recogniser {
   result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event));
 
   get maxProcessTimeAllowance(): number {
-    return 1000;
+    return 100;
   }
 
-  process = (event: Event) => {
+  process = async (event: Event) => {
     let doSnapshot = false;
     const endAfter = event.timeStamp + this.maxProcessTimeAllowance;
 
@@ -247,13 +247,12 @@ class speech extends api implements Recogniser {
         .meshing()
         .prev(action.make(() => (Status.serviceURI.string = this.serviceURI ?? '')))
         .prev(action.make(() => this.settings.adjust(this)))
+        .prev(action.make(this.snapshot))
         .prev(action.poke(this, 'start:begin'))
         .next(action.poke(this, 'start:end')),
 
       action.make(() => this.stop(), 'stop').meshing(),
       action.make(() => this.abort(), 'abort').meshing(),
-
-      action.make(this.snapshot, 'snapshot').upon(['start', 'slow-tick', 'speechend', 'idle']),
 
       action.make(() => this.tick++, 'pulse').naming(),
 
