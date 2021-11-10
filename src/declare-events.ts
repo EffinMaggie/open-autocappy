@@ -9,32 +9,87 @@ type filter<Type> = (on: Type) => Type;
 
 type observers = Iterable<EventTarget>;
 
-class action {
+export class action {
+  public readonly triggers: Set<string>;
+
   constructor(
-    protected readonly action: EventListener,
+    protected readonly handler: EventListener,
     public readonly name: string = action.name,
-    triggers: Iterable<string> = [name],
+    triggers: Iterable<string> = [],
     public readonly valid: predicate = predicate.yes,
     public readonly reentrant: predicate = predicate.yes,
     public readonly asynchronous: predicate = predicate.no
   ) {
-    this.triggers = Array.from(triggers);
+    this.triggers = new Set<string>(triggers);
   }
+
+  public static make = (handler: EventListener, name: string = handler.name) => {
+    const fn = {
+      [name]: (event: Event) => handler(event),
+    };
+
+    return new action(fn[name], name);
+  };
+
+  public static poke = (observer: EventTarget, event: string, relay?: any) =>
+    action.make(() => poke(observer, event, relay), 'poke:' + event);
+
+  public next = (act: action, name: string = this.name): action =>
+    new action(
+      (event: Event) => { this.handler(event); act.handler(event) },
+      name,
+      this.triggers,
+      this.valid,
+      this.reentrant,
+      this.asynchronous
+    );
+
+  public prev = (act: action, name: string = this.name): action =>
+    new action(
+      (event: Event) => { act.handler(event); this.handler(event) },
+      name,
+      this.triggers,
+      this.valid,
+      this.reentrant,
+      this.asynchronous
+    );
+
+  public renamed = (name: string): action =>
+    new action(this.handler, name, this.triggers, this.valid, this.reentrant, this.asynchronous);
+
+  public naming = (): action => this.upon([this.name]);
+  public meshing = (): action => this.upon([this.name + '?']);
+
+  public upon = (triggers: Iterable<string>): action =>
+    new action(this.handler, this.name, triggers, this.valid, this.reentrant, this.asynchronous);
+
+  public validp = (p: predicate): action =>
+    new action(this.handler, this.name, this.triggers, p, this.reentrant, this.asynchronous);
+
+  public reentrantp = (p: predicate): action =>
+    new action(this.handler, this.name, this.triggers, this.valid, p, this.asynchronous);
+
+  public asyncp = (p: predicate): action =>
+    new action(this.handler, this.name, this.triggers, this.valid, this.reentrant, p);
 
   protected running: number = 0;
 
-  public readonly triggers: Iterable<string>;
-
   protected process = (event: Event): boolean => {
-    if (this.reentrant.fail() && this.running > 0) {
-      return false;
-    }
-
     this.running++;
 
-    const valid = this.valid.ok();
+    let valid = true;
 
-    valid && this.action(event);
+    valid = valid && (this.reentrant.ok() || (this.running === 1));
+    valid = valid && this.valid.ok();
+
+    if (valid) {
+      try {
+        this.handler(event);
+      } catch (e) {
+        console.error(`exception during event processing: `, this, e);
+        poke(event.target!, this.name + ':exception');
+      }
+    }
 
     this.running--;
 
@@ -43,12 +98,12 @@ class action {
 
   protected asynchronously = async (event: Event): Promise<boolean> => this.process(event);
 
-  public act = (event: Event): Promise<boolean> => {
+  public act = (event: Event) => {
     if (this.asynchronous.ok()) {
-      return this.asynchronously(event);
+      this.asynchronously(event);
+    } else {
+      this.process(event);
     }
-
-    return new Promise((resolve, reject) => resolve(this.process(event)));
   };
 
   public listener: (observer: EventTarget) => listener = (observer: EventTarget) =>
@@ -147,29 +202,6 @@ export class listeners implements Iterable<listener> {
       a.on = want;
     }
   }
-
-  *enablers(triggers: Iterable<string>, want: boolean = true): Generator<action> {
-    for (const trigger of triggers) {
-      const fn = {
-        [trigger]: () => {
-          this.on = want;
-        },
-      };
-
-      yield new action(fn[trigger], trigger);
-    }
-  }
-
-  gated(after: Iterable<string>, before: Iterable<string> = [], auto: boolean = true): listeners {
-    return new listeners(
-      this.observers,
-      (function* (of: listeners) {
-        yield* of.enablers(after, true);
-        yield* of.enablers(after, false);
-      })(this),
-      auto
-    );
-  }
 }
 
 export class predicate extends EventTarget {
@@ -203,41 +235,22 @@ export class predicate extends EventTarget {
 
   public ok: thunk<boolean> = () => this.is(true);
   public fail: thunk<boolean> = () => this.is(false) || this.is(undefined);
+
+  public invert = () => new predicate(() => this.fail(), this.influencers);
+  public also = (p: predicate) => new predicate(() => this.ok() && p.ok(), this.influencers);
+  public or = (p: predicate) => new predicate(() => this.ok() || p.ok(), this.influencers);
+  public nor = (p: predicate) => new predicate(() => this.fail() && p.fail(), this.influencers);
 }
-
-/** event handling with extra constraints.
- *
- *  A wrapper around browser event handling that can automatically add and
- *  remove event handlers based on other events firing.
- */
-export const on = (
-  observer: EventTarget,
-  triggers: Iterable<string>,
-  call: EventListener,
-  when?: Iterable<string>,
-  until?: Iterable<string>
-): listeners => {
-  const actions = function* (): Generator<action> {
-    yield new action(call, call.name, triggers);
-  };
-
-  let evs: listeners = new listeners([observer], actions(), false);
-  if (when) {
-    evs = evs.gated(when, until, false);
-  }
-
-  evs.on = true;
-
-  return evs;
-};
 
 function assertTarget(target?: EventTarget | null): asserts target {
   console.assert(target, 'All events must have a valid event.target');
 }
 
+const badEventNames = new Set<string | undefined>([undefined, '', '!', '?', '...']);
+
 function assertValidEvent(event?: string): asserts event {
   console.assert(event, 'Raised events must have a type name');
-  console.assert(event !== '!', 'Raised events must have a valid name');
+  console.assert(!badEventNames.has(event), 'Raised events must have a valid name');
 }
 
 export const poke = (observer: EventTarget, event: string, relay?: any) => {
@@ -248,79 +261,6 @@ export const poke = (observer: EventTarget, event: string, relay?: any) => {
 
 export const pake = async (observer: EventTarget, event: string, relay?: any) =>
   poke(observer, event, relay);
-
-export const bookend = (
-  call: EventListener,
-  name: string = call.name,
-  detail?: any
-): EventListener => {
-  const starting: string = `${name}...`;
-  const done: string = `${name}!`;
-  const fn = {
-    [name]: (event: CustomEvent<Event>) => {
-      const target = event.target ?? event.detail?.target ?? this;
-
-      assertTarget(target);
-
-      const options = {
-        detail: detail ?? event,
-      };
-
-      poke(target, starting, options.detail);
-      call(event);
-      pake(target, done, options.detail);
-    },
-  };
-
-  return fn[name];
-};
-
-export const expect = (
-  call: EventListener,
-  terms: Iterable<predicate>,
-  want: boolean = true,
-  full: boolean = true,
-  name: string = call.name,
-  detail?: any
-): EventListener => {
-  assertValidEvent(name);
-
-  const fail: string = `!${name}`;
-
-  const fn = {
-    [name]: (event: CustomEvent<Event>) => {
-      const target = event.target ?? event.detail?.target ?? this;
-
-      assertTarget(target);
-
-      const options = {
-        detail: detail ?? event,
-      };
-
-      let compliant: boolean = full;
-
-      for (const condition of terms) {
-        if (full) {
-          compliant = compliant && condition.compliant(want);
-        } else {
-          compliant = compliant || condition.compliant(want);
-        }
-
-        if (full !== compliant) {
-          break;
-        }
-      }
-
-      if (compliant) {
-        call(event);
-      } else {
-        pake(target, fail, options.detail);
-      }
-    },
-  };
-
-  return fn[name];
-};
 
 export class tracker extends predicate {
   private value: maybe = undefined;
@@ -374,13 +314,17 @@ export class syncPredicateStyle {
     public readonly whenOff: Iterable<string> = new Set(['end'])
   ) {}
 
-  private readonly weave = [
-    on(this.predicate, ['value-changed'], () => {
-      if (this.predicate.ok()) {
-        this.classes.modify(this.whenOff, this.whenOn);
-      } else {
-        this.classes.modify(this.whenOn, this.whenOff);
-      }
-    }),
-  ];
+  protected sync = () => {
+    if (this.predicate.ok()) {
+      this.classes.modify(this.whenOff, this.whenOn);
+    } else {
+      this.classes.modify(this.whenOn, this.whenOff);
+    }
+  };
+
+  private readonly weave = new listeners(
+    [this.predicate],
+    new actions([action.make(this.sync, 'sync').upon(['value-changed'])])
+  );
+  private readonly enabled = (this.weave.on = true);
 }

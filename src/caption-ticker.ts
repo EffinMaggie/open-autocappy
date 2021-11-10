@@ -1,6 +1,6 @@
 /** @format */
 
-import { OExplicitNodeUpdater } from './dom-manipulation.js';
+import { OExplicitNodeUpdater, Access } from './dom-manipulation.js';
 
 export class Ticker extends HTMLParagraphElement {
   constructor() {
@@ -9,15 +9,11 @@ export class Ticker extends HTMLParagraphElement {
     console.log('new ticker created', this);
   }
 
-  get ticks(): number {
-    return Number(this.getAttribute('data-ticks'));
-  }
+  private accessors = {
+    ticks: new OExplicitNodeUpdater(this, 'data-ticks', ''),
+  };
 
-  set ticks(n: number) {
-    if (n >= 0) {
-      this.setAttribute('data-ticks', n.toString());
-    }
-  }
+  ticks = new Access.Numeric(this.accessors.ticks);
 }
 
 customElements.define('caption-ticker', Ticker, { extends: 'p' });

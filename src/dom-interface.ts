@@ -27,10 +27,6 @@ export namespace Status {
   export const speech = new Access.Classes(
     new ONodeQueryUpdater('#status-speech', 'class', 'predicate')
   );
-
-  export const transcriptPending = new Access.Classes(
-    new ONodeQueryUpdater('#transcript-pending', 'class', 'predicate')
-  );
 }
 
 export namespace Settings {

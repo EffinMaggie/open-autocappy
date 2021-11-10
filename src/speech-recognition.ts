@@ -2,11 +2,11 @@
 
 import { Status, Settings } from './dom-interface.js';
 import {
-  on,
+  action,
+  actions,
+  listeners,
   poke,
   pake,
-  bookend,
-  expect,
   predicate,
   tracker,
   syncPredicateStyle,
@@ -103,10 +103,8 @@ class speech extends api implements Recogniser {
     audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
     sound: new tracker(this, 'hasSound', ['soundstart'], ['soundend']),
     speech: new tracker(this, 'hasSpeech', ['speechstart'], ['speechend']),
-    started: new tracker(this, 'hasStarted', ['start...'], ['end']),
     running: new tracker(this, 'isRunning', ['start'], ['end']),
-
-    transcribable: new tracker(this, 'isTranscribable', ['process!'], ['snapshot...']),
+    started: new tracker(this, 'isStarted', ['start:begin'], ['start:end', 'start:exception']),
   };
 
   private readonly bindings = [
@@ -114,7 +112,6 @@ class speech extends api implements Recogniser {
     new syncPredicateStyle(this.predicates.sound, Status.sound),
     new syncPredicateStyle(this.predicates.speech, Status.speech),
     new syncPredicateStyle(this.predicates.running, Status.captioning),
-    new syncPredicateStyle(this.predicates.transcribable, Status.transcriptPending),
   ];
 
   get tick(): number {
@@ -135,8 +132,8 @@ class speech extends api implements Recogniser {
   protected static transcriptLineSelector = '.captions ol.transcript > li';
   protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
 
-  snapshot = async (event: Event) => {
-    const partial = event.type !== 'start...' && event.type !== 'end';
+  snapshot = (event: Event) => {
+    const partial = event.type !== 'start' && event.type !== 'end';
 
     for (const ol of document.querySelectorAll(speech.historySelector)) {
       canStoreTranscript(ol);
@@ -155,20 +152,42 @@ class speech extends api implements Recogniser {
     }
   };
 
-  result = (event: SpeechAPIEvent) => pake(this, 'process?', new UpdateData(event));
+  queued: UpdateData[] = [];
 
-  process = (event: CustomEvent) => {
-    const data: UpdateData = event.detail;
+  result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event));
 
-    if (!data) {
-      console.error('bogus event from SpeechRecognition API: ', event);
+  get maxProcessTimeAllowance(): number {
+    return 1000;
+  }
+
+  process = (event: Event) => {
+    let doSnapshot = false;
+    const endAfter = event.timeStamp + this.maxProcessTimeAllowance;
+
+    while ((this.queued.length > 0) && (endAfter > event.timeStamp)) {
+      const data = this.queued.shift();
+
+      if (!data) {
+        console.error('bogus event from SpeechRecognition API: ', event);
+        continue;
+      }
+
+      const ts = SpeechAPI.fromData(data);
+      for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
+        canStoreTranscript(transcript);
+
+        DOM.merge(transcript, ts);
+      }
+
+      doSnapshot = true;
     }
 
-    let ts = SpeechAPI.fromData(data);
-    for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
-      canStoreTranscript(transcript);
+    if (endAfter <= event.timeStamp) {
+      console.warn(`exceeded processing time allowance with ${this.queued.length} updates left`);
+    }
 
-      DOM.merge(transcript, ts);
+    if (doSnapshot) {
+      this.snapshot(event);
     }
   };
 
@@ -177,7 +196,6 @@ class speech extends api implements Recogniser {
 
     switch (event.error) {
       case 'no-speech':
-        console.warn('still there?');
         Status.lastErrorMessage.string =
           'microphone is not hearing your voice; if you are still talking, please speak up';
         return;
@@ -195,10 +213,15 @@ class speech extends api implements Recogniser {
 
   ticker = () => {
     if (this.tick >= 40) {
-      console.error('trying to quit', this);
-      poke(this, 'stop?');
+      if (this.predicates.running.ok()) {
+        console.error('trying to quit', this);
+        this.stop();
+      } else {
+        console.error('trying to resurrect', this);
+        poke(this, 'start?');
+      }
     } else if (this.tick == 25) {
-      poke(this, 'stop?');
+      this.stop();
     } else if (this.tick == 7) {
       poke(this, 'idle');
     }
@@ -213,74 +236,54 @@ class speech extends api implements Recogniser {
     }
   };
 
-  private readonly weave = [
-    on(
-      this,
-      ['start...'],
-      async () => (Status.serviceURI.string = this.serviceURI || '[service URL not disclosed]')
-    ),
+  private readonly weave = new listeners(
+    [this],
+    new actions([
+      action
+        .make(() => this.start(), 'start')
+        .validp(this.predicates.running.nor(this.predicates.started))
+        .reentrantp(predicate.no)
+        .asyncp(predicate.yes)
+        .meshing()
+        .prev(action.make(() => (Status.serviceURI.string = this.serviceURI ?? '')))
+        .prev(action.make(() => this.settings.adjust(this)))
+        .prev(action.poke(this, 'start:begin'))
+        .next(action.poke(this, 'start:end')),
 
-    on(
-      this,
-      ['start?'],
-      expect(
-        bookend(() => this.start(), 'start'),
-        [this.predicates.started, this.predicates.running],
-        false,
-        true
-      )
-    ),
+      action.make(() => this.stop(), 'stop').meshing(),
+      action.make(() => this.abort(), 'abort').meshing(),
 
-    on(
-      this,
-      ['stop?'],
-      bookend(() => this.stop(), 'stop'),
-      ['start!'],
-      ['abort...', 'abort', 'stop...', 'stop']
-    ),
+      action.make(this.snapshot, 'snapshot').upon(['start', 'slow-tick', 'speechend', 'idle']),
 
-    on(
-      this,
-      ['abort?'],
-      bookend(() => this.abort(), 'abort'),
-      ['start!'],
-      ['abort...', 'abort', 'stop...', 'stop']
-    ),
+      action.make(() => this.tick++, 'pulse').naming(),
 
-    on(
-      this,
-      ['start...', 'slow-tick', 'speechend', 'end', 'slow', 'idle'],
-      expect(bookend(this.snapshot, 'snapshot'), [this.predicates.transcribable])
-    ),
+      action.make(this.result, 'result').upon(['result', 'nomatch']),
+      action.make(this.process, 'process').reentrantp(predicate.no).asyncp(predicate.yes).upon(['result', 'tick']),
 
-    on(this, ['pulse'], () => this.tick++),
-    on(this, ['start...'], () => this.settings.adjust(this)),
-    on(this, ['start...', 'result...'], () => (this.tick = 0)),
+      action.make(() => (Status.ticks.number = this.ticks)).upon(['tick']).asyncp(predicate.yes),
+      action.make(() => (this.tick = 0)).upon(['start', 'end', 'result', 'nomatch', 'error', 'audiostart', 'audioend', 'soundstart', 'soundend', 'speechstart', 'speechend']),
 
-    on(this, ['tick'], async () => (Status.ticks.number = this.ticks)),
-    on(this, ['tick'], this.ticker),
-    on(this, ['tick'], this.slowTicker),
+      action.make(this.ticker).upon(['tick']),
+      action.make(this.slowTicker).upon(['tick']),
 
-    on(
-      this,
-      ['pulse', 'end!'],
-      expect(() => pake(this, 'start?'), [this.predicates.running], false, true, 'reset')
-    ),
+      action.make(this.error, 'error').naming(),
+      action.make(this.nomatch, 'nomatch').naming(),
 
-    on(this, ['error'], this.error),
-    on(this, ['nomatch'], this.nomatch),
+      action
+        .make(() => pake(this, 'start?'))
+        .validp(this.predicates.running.invert())
+        .upon(['pulse', 'end']),
+    ])
+  );
 
-    on(this, ['result', 'nomatch'], bookend(this.result, 'result')),
-
-    on(this, ['process?'], bookend(this.process, 'process')),
-  ];
+  private readonly enabled = (this.weave.on = true);
 
   readonly intervalID: number = window.setInterval(() => pake(this, 'pulse'), 1200);
 
   constructor() {
     super();
 
-    pake(this, 'start?');
+    poke(this, 'start?');
   }
 }
 
