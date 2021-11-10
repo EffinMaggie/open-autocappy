@@ -18,7 +18,7 @@ body {
   font-size: 0.8em;
 }
 
-#status-ticks {
+p[is='caption-ticker'] {
   color: blue;
   margin: 0;
   padding: 0;
@@ -27,39 +27,39 @@ body {
   height: 15px;
 }
 
-#status-ticks[data-ticks]:before {
+p[is='caption-ticker'][data-ticks]:before {
   content: attr(data-ticks);
 }
 
-#status-ticks[data-ticks^='1'] {
+p[is='caption-ticker'][data-ticks^='1'] {
   color: purple;
 }
 
-#status-ticks[data-ticks^='2'] {
+p[is='caption-ticker'][data-ticks^='2'] {
   color: red;
   font-weight: bold;
 }
 
-#status-ticks[data-ticks^='1']:after {
+p[is='caption-ticker'][data-ticks^='1']:after {
   content: '?';
 }
 
-#status-ticks[data-ticks^='2']:after {
+p[is='caption-ticker'][data-ticks^='2']:after {
   content: '!';
 }
 
-p#status-ticks[data-ticks='0'],
-p#status-ticks[data-ticks='1'],
-p#status-ticks[data-ticks='2'] {
+p[is='caption-ticker'][data-ticks='0'],
+p[is='caption-ticker'][data-ticks='1'],
+p[is='caption-ticker'][data-ticks='2'] {
   color: pink;
 }
 
-p#status-ticks[data-ticks='0']:after {
+p[is='caption-ticker'][data-ticks='0']:after {
   content: ' UwU';
 }
 
-p#status-ticks[data-ticks='1']:after,
-p#status-ticks[data-ticks='2']:after {
+p[is='caption-ticker'][data-ticks='1']:after,
+p[is='caption-ticker'][data-ticks='2']:after {
   content: none;
 }
 
@@ -169,10 +169,6 @@ span {
 
 .captions ol li span > span {
   padding: 5px 20px;
-}
-
-p#last-final {
-  display: none;
 }
 
 .captions ol li {

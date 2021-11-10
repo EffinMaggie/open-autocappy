@@ -1,7 +1,16 @@
 /** @format */
 
 import { Status, Settings } from './dom-interface.js';
-import { actors, on, poke, pake, bookend, expect, predicate, tracker } from './declare-events.js';
+import {
+  on,
+  poke,
+  pake,
+  bookend,
+  expect,
+  predicate,
+  tracker,
+  syncPredicateStyle,
+} from './declare-events.js';
 import {
   DOM,
   Recogniser,
@@ -13,6 +22,7 @@ import {
   SpeechAPIAlternative,
   UpdateData,
 } from './caption-branches.js';
+import { CaptionError } from './caption-error.js';
 
 type usable = new () => Recogniser;
 
@@ -47,16 +57,16 @@ function canStoreTranscript(where: Element): asserts where is HTMLOListElement {
 
 class settings {
   get lang(): string {
-    return Settings.language.value;
+    return Settings.language.string;
   }
   get continuous(): boolean {
-    return Settings.continuous.value == 'true';
+    return Settings.continuous.boolean;
   }
   get interimResults(): boolean {
-    return Settings.interim.value == 'true';
+    return Settings.interim.boolean;
   }
   get maxAlternatives(): number {
-    return Number(Settings.alternatives.value);
+    return Number(Settings.alternatives.number);
   }
 
   adjust = (recogniser: Recogniser) => {
@@ -68,25 +78,15 @@ class settings {
     };
 
     if (recogniser.lang != want.lang) {
-      console.log(`changing recogniser language from ${recogniser.lang} to ${want.lang}`);
       recogniser.lang = want.lang;
     }
     if (recogniser.continuous != want.continuous) {
-      console.log(
-        `changing recogniser continuous mode from ${recogniser.continuous} to ${want.continuous}`
-      );
       recogniser.continuous = want.continuous;
     }
     if (recogniser.interimResults != want.interimResults) {
-      console.log(
-        `changing recogniser interim result mode from ${recogniser.interimResults} to ${want.interimResults}`
-      );
       recogniser.interimResults = want.interimResults;
     }
     if (recogniser.maxAlternatives != want.maxAlternatives) {
-      console.log(
-        `changing recogniser requested max number of alternate parsings from ${recogniser.maxAlternatives} to ${want.maxAlternatives}`
-      );
       recogniser.maxAlternatives = want.maxAlternatives;
     }
   };
@@ -94,18 +94,28 @@ class settings {
 
 class speech extends api implements Recogniser {
   private readonly settings = new settings();
-
-  private readonly predicates = {
-    audio: new tracker(this, 'audiostart', 'audioend', Status.audio),
-    sound: new tracker(this, 'soundstart', 'soundend', Status.sound),
-    speech: new tracker(this, 'speechstart', 'speechend', Status.speech),
-    started: new tracker(this, 'start...', 'end'),
-    running: new tracker(this, 'start', 'end', Status.captioning),
-
-    transcribable: new tracker(this, 'process!', 'snapshot...', Status.transcriptPending),
-  };
+  private readonly slowTickFrequency: number = 60;
 
   private ticks: number = 0;
+  private continuousTicks: number = 0;
+
+  private readonly predicates = {
+    audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
+    sound: new tracker(this, 'hasSound', ['soundstart'], ['soundend']),
+    speech: new tracker(this, 'hasSpeech', ['speechstart'], ['speechend']),
+    started: new tracker(this, 'hasStarted', ['start...'], ['end']),
+    running: new tracker(this, 'isRunning', ['start'], ['end']),
+
+    transcribable: new tracker(this, 'isTranscribable', ['process!'], ['snapshot...']),
+  };
+
+  private readonly bindings = [
+    new syncPredicateStyle(this.predicates.audio, Status.audio),
+    new syncPredicateStyle(this.predicates.sound, Status.sound),
+    new syncPredicateStyle(this.predicates.speech, Status.speech),
+    new syncPredicateStyle(this.predicates.running, Status.captioning),
+    new syncPredicateStyle(this.predicates.transcribable, Status.transcriptPending),
+  ];
 
   get tick(): number {
     return this.ticks;
@@ -121,11 +131,19 @@ class speech extends api implements Recogniser {
     poke(this, 'tick');
   }
 
-  snapshot = async () => {
-    for (const ol of document.querySelectorAll('.captions ol.history')) {
+  protected static historySelector = '.captions ol.history';
+  protected static transcriptLineSelector = '.captions ol.transcript > li';
+  protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
+
+  snapshot = async (event: Event) => {
+    const partial = event.type !== 'start...' && event.type !== 'end';
+
+    for (const ol of document.querySelectorAll(speech.historySelector)) {
       canStoreTranscript(ol);
 
-      for (const li of document.querySelectorAll('.captions ol.transcript > li')) {
+      for (const li of document.querySelectorAll(
+        partial ? speech.transcriptSafeLineSelector : speech.transcriptLineSelector
+      )) {
         li.removeAttribute('data-index');
         if (ol) {
           li.parentNode?.removeChild(li);
@@ -137,9 +155,7 @@ class speech extends api implements Recogniser {
     }
   };
 
-  result = (event: SpeechAPIEvent) => {
-    pake(this, 'process?', new UpdateData(event));
-  };
+  result = (event: SpeechAPIEvent) => pake(this, 'process?', new UpdateData(event));
 
   process = (event: CustomEvent) => {
     const data: UpdateData = event.detail;
@@ -157,24 +173,24 @@ class speech extends api implements Recogniser {
   };
 
   error = (event: SpeechAPIErrorEvent) => {
-    Status.lastError.value = event.error;
+    Status.lastError.string = event.error;
 
     switch (event.error) {
       case 'no-speech':
         console.warn('still there?');
-        Status.lastErrorMessage.value =
+        Status.lastErrorMessage.string =
           'microphone is not hearing your voice; if you are still talking, please speak up';
         return;
     }
 
     console.warn('SpeechRecognition API error', event.error, event.message, event);
 
-    Status.lastErrorMessage.value = event.message;
+    Status.lastErrorMessage.string = event.message;
   };
 
   nomatch = (event: SpeechAPIEvent) => {
-    Status.lastError.value = 'no-match';
-    Status.lastErrorMessage.value = 'API reached patience limit';
+    Status.lastError.string = 'no-match';
+    Status.lastErrorMessage.string = 'API reached patience limit';
   };
 
   ticker = () => {
@@ -188,17 +204,31 @@ class speech extends api implements Recogniser {
     }
   };
 
+  slowTicker = async () => {
+    this.continuousTicks++;
+
+    if (this.continuousTicks > this.slowTickFrequency) {
+      this.continuousTicks = 0;
+      poke(this, 'slow-tick');
+    }
+  };
+
   private readonly weave = [
     on(
       this,
       ['start...'],
-      async () => (Status.serviceURI.value = this.serviceURI || '[service URL not disclosed]')
+      async () => (Status.serviceURI.string = this.serviceURI || '[service URL not disclosed]')
     ),
 
     on(
       this,
       ['start?'],
-      expect(bookend(() => this.start(), 'start'), [this.predicates.started, this.predicates.running], false, true)
+      expect(
+        bookend(() => this.start(), 'start'),
+        [this.predicates.started, this.predicates.running],
+        false,
+        true
+      )
     ),
 
     on(
@@ -206,14 +236,20 @@ class speech extends api implements Recogniser {
       ['stop?'],
       bookend(() => this.stop(), 'stop'),
       ['start!'],
-      ['abort...', 'stop...']
+      ['abort...', 'abort', 'stop...', 'stop']
     ),
-
-    on(this, ['abort?'], bookend(() => this.abort(), 'abort'), ['start!'], ['abort...', 'stop...']),
 
     on(
       this,
-      ['snapshot?', 'speechend', 'end', 'slow', 'idle'],
+      ['abort?'],
+      bookend(() => this.abort(), 'abort'),
+      ['start!'],
+      ['abort...', 'abort', 'stop...', 'stop']
+    ),
+
+    on(
+      this,
+      ['start...', 'slow-tick', 'speechend', 'end', 'slow', 'idle'],
       expect(bookend(this.snapshot, 'snapshot'), [this.predicates.transcribable])
     ),
 
@@ -221,8 +257,9 @@ class speech extends api implements Recogniser {
     on(this, ['start...'], () => this.settings.adjust(this)),
     on(this, ['start...', 'result...'], () => (this.tick = 0)),
 
-    on(this, ['tick'], async () => (Status.ticks.value = this.ticks.toString())),
+    on(this, ['tick'], async () => (Status.ticks.number = this.ticks)),
     on(this, ['tick'], this.ticker),
+    on(this, ['tick'], this.slowTicker),
 
     on(
       this,
@@ -238,7 +275,7 @@ class speech extends api implements Recogniser {
     on(this, ['process?'], bookend(this.process, 'process')),
   ];
 
-  readonly intervalID: number = window.setInterval(() => poke(this, 'pulse'), 1200);
+  readonly intervalID: number = window.setInterval(() => pake(this, 'pulse'), 1200);
 
   constructor() {
     super();

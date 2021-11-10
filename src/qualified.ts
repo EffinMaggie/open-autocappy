@@ -1,12 +1,8 @@
 /** @format */
 
+import { poke, pake } from './declare-events.js';
+
 export type CompareResult = -1 | 0 | 1;
-
-export const onValueWasSet = Symbol('on-value-was-set');
-export const onValueHasChanged = Symbol('on-value-has-changed');
-
-export const valueSymbol = Symbol('value');
-export const defaultValue = Symbol('default-value');
 
 export interface PartialOrder {
   compare(b: PartialOrder): CompareResult;
@@ -44,15 +40,8 @@ export interface FromString {
   set string(s: string);
 }
 
-export interface Observant<Type> extends MutableValue<Type> {
-  [onValueWasSet]?: Observer<Type>;
-  [onValueHasChanged]?: Observer<Type>;
-}
-
-export type Observer<Type> = (observant: Observant<Type>, now: Type, was: Type) => boolean;
-
-export abstract class ValueBoilerplate<Type> implements Value<Type>, ToString {
-  abstract get value(): Type;
+export class Q<Type> implements PartialOrder, Equivalence, Value<Type>, ToString {
+  constructor(public readonly value: Type) {}
 
   valueOf(): Type {
     return this.value;
@@ -65,22 +54,6 @@ export abstract class ValueBoilerplate<Type> implements Value<Type>, ToString {
   toString(): string {
     return this.string;
   }
-}
-
-export class Q<Type>
-  extends ValueBoilerplate<Type>
-  implements PartialOrder, Equivalence, Value<Type>, ToString
-{
-  protected [valueSymbol]: Type;
-
-  constructor(qval: Type) {
-    super();
-    this[valueSymbol] = qval;
-  }
-
-  get value(): Type {
-    return this[valueSymbol];
-  }
 
   equal(b: Q<Type>): boolean {
     return this.value === b.value;
@@ -97,23 +70,19 @@ export class Q<Type>
   }
 }
 
-export class M<Type>
-  extends ValueBoilerplate<Type>
-  implements PartialOrder, Equivalence, Value<Type>, ToString, MutableValue<Type>
-{
-  protected [valueSymbol]: Type;
+export class M<Type> implements PartialOrder, Equivalence, Value<Type>, ToString, MutableValue<Type> {
+  constructor(public value: Type) {}
 
-  constructor(qval: Type) {
-    super();
-    this[valueSymbol] = qval;
+  valueOf(): Type {
+    return this.value;
   }
 
-  get value(): Type {
-    return this[valueSymbol];
+  get string(): string {
+    return String(this.value);
   }
 
-  set value(val: Type) {
-    this[valueSymbol] = val;
+  toString(): string {
+    return this.string;
   }
 
   equal(b: Q<Type>): boolean {
@@ -128,24 +97,6 @@ export class M<Type>
       return 1;
     }
     return -1;
-  }
-}
-
-export class O<Type> extends Q<Type> implements Observant<Type> {
-  set value(to: Type) {
-    const was = this.value;
-
-    this[valueSymbol] = to;
-
-    if (this[onValueWasSet]) {
-      this[onValueWasSet](this, to, was);
-    }
-
-    if (was !== to) {
-      if (this[onValueHasChanged]) {
-        this[onValueHasChanged](this, to, was);
-      }
-    }
   }
 }
 

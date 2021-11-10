@@ -1,34 +1,47 @@
 /** @format */
 
-import { ONodeQueryUpdater } from './dom-manipulation.js';
+import { ONodeQueryUpdater, Access } from './dom-manipulation.js';
+import { Ticker } from './caption-ticker.js';
 
-export const Status = {
-  lastError: new ONodeQueryUpdater('#status-last-error'),
-  lastErrorMessage: new ONodeQueryUpdater('#status-last-error-message'),
-  lastErrorTime: new ONodeQueryUpdater(
-    '#status-last-error, #status-last-error-message',
-    'data-when',
-    '-1'
-  ),
-  serviceURI: new ONodeQueryUpdater('#status-service'),
+export namespace Status {
+  export const lastError = new Access.Storage(new ONodeQueryUpdater('#status-last-error'));
+  export const lastErrorMessage = new Access.Storage(
+    new ONodeQueryUpdater('#status-last-error-message')
+  );
 
-  ticks: new ONodeQueryUpdater('#status-ticks', 'data-ticks', '0'),
-  tickVisual: new ONodeQueryUpdater('#status-ticks'),
+  export const serviceURI = new Access.Storage(new ONodeQueryUpdater('#status-service'));
 
-  captioning: new ONodeQueryUpdater('#status-captioning', 'class', 'inactive'),
-  audio: new ONodeQueryUpdater('#status-audio', 'class', 'inactive'),
-  sound: new ONodeQueryUpdater('#status-sound', 'class', 'inactive'),
-  speech: new ONodeQueryUpdater('#status-speech', 'class', 'inactive'),
+  export const ticks = new Access.Numeric(
+    new ONodeQueryUpdater('p[is="caption-ticker"]', 'data-ticks', '0')
+  );
 
-  transcriptPending: new ONodeQueryUpdater('#transcript-pending', 'class', 'inactive'),
+  export const captioning = new Access.Classes(
+    new ONodeQueryUpdater('#status-captioning', 'class', 'predicate')
+  );
+  export const audio = new Access.Classes(
+    new ONodeQueryUpdater('#status-audio', 'class', 'predicate')
+  );
+  export const sound = new Access.Classes(
+    new ONodeQueryUpdater('#status-sound', 'class', 'predicate')
+  );
+  export const speech = new Access.Classes(
+    new ONodeQueryUpdater('#status-speech', 'class', 'predicate')
+  );
 
-  lastFinal: new ONodeQueryUpdater('#last-final'),
-  lastLine: new ONodeQueryUpdater('#last-line'),
-};
+  export const transcriptPending = new Access.Classes(
+    new ONodeQueryUpdater('#transcript-pending', 'class', 'predicate')
+  );
+}
 
-export const Settings = {
-  language: new ONodeQueryUpdater('html', 'lang', 'en'),
-  continuous: new ONodeQueryUpdater('meta[name="continuous"]', 'content', 'false'),
-  interim: new ONodeQueryUpdater('meta[name="interim-results"]', 'content', 'false'),
-  alternatives: new ONodeQueryUpdater('meta[name="max-alternatives"]', 'content', '1'),
-};
+export namespace Settings {
+  export const language = new Access.Storage(new ONodeQueryUpdater('html', 'lang', 'en'));
+  export const continuous = new Access.Boolean(
+    new ONodeQueryUpdater('meta[name="continuous"]', 'content', 'false')
+  );
+  export const interim = new Access.Boolean(
+    new ONodeQueryUpdater('meta[name="interim-results"]', 'content', 'false')
+  );
+  export const alternatives = new Access.Numeric(
+    new ONodeQueryUpdater('meta[name="max-alternatives"]', 'content', '1')
+  );
+}

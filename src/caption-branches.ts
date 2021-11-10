@@ -1,6 +1,6 @@
 /** @format */
 
-import { ONodeUpdater, OExplicitNodeUpdater, updateClasses, hasClass } from './dom-manipulation.js';
+import { ONodeUpdater, OExplicitNodeUpdater, Access } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
 
@@ -222,17 +222,22 @@ export class Transcript extends OuterHull<Branches> {
 export const DOM = {
   models: {
     branch: class {
-      constructor(
-        public readonly node: HTMLSpanElement,
-        public readonly classes: ONodeUpdater = new OExplicitNodeUpdater(node, 'class', ''),
-        public readonly confidence: ONodeUpdater = new OExplicitNodeUpdater(
-          node,
-          'data-confidence',
-          '-1'
-        ),
-        public readonly when: ONodeUpdater = new OExplicitNodeUpdater(node, 'data-when', '0'),
-        public readonly text: ONodeUpdater = new OExplicitNodeUpdater(node, undefined, '0')
-      ) {}
+      constructor(public readonly node: HTMLSpanElement) {}
+
+      private attributes = {
+        classes: new OExplicitNodeUpdater(this.node, 'class', ''),
+
+        confidence: new OExplicitNodeUpdater(this.node, 'data-confidence', '-1'),
+
+        when: new OExplicitNodeUpdater(this.node, 'data-when', '0'),
+
+        text: new OExplicitNodeUpdater(this.node, undefined, '0'),
+      };
+
+      classes = new Access.Classes(this.attributes.classes);
+      confidence = new Access.Numeric(this.attributes.confidence);
+      when = new Access.Storage(this.attributes.when);
+      text = new Access.Storage(this.attributes.text);
     },
 
     alternatives: class {
@@ -248,10 +253,10 @@ export const DOM = {
   fromSpan: (node: HTMLSpanElement): Branch => {
     const value = new DOM.models.branch(node);
 
-    const f = hasClass(value.classes, 'final') ?? !hasClass(value.classes, 'interim') ?? false;
-    const c = new QValue(Number(value.confidence.value));
-    const w = new DateBetween(DateBetween.diffcat(value.when.value));
-    const t = value.text.value;
+    const f = value.classes.has('final') ?? !value.classes.has('interim') ?? false;
+    const c = new QValue(Number(value.confidence.number));
+    const w = new DateBetween(DateBetween.diffcat(value.when.string));
+    const t = value.text.string;
 
     // console.log(_q, c);
     return new Branch(w, c, f, t);
@@ -275,7 +280,7 @@ export const DOM = {
     if (node.hasAttribute('data-index')) {
       idx = Number(node.getAttribute('data-index'));
     }
-    const f = hasClass(updateClass, 'final');
+    const f = new Access.Classes(updateClass).has('final');
 
     return new Branches(bs, idx, f);
   },
@@ -299,14 +304,14 @@ export const DOM = {
     const value = new DOM.models.branch(span);
 
     if (b.final) {
-      updateClasses(value.classes, ['interim'], ['final']);
+      value.classes.modify(['interim'], ['final']);
     } else {
-      updateClasses(value.classes, ['final'], ['interim']);
+      value.classes.modify(['final'], ['interim']);
     }
 
-    value.confidence.value = b.confidence?.string;
-    value.when.value = b.when.string;
-    value.text.value = b.text ?? '';
+    value.confidence.number = b.confidence.value;
+    value.when.string = b.when.string;
+    value.text.string = b.text ?? '';
     return span;
   },
 
@@ -314,11 +319,11 @@ export const DOM = {
     const value = new DOM.models.alternatives(li);
 
     if (bs.abandoned) {
-      updateClasses(value.classes, ['final'], ['abandoned']);
+      new Access.Classes(value.classes).modify(['final'], ['abandoned']);
     } else if (bs.final) {
-      updateClasses(value.classes, ['abandoned'], ['final']);
+      new Access.Classes(value.classes).modify(['abandoned'], ['final']);
     } else {
-      updateClasses(value.classes, ['final', 'abandoned']);
+      new Access.Classes(value.classes).modify(['final', 'abandoned']);
     }
 
     value.index.value = bs.index?.toString() ?? '-1';

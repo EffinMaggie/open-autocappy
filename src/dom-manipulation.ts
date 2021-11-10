@@ -1,20 +1,6 @@
 /** @format */
 
-import {
-  ValueBoilerplate,
-  Observer,
-  Observant,
-  ToString,
-  FromString,
-  onValueWasSet,
-  onValueHasChanged,
-  defaultValue,
-} from './qualified.js';
-
-const nodeSymbol = Symbol('node');
-const nodeID = Symbol('node-id');
-const nodeQuery = Symbol('node-query');
-const nodeAttribute = Symbol('node-attribute');
+import { MutableValue, ToString, FromString } from './qualified.js';
 
 const defaultStringValue: string = '[default value]';
 
@@ -34,118 +20,110 @@ function elementText(coalesce: string, element: HTMLElement): string {
   return element.innerText;
 }
 
-function attributeChange(
+const withAttributeText = async (attribute: string, coalesce: string, element: HTMLElement) =>
+  attributeText(attribute, coalesce, element);
+
+const withElementText = async (coalesce: string, element: HTMLElement) =>
+  elementText(coalesce, element);
+
+const attributeChange = (
   attribute: string,
   superfluous: valueSet,
   coalesce: string,
   element: HTMLElement,
   value?: string
-): boolean {
-  const currentValue: string = attributeText(attribute, coalesce, element);
+): Promise<boolean> => {
+  return withAttributeText(attribute, coalesce, element).then((currentValue: string) => {
+    const wantValue: string = value ?? coalesce;
 
-  if (superfluous.has(value)) {
-    element.removeAttribute(attribute);
-    return true;
-  }
+    if (superfluous.has(value)) {
+      if (element.hasAttribute(attribute)) {
+        element.removeAttribute(attribute);
+        return true;
+      }
 
-  const wantValue: string = value ?? coalesce;
+      return false;
+    }
 
-  if (currentValue != wantValue) {
-    element.setAttribute(attribute, wantValue);
-    return true;
-  }
+    if (currentValue != wantValue) {
+      element.setAttribute(attribute, wantValue);
+      return true;
+    }
 
-  return false;
-}
+    return false;
+  });
+};
 
-function elementChange(
+const elementChange = (
   superfluous: valueSet,
   coalesce: string,
   element: HTMLElement,
   value?: string
-): boolean {
-  const currentValue: string = elementText(coalesce, element);
-  const wantValue: string = value ?? coalesce;
+): Promise<boolean> => {
+  return withElementText(coalesce, element).then((currentValue: string) => {
+    const wantValue: string = value ?? coalesce;
 
-  if (superfluous.has(value)) {
-    if (element.innerText != '') {
-      element.innerText = '';
+    if (superfluous.has(wantValue)) {
+      if (currentValue !== '') {
+        element.innerText = '';
+        return true;
+      }
+
       return false;
     }
 
-    return false;
-  } else if (wantValue === currentValue) {
-    return false;
-  } else if (element.innerText != wantValue) {
+    if (wantValue === currentValue) {
+      return false;
+    }
+
     element.innerText = wantValue;
     return true;
+  });
+};
+
+export class ONodeUpdater extends EventTarget implements MutableValue<string>, FromString {
+  valueOf(): string {
+    return this.value;
   }
 
-  return false;
-}
-
-export class ONodeUpdater extends ValueBoilerplate<string> implements Observant<string>, FromString {
-  [onValueWasSet]?: Observer<string>;
-  [onValueHasChanged]?: Observer<string>;
-
-  private readonly [nodeAttribute]?: string;
-  private readonly [defaultValue]: string;
+  toString(): string {
+    return this.string;
+  }
 
   get nodes(): Iterable<HTMLElement> {
     return [];
   }
 
   text(node: HTMLElement): string {
-    const attr = this[nodeAttribute];
-    const coalesce = this[defaultValue];
-
-    if (attr) {
-      return attributeText(attr, coalesce, node);
+    if (this.attribute) {
+      return attributeText(this.attribute, this.coalesce, node);
     }
 
-    return elementText(coalesce, node);
+    return elementText(this.coalesce, node);
   }
 
-  change(node: HTMLElement, nv?: string): boolean {
-    const attr = this[nodeAttribute];
-    const coalesce = this[defaultValue];
-
-    if (attr) {
-      return attributeChange(attr, superfluousValue, coalesce, node, nv);
+  change(node: HTMLElement, nv?: string) {
+    if (this.attribute) {
+      return attributeChange(this.attribute, superfluousValue, this.coalesce, node, nv);
     }
 
-    return elementChange(superfluousValue, coalesce, node, nv);
+    return elementChange(superfluousValue, this.coalesce, node, nv);
   }
 
   get value(): string {
-    const onHasChanged = this[onValueHasChanged];
-    let rv: string | undefined = undefined;
     for (let node of this.nodes) {
       const nv = this.text(node);
 
-      if (nv !== rv) {
-        if (rv !== undefined && onHasChanged) {
-          onHasChanged(this, nv, rv ?? this[defaultValue]);
-        }
-        rv = nv;
+      if (nv !== undefined) {
+        return nv;
       }
     }
-    return rv ?? this[defaultValue];
+    return this.coalesce;
   }
 
   set value(to: string) {
-    const was = this.value;
-    const onWasSet = this[onValueWasSet];
-    const onHasChanged = this[onValueHasChanged];
-
-    for (let node of this.nodes) {
-      if (this.change(node, to) && onWasSet) {
-        onWasSet(this, to, was);
-      }
-    }
-
-    if (to !== was && onHasChanged) {
-      onHasChanged(this, to, was);
+    for (const node of this.nodes) {
+      this.change(node, to);
     }
   }
 
@@ -153,79 +131,115 @@ export class ONodeUpdater extends ValueBoilerplate<string> implements Observant<
     return this.value;
   }
 
-  set string(s: string) {
-    this.value = s;
+  set string(value: string) {
+    this.value = value;
   }
 
-  constructor(attr?: string, coalesce: string = '[default value]') {
+  constructor(
+    private readonly attribute?: string,
+    private readonly coalesce: string = '[default value]'
+  ) {
     super();
-
-    this[nodeAttribute] = attr;
-    this[defaultValue] = coalesce;
   }
 }
 
 export class OExplicitNodeUpdater extends ONodeUpdater {
-  private [nodeSymbol]: HTMLElement;
-
   get nodes(): Iterable<HTMLElement> {
-    const node = this[nodeSymbol];
-    if (node) {
-      return [node];
+    if (this.node) {
+      return [this.node];
     }
 
     return [];
   }
 
-  constructor(node: HTMLElement, attr?: string, coalesce?: string) {
-    super(attr, coalesce);
-
-    this[nodeSymbol] = node;
+  constructor(private readonly node: HTMLElement, attribute?: string, coalesce?: string) {
+    super(attribute, coalesce);
   }
 }
 
 export class ONodeQueryUpdater extends ONodeUpdater {
-  private [nodeQuery]: string;
-
   get nodes(): Iterable<HTMLElement> {
-    const q = this[nodeQuery];
-    if (q) {
-      return document.querySelectorAll(q);
+    if (this.query) {
+      return document.querySelectorAll(this.query);
     }
 
     return [];
   }
 
-  constructor(query: string, attr?: string, coalesce?: string) {
-    super(attr, coalesce);
-
-    this[nodeQuery] = query;
+  constructor(protected readonly query: string, attribute?: string, coalesce?: string) {
+    super(attribute, coalesce);
   }
 }
 
-export function updateClasses(
-  updater: ONodeUpdater,
-  remove: Iterable<string> = [],
-  add: Iterable<string> = []
-): string {
-  const attr = updater.value.split(' ') || [];
-
-  let s = new Set(attr);
-  s.delete('');
-
-  for (const cls of add) {
-    s.add(cls);
+export namespace Access {
+  export class FromNode {
+    constructor(protected readonly updater: ONodeUpdater) {}
   }
 
-  for (const cls of remove) {
-    s.delete(cls);
+  export class Storage extends FromNode {
+    get string(): string {
+      return this.updater.value;
+    }
+
+    set string(value: string) {
+      this.updater.value = value;
+    }
   }
 
-  const want = Array.from(s).join(' ');
+  export class Boolean extends FromNode {
+    get boolean(): boolean {
+      return this.updater.value === 'true';
+    }
 
-  updater.value = want;
-  return want;
+    set boolean(value: boolean) {
+      this.updater.value = value ? 'true' : 'false';
+    }
+  }
+
+  export class Numeric extends FromNode {
+    get number(): number {
+      return Number(this.updater.value);
+    }
+
+    set number(value: number) {
+      this.updater.value = value.toString();
+    }
+  }
+
+  export class Classes extends FromNode {
+    get classes(): Iterable<string> {
+      return this.updater.value.split(' ') || [];
+    }
+
+    set classes(value: Iterable<string>) {
+      this.updater.value = Array.from(value).join(' ');
+    }
+
+    modify(remove: Iterable<string> = [], add: Iterable<string> = []) {
+      const attr = this.classes;
+
+      let s = new Set(attr);
+      s.delete('');
+
+      for (const cls of add) {
+        s.add(cls);
+      }
+
+      for (const cls of remove) {
+        s.delete(cls);
+      }
+
+      this.classes = s;
+    }
+
+    has(cls: string) {
+      for (const cl of this.classes) {
+        if (cl === cls) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }
 }
-
-export const hasClass = (updater: ONodeUpdater, cls: string): boolean =>
-  updater.value.split(' ').includes(cls);

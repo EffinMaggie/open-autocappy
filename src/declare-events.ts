@@ -1,13 +1,85 @@
 /** @format */
 
-import { ONodeUpdater, updateClasses } from './dom-manipulation.js';
+import { ONodeUpdater, Access } from './dom-manipulation.js';
 import { MDate, DateBetween, now } from './dated.js';
 
+type maybe = boolean | undefined;
+type thunk<Type> = () => Type;
+type filter<Type> = (on: Type) => Type;
+
+type observers = Iterable<EventTarget>;
+
 class action {
-  constructor(public readonly action: EventListener, public readonly trigger: string = action.name) {}
+  constructor(
+    protected readonly action: EventListener,
+    public readonly name: string = action.name,
+    triggers: Iterable<string> = [name],
+    public readonly valid: predicate = predicate.yes,
+    public readonly reentrant: predicate = predicate.yes,
+    public readonly asynchronous: predicate = predicate.no
+  ) {
+    this.triggers = Array.from(triggers);
+  }
+
+  protected running: number = 0;
+
+  public readonly triggers: Iterable<string>;
+
+  protected process = (event: Event): boolean => {
+    if (this.reentrant.fail() && this.running > 0) {
+      return false;
+    }
+
+    this.running++;
+
+    const valid = this.valid.ok();
+
+    valid && this.action(event);
+
+    this.running--;
+
+    return valid;
+  };
+
+  protected asynchronously = async (event: Event): Promise<boolean> => this.process(event);
+
+  public act = (event: Event): Promise<boolean> => {
+    if (this.asynchronous.ok()) {
+      return this.asynchronously(event);
+    }
+
+    return new Promise((resolve, reject) => resolve(this.process(event)));
+  };
+
+  public listener: (observer: EventTarget) => listener = (observer: EventTarget) =>
+    new listener(observer, this);
+
+  public *listeners(observers: observers): Generator<listener> {
+    for (const observer of observers) {
+      yield new listener(observer, this);
+    }
+  }
 }
 
-class actor {
+export class actions implements Iterable<action> {
+  public static readonly none: actions = new actions();
+
+  *[Symbol.iterator](): Generator<action> {}
+
+  constructor(actions?: Iterable<action>) {
+    if (actions === undefined) {
+      return;
+    }
+
+    const mine = Array.from(actions);
+
+    this[Symbol.iterator] = function* () {
+      yield* mine;
+    };
+  }
+}
+
+class listener {
   protected added: boolean = false;
 
   constructor(public readonly observer: EventTarget, public readonly action: action) {}
@@ -20,33 +92,32 @@ class actor {
     if (this.added !== want) {
       this.added = want;
 
-      if (this.added) {
-        this.observer.addEventListener(this.action.trigger, this.action.action);
-      } else {
-        this.observer.removeEventListener(this.action.trigger, this.action.action);
+      for (const trigger of this.action.triggers) {
+        if (want) {
+          this.observer.addEventListener(trigger, this.action.act);
+        } else {
+          this.observer.removeEventListener(trigger, this.action.act);
+        }
       }
     }
   }
 }
 
-type actions = Iterable<action>;
-type observers = Iterable<EventTarget>;
+export class listeners implements Iterable<listener> {
+  public static readonly none: listeners = new listeners([], actions.none);
 
-export class actors implements Iterable<actor> {
-  public static readonly none: actors = new actors([], []);
-
-  *[Symbol.iterator](): Generator<actor> {}
+  *[Symbol.iterator](): Generator<listener> {}
 
   constructor(
     protected readonly observers: observers,
     protected readonly actions: actions,
     auto: boolean = false
   ) {
-    const mine: actor[] = Array.from(
+    const mine: listener[] = Array.from(
       (function* () {
         for (const observer of observers) {
           for (const action of actions) {
-            yield new actor(observer, action);
+            yield new listener(observer, action);
           }
         }
       })()
@@ -55,6 +126,10 @@ export class actors implements Iterable<actor> {
     this[Symbol.iterator] = function* () {
       yield* mine;
     };
+
+    if (auto) {
+      this.on = auto;
+    }
   }
 
   get on(): boolean {
@@ -85,10 +160,10 @@ export class actors implements Iterable<actor> {
     }
   }
 
-  gated(after: Iterable<string>, before: Iterable<string> = [], auto: boolean = true): actors {
-    return new actors(
+  gated(after: Iterable<string>, before: Iterable<string> = [], auto: boolean = true): listeners {
+    return new listeners(
       this.observers,
-      (function* (of: actors) {
+      (function* (of: listeners) {
         yield* of.enablers(after, true);
         yield* of.enablers(after, false);
       })(this),
@@ -97,12 +172,37 @@ export class actors implements Iterable<actor> {
   }
 }
 
-export type maybe = boolean | undefined;
-export class predicate {
-  constructor(public readonly pass: () => maybe, public readonly actors: actors) {}
+export class predicate extends EventTarget {
+  static yes = new predicate(() => true);
+  static no = new predicate(() => false);
+
+  cached: maybe = undefined;
+
+  constructor(
+    public readonly test: thunk<maybe>,
+    public readonly influencers: listeners = listeners.none
+  ) {
+    super();
+  }
+
+  public pass: thunk<maybe> = (): maybe => {
+    const value = this.test();
+
+    if (value !== this.cached) {
+      this.cached = value;
+      poke(this, 'value-changed');
+    }
+
+    return value;
+  };
+
+  public is = (v: maybe) => v === this.pass();
 
   public compliant = (expectation: boolean): boolean =>
     (expectation && this.pass()) || (!expectation && !this.pass());
+
+  public ok: thunk<boolean> = () => this.is(true);
+  public fail: thunk<boolean> = () => this.is(false) || this.is(undefined);
 }
 
 /** event handling with extra constraints.
@@ -116,14 +216,12 @@ export const on = (
   call: EventListener,
   when?: Iterable<string>,
   until?: Iterable<string>
-): actors => {
+): listeners => {
   const actions = function* (): Generator<action> {
-    for (const trigger of triggers) {
-      yield new action(call, trigger);
-    }
+    yield new action(call, call.name, triggers);
   };
 
-  let evs: actors = new actors([observer], actions(), false);
+  let evs: listeners = new listeners([observer], actions(), false);
   if (when) {
     evs = evs.gated(when, until, false);
   }
@@ -145,7 +243,7 @@ function assertValidEvent(event?: string): asserts event {
 export const poke = (observer: EventTarget, event: string, relay?: any) => {
   assertValidEvent(event);
 
-  return observer.dispatchEvent.bind(observer)(new CustomEvent(event, { detail: relay }));
+  observer.dispatchEvent.bind(observer)(new CustomEvent(event, { detail: relay }));
 };
 
 export const pake = async (observer: EventTarget, event: string, relay?: any) =>
@@ -229,37 +327,60 @@ export class tracker extends predicate {
 
   constructor(
     public readonly observer: EventTarget,
-    public readonly after: string,
-    public readonly before: string,
-    public readonly updater?: ONodeUpdater
+    public readonly name: string,
+    public readonly after: Iterable<string>,
+    public readonly before: Iterable<string>
   ) {
     super(
       () => this.value,
-      new actors(
+      new listeners(
         [observer],
-        [
-          new action(async () => {
-            if (!this.value) {
-              this.value = true;
-
-              if (this.updater) {
-                updateClasses(this.updater, ['inactive', 'end'], ['active']);
+        new actions([
+          new action(
+            () => {
+              if (!this.value) {
+                this.value = true;
+                pake(this, 'value-changed');
               }
-            }
-          }, after),
-          new action(async () => {
-            if (this.value) {
-              this.value = false;
-
-              if (this.updater) {
-                updateClasses(this.updater, ['inactive', 'active'], ['end']);
+            },
+            name,
+            after
+          ),
+          new action(
+            () => {
+              if (this.value) {
+                this.value = false;
+                pake(this, 'value-changed');
               }
-            }
-          }, before),
-        ]
+            },
+            name,
+            before
+          ),
+        ])
       )
     );
 
-    this.actors.on = true;
+    this.influencers.on = true;
   }
+}
+
+export class syncPredicateStyle {
+  private value: maybe = undefined;
+
+  constructor(
+    public readonly predicate: predicate,
+    public readonly classes: Access.Classes,
+    public readonly whenOn: Iterable<string> = new Set(['active']),
+    public readonly whenOff: Iterable<string> = new Set(['end'])
+  ) {}
+
+  private readonly weave = [
+    on(this.predicate, ['value-changed'], () => {
+      if (this.predicate.ok()) {
+        this.classes.modify(this.whenOff, this.whenOn);
+      } else {
+        this.classes.modify(this.whenOn, this.whenOff);
+      }
+    }),
+  ];
 }
