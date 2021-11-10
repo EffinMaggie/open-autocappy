@@ -31,7 +31,7 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     source: new OExplicitNodeUpdater(this, 'data-source', 'unknown'),
     lang: new OExplicitNodeUpdater(this, 'lang', 'unset'),
     text: new OExplicitNodeUpdater(this, undefined, ''),
-  }
+  };
 
   private model = {
     classes: new Access.Classes(this.accessors.classes),
@@ -40,7 +40,7 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     source: new Access.Storage(this.accessors.source),
     language: new Access.Storage(this.accessors.lang),
     text: new Access.Storage(this.accessors.text),
-  }
+  };
 
   get confidence(): QValue {
     return new QValue(this.model.confidence.number);
@@ -110,4 +110,4 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
   }
 }
 
-customElements.define('caption-branch', Branch, {extends: 'span'});
+customElements.define('caption-branch', Branch, { extends: 'span' });

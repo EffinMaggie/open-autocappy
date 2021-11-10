@@ -164,7 +164,7 @@ class speech extends api implements Recogniser {
     let doSnapshot = false;
     const endAfter = event.timeStamp + this.maxProcessTimeAllowance;
 
-    while ((this.queued.length > 0) && (endAfter > event.timeStamp)) {
+    while (this.queued.length > 0 && endAfter > event.timeStamp) {
       const data = this.queued.shift();
 
       if (!data) {
@@ -257,10 +257,31 @@ class speech extends api implements Recogniser {
       action.make(() => this.tick++, 'pulse').naming(),
 
       action.make(this.result, 'result').upon(['result', 'nomatch']),
-      action.make(this.process, 'process').reentrantp(predicate.no).asyncp(predicate.yes).upon(['result', 'tick']),
+      action
+        .make(this.process, 'process')
+        .reentrantp(predicate.no)
+        .asyncp(predicate.yes)
+        .upon(['result', 'tick']),
 
-      action.make(() => (Status.ticks.number = this.ticks)).upon(['tick']).asyncp(predicate.yes),
-      action.make(() => (this.tick = 0)).upon(['start', 'end', 'result', 'nomatch', 'error', 'audiostart', 'audioend', 'soundstart', 'soundend', 'speechstart', 'speechend']),
+      action
+        .make(() => (Status.ticks.number = this.ticks))
+        .upon(['tick'])
+        .asyncp(predicate.yes),
+      action
+        .make(() => (this.tick = 0))
+        .upon([
+          'start',
+          'end',
+          'result',
+          'nomatch',
+          'error',
+          'audiostart',
+          'audioend',
+          'soundstart',
+          'soundend',
+          'speechstart',
+          'speechend',
+        ]),
 
       action.make(this.ticker).upon(['tick']),
       action.make(this.slowTicker).upon(['tick']),

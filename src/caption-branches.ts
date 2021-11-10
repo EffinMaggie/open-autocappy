@@ -237,7 +237,7 @@ export const DOM = {
 
     const bs = Array.from(node.querySelectorAll('span[is="caption-branch"]')).reduce(
       (b: Branch[], e: HTMLSpanElement): Branch[] => {
-        let branch = (e as Branch);
+        let branch = e as Branch;
         if (branch) {
           b.push(branch);
         }

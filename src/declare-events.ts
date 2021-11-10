@@ -36,7 +36,10 @@ export class action {
 
   public next = (act: action, name: string = this.name): action =>
     new action(
-      (event: Event) => { this.handler(event); act.handler(event) },
+      (event: Event) => {
+        this.handler(event);
+        act.handler(event);
+      },
       name,
       this.triggers,
       this.valid,
@@ -46,7 +49,10 @@ export class action {
 
   public prev = (act: action, name: string = this.name): action =>
     new action(
-      (event: Event) => { act.handler(event); this.handler(event) },
+      (event: Event) => {
+        act.handler(event);
+        this.handler(event);
+      },
       name,
       this.triggers,
       this.valid,
@@ -79,7 +85,7 @@ export class action {
 
     let valid = true;
 
-    valid = valid && (this.reentrant.ok() || (this.running === 1));
+    valid = valid && (this.reentrant.ok() || this.running === 1);
     valid = valid && this.valid.ok();
 
     if (valid) {
