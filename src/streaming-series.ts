@@ -1,4 +1,4 @@
-export namespace Streaming {
+export namespace Series {
   export interface TermIterator extends AsyncIterable<number> {
     [Symbol.asyncIterator](): AsyncIterableIterator<number>;
   }
@@ -147,10 +147,14 @@ export namespace Streaming {
       return this.currentIndex;
     }
 
+    nextTerm (term: number) {
+      this.currentIndex++;
+      this.currentApproximation = this.operator(this.currentApproximation, term);
+    }
+
     async *[Symbol.asyncIterator]() {
       for await (const term of this.term) {
-        this.currentIndex++;
-        this.currentApproximation = this.operator(this.currentApproximation, term);
+        this.nextTerm(term);
 
         yield this.currentApproximation;
       }

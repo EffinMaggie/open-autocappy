@@ -1,7 +1,7 @@
 /** @format */
 
 import { LogFunction, Testable } from './run.js';
-import { Streaming } from '../src/streaming-series.js';
+import { Series } from '../src/streaming-series.js';
 
 async function testSumSeries(log: LogFunction): Promise<boolean> {
   const tt: Array<{
@@ -42,7 +42,7 @@ async function testSumSeries(log: LogFunction): Promise<boolean> {
 
   for (const i in tt) {
     const t = tt[i];
-    const sum = new Streaming.Sum(new Streaming.Sampled(t.bias), t.start);
+    const sum = new Series.Sum(new Series.Sampled(t.bias), t.start);
     let r = true;
 
     if (t.input.length > 0) {
@@ -127,7 +127,7 @@ async function testProductSeries(log: LogFunction): Promise<boolean> {
 
   for (const i in tt) {
     const t = tt[i];
-    const sum = new Streaming.Product(new Streaming.Sampled(t.bias), t.start);
+    const sum = new Series.Product(new Series.Sampled(t.bias), t.start);
     let r = true;
 
     if (t.input.length > 0) {
@@ -178,7 +178,7 @@ async function testPi(log: LogFunction): Promise<boolean> {
   let r: boolean = true;
   let piDistance = 9999999;
 
-  const pi = new Streaming.Sum<Streaming.LeibnizMadhavaPi>(new Streaming.LeibnizMadhavaPi());
+  const pi = new Series.Sum<Series.LeibnizMadhavaPi>(new Series.LeibnizMadhavaPi());
 
   for await (const approx of pi) {
     const distance = Math.abs(Math.PI - approx);

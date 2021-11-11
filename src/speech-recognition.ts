@@ -1,5 +1,6 @@
 /** @format */
 
+import { Series, StdDev } from './streaming.js';
 import { Status, Settings } from './dom-interface.js';
 import {
   action,
@@ -132,9 +133,7 @@ class speech extends api implements Recogniser {
   protected static transcriptLineSelector = '.captions ol.transcript > li';
   protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
 
-  snapshot = (event: Event) => {
-    const full = event.type === 'start' || event.type === 'end';
-
+  snapshot = (full: boolean = false) => {
     for (const ol of document.querySelectorAll(speech.historySelector)) {
       canStoreTranscript(ol);
 
@@ -187,7 +186,7 @@ class speech extends api implements Recogniser {
     }
 
     if (doSnapshot) {
-      this.snapshot(event);
+      this.snapshot();
     }
   };
 
@@ -236,6 +235,21 @@ class speech extends api implements Recogniser {
     }
   };
 
+  protected lastTimingSample = 0;
+  protected samples = new Series.Sampled([750, 750, 750], 25);
+  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, 500);
+
+  callbackTimingSample(timingMS: number) {
+    // assert timingMS > lastTimingSample, and that it's relative to
+    // how long the document is open; this should be perfect for the
+    // timeStamp of any Event callback.
+    const eventDelay = timingMS - this.lastTimingSample;
+    this.lastTimingSample = timingMS;
+
+    // this.samples.sample(eventDelay);
+    this.deviation.nextTerm(eventDelay);
+  }
+
   private readonly weave = new listeners(
     [this],
     new actions([
@@ -247,7 +261,7 @@ class speech extends api implements Recogniser {
         .meshing()
         .prev(action.make(() => (Status.serviceURI.string = this.serviceURI ?? '')))
         .prev(action.make(() => this.settings.adjust(this)))
-        .prev(action.make(this.snapshot))
+        .prev(action.make(() => this.snapshot(true)))
         .prev(action.poke(this, 'start:begin'))
         .next(action.poke(this, 'start:end')),
 
@@ -268,7 +282,10 @@ class speech extends api implements Recogniser {
         .upon(['tick'])
         .asyncp(predicate.yes),
       action
-        .make(() => (this.tick = 0))
+        .make((event: Event) => {
+          this.callbackTimingSample(event.timeStamp);
+          this.tick = 0;
+        })
         .upon([
           'start',
           'end',
@@ -298,10 +315,22 @@ class speech extends api implements Recogniser {
 
   private readonly enabled = (this.weave.on = true);
 
-  readonly intervalID: number = window.setInterval(() => pake(this, 'pulse'), 250);
+  pulsar = () => {
+    pake(this, 'pulse');
+
+    // dynamic intervals require setTimeout and resetting on each call;
+    // assert that the mean time between API event callbacks is a good
+    // interval, and slow us down by a partial standard deviation.
+    const pulseDelay = this.deviation.average + this.deviation.deviation / 4;
+
+    console.log(pulseDelay);
+    window.setTimeout(this.pulsar, pulseDelay);
+  }
 
   constructor() {
     super();
+
+    window.setTimeout(this.pulsar, 500);
 
     poke(this, 'start?');
   }
