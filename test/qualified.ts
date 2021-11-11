@@ -1,6 +1,6 @@
 /** @format */
 
-import { LogFunction, TestFunction, Testable } from './run.js';
+import { LogFunction, Testable } from './run.js';
 import { QValue, sort } from '../src/qualified.js';
 
 class extendedPartialOrder extends QValue {

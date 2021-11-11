@@ -1,11 +1,11 @@
 /** @format */
 
 export type LogFunction = (string, boolean) => boolean;
-export type TestFunction = (log: LogFunction) => boolean;
 
 export interface Testable {
   name: string;
-  test: TestFunction;
+  test?: (log: LogFunction) => boolean;
+  asyncTest?: (log: LogFunction) => Promise<boolean>;
 }
 
 interface TestableModule {
@@ -13,7 +13,7 @@ interface TestableModule {
   tests: Array<Testable>;
 }
 
-export function testModule(mod: TestableModule): boolean {
+export const testModule = async (mod: TestableModule): Promise<boolean> => {
   var tests = mod.tests;
   var success = true;
 
@@ -28,7 +28,17 @@ export function testModule(mod: TestableModule): boolean {
     const test: Testable = tests[i];
 
     process.stdout.write(mod.name + '/' + test.name + ': ');
-    const tr = test.test(log);
+
+    let tr = true;
+
+    if (test.test) {
+      tr &&= test.test(log)
+    }
+
+    if (test.asyncTest) {
+      tr &&= await test.asyncTest(log);
+    }
+
     success &&= tr;
 
     if (tr) {

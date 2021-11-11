@@ -1,6 +1,6 @@
 /** @format */
 
-import { LogFunction, TestFunction, Testable } from './run.js';
+import { LogFunction, Testable } from './run.js';
 import { MDate, DateBetween } from '../src/dated.js';
 import { sort } from '../src/qualified.js';
 
