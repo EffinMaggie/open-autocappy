@@ -5,63 +5,11 @@ import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualifie
 import { DateBetween, MDate, now } from './dated.js';
 
 import { Branch } from './caption-branch.js';
+import { Branches, Alternatives } from './caption-alternatives.js';
 
-export class Branches extends OuterHull<Branch> {
-  constructor(bs: Iterable<Branch>, public index?: number, public final?: boolean) {
-    super(bs);
-  }
-
-  get abandoned(): boolean {
-    return !this.final && this.index === undefined;
-  }
-
-  *whenHull(): Generator<MDate> {
-    for (const b of this) {
-      yield* b.when;
-    }
-  }
-
-  get when(): DateBetween {
-    const hull = new DateBetween(this.whenHull());
-    if (hull.start && hull.end) {
-      return new DateBetween([hull.start, hull.end]);
-    } else {
-      return hull;
-    }
-  }
-
-  concat(bs: Branches): Branches {
-    return new Branches(this.catter(bs), this.index, this.final || bs.final);
-  }
-
-  compare(bs: Branches): CompareResult {
-    if (this.index !== undefined && bs.index !== undefined) {
-      if (bs.index === this.index) {
-        // return 0;
-      } else if (this.index < bs.index) {
-        return -1;
-      } else {
-        return 1;
-      }
-    }
-
-    return this.when.compare(bs.when) || (this.equal(bs) ? 0 : -1);
-  }
-
-  equal(bs: Branches): boolean {
-    if (this.index === bs.index) {
-      if (this.when.compare(bs.when) == 0 && bs.when.compare(this.when) == 0) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-}
-
-export class Transcript extends OuterHull<Branches> {
+export class Transcript extends OuterHull<Alternatives> {
   constructor(
-    ts: Iterable<Branches>,
+    ts: Iterable<Alternatives>,
     public readonly resultIndex?: number,
     public readonly resultLength?: number
   ) {
@@ -69,14 +17,14 @@ export class Transcript extends OuterHull<Branches> {
   }
 
   static *merge(
-    ts: Iterable<Branches>,
+    ts: Iterable<Alternatives>,
     resultIndex?: number,
     resultLength?: number
-  ): Generator<Branches> {
+  ): Generator<Alternatives> {
     let finalIndices = new Set<number>();
     let abandonedIndices = new Set<number>();
 
-    let byIndex = new Map<number, Branches>();
+    let byIndex = new Map<number, Alternatives>();
 
     for (const bs of ts) {
       const index = bs.index;
@@ -115,20 +63,20 @@ export class Transcript extends OuterHull<Branches> {
 
     for (const idVal of byIndex) {
       const index: number = idVal[0];
-      const bs: Branches = idVal[1];
+      const bs: Alternatives = idVal[1];
 
       if (finalIndices.has(index)) {
-        yield new Branches(bs, index, true);
+        yield new Alternatives(bs.branches, index, true);
       } else if (abandonedIndices.has(index)) {
-        yield new Branches(bs, undefined, false);
+        yield new Alternatives(bs.branches, undefined, false);
       } else {
         // anything left is interim results
-        yield new Branches(bs, index, false);
+        yield new Alternatives(bs.branches, index, false);
       }
     }
   }
 
-  concat(bs: Iterable<Branches>, resultIndex?: number, resultLength?: number): Transcript {
+  concat(bs: Iterable<Alternatives>, resultIndex?: number, resultLength?: number): Transcript {
     return new Transcript(
       this.catter(bs),
       resultIndex ?? this.resultIndex ?? 0,
@@ -138,7 +86,7 @@ export class Transcript extends OuterHull<Branches> {
 }
 
 /**
- * Branches are serialised to the DOM when writing output; the Element created with to() has no issues storing all of the data we have, so the from() function should recreate an identical Branch from such an Element.
+ * Alternatives are serialised to the DOM when writing output; the Element created with to() has no issues storing all of the data we have, so the from() function should recreate an identical Branch from such an Element.
  *
  * Format:
  *     <span class='interim | final'
@@ -150,7 +98,7 @@ export class Transcript extends OuterHull<Branches> {
  *     let branch: Branch;
  *     DOM.from(DOM.to(branch)) == branch;
  *
- * Branches collect multiple Branch objects into one result, which for
+ * Alternatives collect multiple Branch objects into one result, which for
  * the SpeechRecognition API is typically a single phrase, sentence or
  * paragraph - the API doesn't specify, but browser behavior seems to be
  * to only consider full sentences 'final' results, with short phrases
@@ -159,7 +107,7 @@ export class Transcript extends OuterHull<Branches> {
  * back into a longer phrase that is also being worked on. Which looks
  * kinda cool even with simple output!
  *
- * Branches are formatted as a list items:
+ * Alternatives are formatted as a list items:
  *
  *     <li class?='final'
  *         data-index?='idx'>[branch...]</li>
@@ -232,33 +180,10 @@ export const DOM = {
     },
   },
 
-  fromLi: (node: HTMLLIElement): Branches | undefined => {
-    const updateClass = new OExplicitNodeUpdater(node, 'class', '');
-
-    const bs = Array.from(node.querySelectorAll('span[is="caption-branch"]')).reduce(
-      (b: Branch[], e: HTMLSpanElement): Branch[] => {
-        let branch = e as Branch;
-        if (branch) {
-          b.push(branch);
-        }
-        return b;
-      },
-      []
-    );
-
-    let idx: number | undefined = undefined;
-    if (node.hasAttribute('data-index')) {
-      idx = Number(node.getAttribute('data-index'));
-    }
-    const f = new Access.Classes(updateClass).has('final');
-
-    return new Branches(bs, idx, f);
-  },
-
   fromOl: (node: HTMLOListElement): Transcript => {
-    const bs = Array.from(node.querySelectorAll('li')).reduce(
-      (bs: Branches[], e: HTMLLIElement): Branches[] => {
-        let branches = DOM.fromLi(e);
+    const bs = Array.from(node.querySelectorAll('li[is="caption-alternatives"]')).reduce(
+      (bs: Alternatives[], e: HTMLLIElement): Alternatives[] => {
+        let branches = (e as Alternatives);
         if (branches) {
           bs.push(branches);
         }
@@ -270,64 +195,30 @@ export const DOM = {
     return new Transcript(bs);
   },
 
-  toLi: (bs: Branches, li: HTMLLIElement = document.createElement('li')): HTMLLIElement => {
-    const value = new DOM.models.alternatives(li);
-
-    if (bs.abandoned) {
-      new Access.Classes(value.classes).modify(['final'], ['abandoned']);
-    } else if (bs.final) {
-      new Access.Classes(value.classes).modify(['abandoned'], ['final']);
-    } else {
-      new Access.Classes(value.classes).modify(['final', 'abandoned']);
-    }
-
-    value.index.value = bs.index?.toString() ?? '-1';
-    value.when.value = bs.when.string;
-
-    const spans = li.getElementsByTagName('span');
-    const slen = spans.length;
+  toOl: (ts: Transcript, ol: HTMLOListElement = document.createElement('ol')) => {
     let i: number = 0;
-
-    for (const b of bs) {
-      if (i < slen) {
-        const child = spans[i];
-        li.replaceChild(b, child);
-        i++;
-      } else {
-        li.appendChild(b);
-      }
-    }
-
-    for (const k = i; i < slen; i++) {
-      li.removeChild(spans[k]);
-      i++;
-    }
-    return li;
-  },
-
-  toOl: async (ts: Transcript, ol: HTMLOListElement = document.createElement('ol')) => {
-    let i: number = 0;
-    const t = ol.getElementsByTagName('li');
+    const t = ol.querySelectorAll('li[is="caption-alternatives"]');
     const tlen = t.length;
+    const as = (t as Iterable<Alternatives>);
 
     for (const bs of ts) {
       if (i < tlen) {
-        const child = t[i];
-        DOM.toLi(bs, child);
+        if (bs != as[i]) {
+          ol.replaceChild(bs, as[i]);
+        }
         i++;
       } else {
-        const li = DOM.toLi(bs);
-        ol.appendChild(li);
+        ol.appendChild(bs);
       }
     }
 
     while (i < tlen) {
-      ol.removeChild(t[i]);
+      ol.removeChild(as[i]);
       i++;
     }
   },
 
-  merge: async (where: HTMLOListElement, ts: Transcript) => {
+  merge: (where: HTMLOListElement, ts: Transcript) => {
     const t = DOM.fromOl(where);
     const c: Transcript = t.concat(ts);
 
@@ -403,7 +294,7 @@ export const SpeechAPI = {
     );
   },
 
-  fromResult: (result: SpeechAPIResult, idx?: number, timestamp?: number): Branches => {
+  fromResult: (result: SpeechAPIResult, idx?: number, timestamp?: number): Alternatives => {
     let bs: Branch[] = [];
     let ets: number = timestamp || Date.now();
     for (let i = 0; i < result.length; i++) {
@@ -414,7 +305,7 @@ export const SpeechAPI = {
       }
     }
 
-    return new Branches(bs, idx, result.isFinal);
+    return new Alternatives(bs, idx, result.isFinal);
   },
 
   fromList: (
@@ -424,7 +315,7 @@ export const SpeechAPI = {
     timestamp?: number
   ): Transcript => {
     let ets: number = timestamp || Date.now();
-    let ds: Branches[] = [];
+    let ds: Alternatives[] = [];
     for (let i = idx ?? 0; i < (length ?? list.length); i++) {
       const result: SpeechAPIResult = list.item(i);
       const branches = SpeechAPI.fromResult(result, i, ets);

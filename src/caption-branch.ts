@@ -10,8 +10,8 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     confidence: QValue,
     final: boolean = false,
     text: string = '',
-    source: string = 'unknown',
-    language: string = 'unset'
+    source: string = '',
+    language: string = ''
   ) {
     super();
     this.setAttribute('is', 'caption-branch');
@@ -27,9 +27,9 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
   private accessors = {
     classes: new OExplicitNodeUpdater(this, 'class', ''),
     confidence: new OExplicitNodeUpdater(this, 'data-confidence', '-1'),
-    when: new OExplicitNodeUpdater(this, 'data-when', '0'),
-    source: new OExplicitNodeUpdater(this, 'data-source', 'unknown'),
-    lang: new OExplicitNodeUpdater(this, 'lang', 'unset'),
+    when: new OExplicitNodeUpdater(this, 'data-when', ''),
+    source: new OExplicitNodeUpdater(this, 'data-source', ''),
+    lang: new OExplicitNodeUpdater(this, 'lang', ''),
     text: new OExplicitNodeUpdater(this, undefined, ''),
   };
 

@@ -160,7 +160,7 @@ class speech extends api implements Recogniser {
     return 100;
   }
 
-  process = async (event: Event) => {
+  process = (event: Event) => {
     let doSnapshot = false;
     const endAfter = event.timeStamp + this.maxProcessTimeAllowance;
 
@@ -261,7 +261,7 @@ class speech extends api implements Recogniser {
         .make(this.process, 'process')
         .reentrantp(predicate.no)
         .asyncp(predicate.yes)
-        .upon(['result', 'tick']),
+        .upon(['tick']),
 
       action
         .make(() => (Status.ticks.number = this.ticks))
@@ -298,7 +298,7 @@ class speech extends api implements Recogniser {
 
   private readonly enabled = (this.weave.on = true);
 
-  readonly intervalID: number = window.setInterval(() => pake(this, 'pulse'), 1200);
+  readonly intervalID: number = window.setInterval(() => pake(this, 'pulse'), 250);
 
   constructor() {
     super();
