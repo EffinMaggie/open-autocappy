@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['ticker_55',['Ticker',['../classTicker.html',1,'']]],
-  ['tracker_56',['tracker',['../classtracker.html',1,'']]],
-  ['transcript_57',['Transcript',['../classTranscript.html',1,'']]]
+  ['terms_62',['Terms',['../classStreaming_1_1Terms.html',1,'Streaming']]],
+  ['ticker_63',['Ticker',['../classTicker.html',1,'']]],
+  ['tracker_64',['tracker',['../classtracker.html',1,'']]],
+  ['transcript_65',['Transcript',['../classTranscript.html',1,'']]]
 ];
