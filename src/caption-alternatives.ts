@@ -15,7 +15,7 @@ export class Branches extends OuterHull<Branch> {
     const to: Alternatives = this.alternatives;
     const spans = to.querySelectorAll('span[is="caption-branch"]');
     const slen = spans.length;
-    const branches = (spans as Iterable<Branch>);
+    const branches = spans as Iterable<Branch>;
     let i: number = 0;
 
     for (const b of this) {
@@ -41,10 +41,10 @@ export class Branches extends OuterHull<Branch> {
   equal(bs: Branches): boolean {
     return this.alternatives.equal(bs.alternatives);
   }
-};
+}
 
 export class Alternatives extends HTMLLIElement {
-  public readonly branches: Branches
+  public readonly branches: Branches;
 
   constructor(bs: Iterable<Branch>, index?: number, final: boolean = false) {
     super();
@@ -61,12 +61,12 @@ export class Alternatives extends HTMLLIElement {
   private accessors = {
     classes: new OExplicitNodeUpdater(this, 'class', ''),
     index: new OExplicitNodeUpdater(this, 'data-index', '-1'),
-  }
+  };
 
   private model = {
     classes: new Access.Classes(this.accessors.classes),
     index: new Access.Numeric(this.accessors.index),
-  }
+  };
 
   get final(): boolean {
     return this.model.classes.has('final');

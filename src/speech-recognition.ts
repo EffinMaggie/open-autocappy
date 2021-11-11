@@ -7,7 +7,6 @@ import {
   actions,
   listeners,
   poke,
-  pake,
   predicate,
   tracker,
   syncPredicateStyle,
@@ -103,7 +102,11 @@ class speech extends api implements Recogniser {
     sound: new tracker(this, 'hasSound', ['soundstart'], ['soundend']),
     speech: new tracker(this, 'hasSpeech', ['speechstart'], ['speechend']),
     running: new tracker(this, 'isRunning', ['start'], ['end']),
-    started: new tracker(this, 'isStarted', ['start:begin'], ['start:end', 'start:exception']),
+    started: new tracker(this, 'isStarted', ['configure'], ['start']),
+
+    recovery: new predicate(() => this.tick >= 80),
+    panic: new predicate(() => this.tick > 75 && this.tick < 80),
+    zombie: new predicate(() => this.tick > 50 && this.tick < 75),
   };
 
   private readonly bindings = [
@@ -153,11 +156,7 @@ class speech extends api implements Recogniser {
 
   result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event));
 
-  get maxProcessTimeAllowance(): number {
-    return 100;
-  }
-
-  process = (event: Event) => {
+  process = async (event: Event) => {
     let doSnapshot = false;
     const endAfter = event.timeStamp + this.maxProcessTimeAllowance;
 
@@ -209,66 +208,96 @@ class speech extends api implements Recogniser {
   };
 
   ticker = () => {
-    if (this.tick >= 40) {
-      if (this.predicates.running.ok()) {
+    if (this.predicates.running.fail()) {
+      // we should always be running, therefore if we're not, try to
+      // start again - the API likes to "d'oh" out randomly.
+      this.start();
+    }
+
+    if (this.predicates.running.ok()) {
+      if (this.predicates.panic.ok()) {
+        // resetting didn't work, we haven't heard from the API in a long
+        // time - relative to its normal response rate, even - so keep
+        // trying, harder, to stop it, or revive it.
         this.abort();
-      } else {
-        poke(this, 'start?');
       }
-    } else if (this.tick == 25) {
-      this.stop();
-    } else if (this.tick == 7) {
-      poke(this, 'idle');
+
+      if (this.predicates.zombie.ok()) {
+        // it's been a while since we heard from the API, assume it went
+        // zombie, so try and restart it.
+        this.stop();
+      }
     }
   };
 
-  protected lastTimingSample = 0;
-  protected samples = new Series.Sampled([750, 750, 750], 25);
-  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, 500);
+  protected lastTimingSample?: number;
+  protected samples = new Series.Sampled([600, 600, 600], 25);
+  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, 600);
 
   callbackTimingSample(timingMS: number) {
-    // assert timingMS > lastTimingSample, and that it's relative to
-    // how long the document is open; this should be perfect for the
-    // timeStamp of any Event callback.
-    const eventDelay = timingMS - this.lastTimingSample;
+    const lastTimingSample = this.lastTimingSample;
+
+    // always update the last sample
     this.lastTimingSample = timingMS;
 
-    // this.samples.sample(eventDelay);
-    this.deviation.nextTerm(eventDelay);
+    if (lastTimingSample !== undefined) {
+      // assert timingMS > lastTimingSample, and that it's relative to
+      // how long the document is open; this should be perfect for the
+      // timeStamp of any Event callback.
+      const eventDelay = timingMS - lastTimingSample;
+
+      this.samples.sample(eventDelay);
+      this.deviation.nextTerm(eventDelay);
+    }
+  }
+
+  async start() {
+    if (this.predicates.recovery.ok()) {
+      console.warn(
+        'API unresponsive and undying - asserting state has diverged, ignoring all sanity checks until resynchronised.'
+      );
+    } else {
+      if (this.predicates.started.ok()) {
+        console.warn(
+          'rejecting start(): our state indicates start() is already running on another thread, refusing reentrant calls.'
+        );
+        return;
+      }
+
+      if (this.predicates.running.ok()) {
+        console.warn('rejecting start(): our state indicates SpeechRecognition is already active.');
+        return;
+      }
+    }
+
+    this.predicates.started.assume = true;
+
+    this.settings.adjust(this);
+    this.snapshot(true);
+
+    try {
+      super.start();
+    } catch (e) {
+      if (e.name == 'InvalidStateError') {
+        // this is only raised if we're already started, adjust our
+        // view accordingly
+        console.warn('divergent state: start() called while active; adjusting our view to match.');
+        console.log(
+          'calling start() while started is not an error, according to the API docs; it is (vocally) ignored - and the only way to determine if the API is still running'
+        );
+        this.predicates.running.assume = true;
+      } else {
+        this.predicates.started.assume = false;
+        throw e;
+      }
+    }
+
+    this.predicates.started.assume = false;
   }
 
   private readonly weave = new listeners(
     [this],
     new actions([
-      action
-        .make(() => {
-          try {
-            this.predicates.started.assume = true;
-            this.start();
-          } catch (e) {
-            if (e.name == 'InvalidStateError') {
-              // this is only raised if we're already started, adjust our
-              // view accordingly
-              this.predicates.running.assume = true;
-              console.warn('divergent state: start() called while active; adjusting our view to match.');
-            } else {
-              throw e;
-            }
-          }
-          this.predicates.started.assume = false;
-        }, 'start')
-        .validp(this.predicates.running.nor(this.predicates.started))
-        .reentrantp(predicate.no)
-        .asyncp(predicate.yes)
-        .meshing()
-        .prev(action.make(() => (Status.serviceURI.string = this.serviceURI ?? '')))
-        .prev(action.make(() => this.settings.adjust(this)))
-        .prev(action.make(() => this.snapshot(true)))
-        .prev(action.poke(this, 'start:begin'))
-        .next(action.poke(this, 'start:end')),
-
-      action.make(() => this.tick++, 'pulse').naming(),
-
       action.make(this.result, 'result').upon(['result', 'nomatch']),
       action
         .make(this.process, 'process')
@@ -277,14 +306,11 @@ class speech extends api implements Recogniser {
         .upon(['tick']),
 
       action
-        .make(() => (Status.ticks.number = this.ticks))
-        .upon(['tick'])
-        .asyncp(predicate.yes),
-      action
         .make((event: Event) => {
           this.callbackTimingSample(event.timeStamp);
           this.tick = 0;
         })
+        .asyncp(predicate.yes)
         .upon([
           'start',
           'end',
@@ -299,39 +325,66 @@ class speech extends api implements Recogniser {
           'speechend',
         ]),
 
+      action.make(() => this.tick++, 'pulse').naming(),
+      action
+        .make(() => (Status.ticks.number = this.ticks))
+        .asyncp(predicate.yes)
+        .upon(['tick']),
       action.make(this.ticker).upon(['tick']),
 
       action.make(this.error, 'error').naming(),
       action.make(this.nomatch, 'nomatch').naming(),
-
-      action
-        .make(() => pake(this, 'start?'))
-        .validp(this.predicates.running.invert())
-        .upon(['pulse', 'end']),
     ])
   );
 
   private readonly enabled = (this.weave.on = true);
 
-  pulseDelay: number = 500;
-
-  pulsar = () => {
-    pake(this, 'pulse');
-
-    // dynamic intervals require setTimeout and resetting on each call;
+  get pulseDelay(): number {
+    // dynamic intervals require setTimeout() and resetting on each call;
     // assert that the mean time between API event callbacks is a good
     // interval, and slow us down by a partial standard deviation.
-    this.pulseDelay = this.deviation.average + this.deviation.deviation / 4;
-
-    window.setTimeout(this.pulsar, this.pulseDelay);
+    //
+    // the fraction applied to the deviation ranges from .25 to 6, scaling
+    // linearly with ticks in range 0 to 100 - this allows for very fast
+    // responses while the API is very actively talking with us, but a
+    // gradual decay in load for zombie or recovery cases, to give the
+    // browser some breathing room.
+    return (
+      Math.max(this.deviation.average, 50) +
+      (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100
+    );
   }
+
+  get maxProcessTimeAllowance(): number {
+    // limit speech API update processing to half the pulse delay.
+    //
+    // since the pulse delay scales with uninterrupted ticks, this means
+    // we have relatively little time in times when the browser is hitting
+    // us with lots of updates, while backing off in case we accrue a
+    // backlog or the browser is slowing down for other reasons, allowing
+    // us to catch up in those cases and ideally take some load off the
+    // browser UI threads.
+    return this.pulseDelay / 2;
+  }
+
+  pulsar = () => {
+    // set timeout BEFORE any potentially lengthy processing happens, so
+    // the calculated delay more closely reflects intent.
+    window.setTimeout(this.pulsar, this.pulseDelay);
+
+    // synchronous processing should be fine here - we already requested
+    // another pulse, and timeout deliveries are supposed to be async.
+    poke(this, 'pulse');
+  };
 
   constructor() {
     super();
 
-    window.setTimeout(this.pulsar, this.pulseDelay);
+    Status.serviceURI.string = this.serviceURI ?? '';
 
-    poke(this, 'start?');
+    this.start();
+
+    window.setTimeout(this.pulsar, this.pulseDelay);
   }
 }
 

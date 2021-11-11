@@ -8,6 +8,6 @@ import * as series from './test/streaming-series.js';
 
 export var testsOK = true;
 
-testModule(qualified).then((ok) => testsOK &&= ok);
-testModule(dated).then((ok) => testsOK &&= ok);
-testModule(series).then ((ok) => testsOK &&= ok);
+testModule(qualified).then((ok) => (testsOK &&= ok));
+testModule(dated).then((ok) => (testsOK &&= ok));
+testModule(series).then((ok) => (testsOK &&= ok));

@@ -183,7 +183,7 @@ export const DOM = {
   fromOl: (node: HTMLOListElement): Transcript => {
     const bs = Array.from(node.querySelectorAll('li[is="caption-alternatives"]')).reduce(
       (bs: Alternatives[], e: HTMLLIElement): Alternatives[] => {
-        let branches = (e as Alternatives);
+        let branches = e as Alternatives;
         if (branches) {
           bs.push(branches);
         }
@@ -199,7 +199,7 @@ export const DOM = {
     let i: number = 0;
     const t = ol.querySelectorAll('li[is="caption-alternatives"]');
     const tlen = t.length;
-    const as = (t as Iterable<Alternatives>);
+    const as = t as Iterable<Alternatives>;
 
     for (const bs of ts) {
       if (i < tlen) {

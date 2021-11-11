@@ -216,10 +216,7 @@ export class predicate extends EventTarget {
 
   cached: maybe = undefined;
 
-  constructor(
-    protected test: thunk<maybe>,
-    public readonly influencers: listeners = listeners.none
-  ) {
+  constructor(protected test: thunk<maybe>, public readonly influencers: listeners = listeners.none) {
     super();
   }
 

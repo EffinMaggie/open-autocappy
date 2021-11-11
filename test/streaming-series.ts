@@ -183,7 +183,9 @@ async function testPi(log: LogFunction): Promise<boolean> {
   for await (const approx of pi) {
     const distance = Math.abs(Math.PI - approx);
     if (distance > piDistance) {
-      console.error(`delta between approximation and pi is not strictly monotonous: ${distance} > ${piDistance} at tern ${pi.terms}`);
+      console.error(
+        `delta between approximation and pi is not strictly monotonous: ${distance} > ${piDistance} at tern ${pi.terms}`
+      );
       r = false;
       break;
     }

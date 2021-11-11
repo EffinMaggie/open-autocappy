@@ -32,7 +32,7 @@ export const testModule = async (mod: TestableModule): Promise<boolean> => {
     let tr = true;
 
     if (test.test) {
-      tr &&= test.test(log)
+      tr &&= test.test(log);
     }
 
     if (test.asyncTest) {
@@ -49,4 +49,4 @@ export const testModule = async (mod: TestableModule): Promise<boolean> => {
   }
 
   return success;
-}
+};
