@@ -95,10 +95,8 @@ class settings {
 
 class speech extends api implements Recogniser {
   private readonly settings = new settings();
-  private readonly slowTickFrequency: number = 60;
 
   private ticks: number = 0;
-  private continuousTicks: number = 0;
 
   private readonly predicates = {
     audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
@@ -213,25 +211,14 @@ class speech extends api implements Recogniser {
   ticker = () => {
     if (this.tick >= 40) {
       if (this.predicates.running.ok()) {
-        console.error('trying to quit', this);
-        this.stop();
+        this.abort();
       } else {
-        console.error('trying to resurrect', this);
         poke(this, 'start?');
       }
     } else if (this.tick == 25) {
       this.stop();
     } else if (this.tick == 7) {
       poke(this, 'idle');
-    }
-  };
-
-  slowTicker = async () => {
-    this.continuousTicks++;
-
-    if (this.continuousTicks > this.slowTickFrequency) {
-      this.continuousTicks = 0;
-      poke(this, 'slow-tick');
     }
   };
 
@@ -254,7 +241,22 @@ class speech extends api implements Recogniser {
     [this],
     new actions([
       action
-        .make(() => this.start(), 'start')
+        .make(() => {
+          try {
+            this.predicates.started.assume = true;
+            this.start();
+          } catch (e) {
+            if (e.name == 'InvalidStateError') {
+              // this is only raised if we're already started, adjust our
+              // view accordingly
+              this.predicates.running.assume = true;
+              console.warn('divergent state: start() called while active; adjusting our view to match.');
+            } else {
+              throw e;
+            }
+          }
+          this.predicates.started.assume = false;
+        }, 'start')
         .validp(this.predicates.running.nor(this.predicates.started))
         .reentrantp(predicate.no)
         .asyncp(predicate.yes)
@@ -264,9 +266,6 @@ class speech extends api implements Recogniser {
         .prev(action.make(() => this.snapshot(true)))
         .prev(action.poke(this, 'start:begin'))
         .next(action.poke(this, 'start:end')),
-
-      action.make(() => this.stop(), 'stop').meshing(),
-      action.make(() => this.abort(), 'abort').meshing(),
 
       action.make(() => this.tick++, 'pulse').naming(),
 
@@ -301,7 +300,6 @@ class speech extends api implements Recogniser {
         ]),
 
       action.make(this.ticker).upon(['tick']),
-      action.make(this.slowTicker).upon(['tick']),
 
       action.make(this.error, 'error').naming(),
       action.make(this.nomatch, 'nomatch').naming(),

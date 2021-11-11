@@ -217,14 +217,24 @@ export class predicate extends EventTarget {
   cached: maybe = undefined;
 
   constructor(
-    public readonly test: thunk<maybe>,
+    protected test: thunk<maybe>,
     public readonly influencers: listeners = listeners.none
   ) {
     super();
   }
 
+  protected assumedValue: maybe = undefined;
+
   public pass: thunk<maybe> = (): maybe => {
     const value = this.test();
+
+    if (this.assumedValue !== undefined) {
+      if (this.assumedValue === value) {
+        this.assumedValue = undefined;
+      } else {
+        return this.assumedValue;
+      }
+    }
 
     if (value !== this.cached) {
       this.cached = value;
@@ -246,6 +256,27 @@ export class predicate extends EventTarget {
   public also = (p: predicate) => new predicate(() => this.ok() && p.ok(), this.influencers);
   public or = (p: predicate) => new predicate(() => this.ok() || p.ok(), this.influencers);
   public nor = (p: predicate) => new predicate(() => this.fail() && p.fail(), this.influencers);
+
+  /**
+   * Override value, if different.
+   *
+   * Allows 'unsticking' predicates that may not be able to express their
+   * condition perfectly, or to allow overrides during troubleshooting -
+   * by a human, or otherwise.
+   *
+   * Note: the predicate will only assume a value that it doesn't have,
+   * and the next time the predicate finds the assumed value matches the
+   * tested value, it reverts automatically to normal behavior, discarding
+   * the assumption.
+   *
+   * @emits 'value-changed' if the assumed value is set.
+   */
+  public set assume(value: maybe) {
+    if (this.test() !== value) {
+      this.assumedValue = value;
+      poke(this, 'value-changed');
+    }
+  }
 }
 
 function assertTarget(target?: EventTarget | null): asserts target {
