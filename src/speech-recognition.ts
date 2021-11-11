@@ -315,22 +315,23 @@ class speech extends api implements Recogniser {
 
   private readonly enabled = (this.weave.on = true);
 
+  pulseDelay: number = 500;
+
   pulsar = () => {
     pake(this, 'pulse');
 
     // dynamic intervals require setTimeout and resetting on each call;
     // assert that the mean time between API event callbacks is a good
     // interval, and slow us down by a partial standard deviation.
-    const pulseDelay = this.deviation.average + this.deviation.deviation / 4;
+    this.pulseDelay = this.deviation.average + this.deviation.deviation / 4;
 
-    console.log(pulseDelay);
-    window.setTimeout(this.pulsar, pulseDelay);
+    window.setTimeout(this.pulsar, this.pulseDelay);
   }
 
   constructor() {
     super();
 
-    window.setTimeout(this.pulsar, 500);
+    window.setTimeout(this.pulsar, this.pulseDelay);
 
     poke(this, 'start?');
   }
