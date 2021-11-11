@@ -42,6 +42,32 @@ export namespace Streaming {
     }
   }
 
+  export class LeibnizMadhavaPi extends Terms {
+    /** not my favorite formula for pi, but it's nice and simple.
+     *
+     *  Nobody should be using this, it's only in here to have something
+     *  easy to test the shared code with.
+     *
+     *  Note that we start at 0 for the series; the first few elements are
+     *  thus:
+     *
+     *  f(0) = (0 % 2 == 0 ? 1 : -1) * 4 / (1 + 0 * 2) = 1 * 4 / 1 = 4
+     *  f(1) = (1 % 2 == 0 ? 1 : -1) * 4 / (1 + 1 * 2) = -4 / 3
+     *  f(2) = (2 % 2 == 0 ? 1 : -1) * 4 / (1 + 2 * 2) = 4 / 5
+     *  f(3) = (3 % 2 == 0 ? 1 : -1) * 4 / (1 + 3 * 2) = -4 / 7
+     *  ...
+     *
+     *  ... and so forth. Note that this formula is using 4 in the
+     *  numerator to arrive at pi, as opposed to one of the other, common
+     *  normalisations of the formula of the form 1/(...) = pi/4. This is
+     *  easier on the floating point numbers in JS, and slightly better to
+     *  test.
+     */
+    public async approximate(i: number): Promise<number> {
+      return (i % 2 == 0 ?  1 : -1) * 4 / (1 + i * 2);
+    }
+  }
+
   export class Sampled implements TermIterator {
     constructor(
       protected readonly bias: number[] = [],
@@ -92,16 +118,25 @@ export namespace Streaming {
     }
   }
 
-  export interface Series<T extends TermIterator> {
+  export type BinaryOperator = (a: number, b: number) => number;
+  export const Addition: BinaryOperator = (a: number, b: number): number => (a + b);
+  export const Multiplication: BinaryOperator = (a: number, b: number): number => (a * b);
+
+  export interface Series {
+    readonly neutral?: number;
+    readonly start?: number;
+    readonly operator: BinaryOperator;
+
     get approximation(): number;
+    get terms(): number;
 
     [Symbol.asyncIterator](): AsyncIterableIterator<number>;
   }
 
-  export class Sum<T extends TermIterator> implements Series<T> {
-    constructor(public term: T, protected readonly start: number) {}
+  export class OpSeries<T extends TermIterator> implements Series {
+    constructor(public readonly term: T, public readonly operator: BinaryOperator, public readonly start?: number, public readonly neutral?: number) {}
 
-    protected currentApproximation: number = this.start;
+    protected currentApproximation: number = this.start ?? this.neutral ?? 0;
     protected currentIndex: number = 0;
 
     get approximation(): number {
@@ -115,10 +150,21 @@ export namespace Streaming {
     async *[Symbol.asyncIterator]() {
       for await (const term of this.term) {
         this.currentIndex++;
-        this.currentApproximation += term;
+        this.currentApproximation = this.operator(this.currentApproximation, term);
 
         yield this.currentApproximation;
       }
+    }
+  }
+
+  export class Sum<T extends TermIterator> extends OpSeries<T> {
+    constructor(term: T, start?: number) {
+      super(term, Addition, start, 0);
+    }
+  }
+  export class Product<T extends TermIterator> extends OpSeries<T> {
+    constructor(term: T, start?: number) {
+      super(term, Multiplication, start, 1);
     }
   }
 }
