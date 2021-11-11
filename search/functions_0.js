@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['constructor_73',['constructor',['../classOuterHull_3_01Type_01extends_01PartialOrder_01_4.html#aa64cdeaa12d8fb339c26b73a3581b3e4',1,'OuterHull&lt; Type extends PartialOrder &gt;']]]
+  ['assume_76',['assume',['../classpredicate.html#aa2a3892adc5724b4d1411b6058b1edaf',1,'predicate']]]
 ];

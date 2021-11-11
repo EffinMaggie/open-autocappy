@@ -65,6 +65,7 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classpredicate-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">predicate Class Reference</div>  </div>
@@ -82,21 +83,26 @@ Inheritance diagram for predicate:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac14874073ca0fb4a61ce4573baa6981b"><td class="memItemLeft" align="right" valign="top"><a id="ac14874073ca0fb4a61ce4573baa6981b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (public readonly test:thunk&lt; maybe &gt;, public readonly influencers:listeners=listeners.none)</td></tr>
-<tr class="separator:ac14874073ca0fb4a61ce4573baa6981b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed66b5f4472e4fa4aa4e6eb715c29fa4"><td class="memItemLeft" align="right" valign="top"><a id="aed66b5f4472e4fa4aa4e6eb715c29fa4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (protected test:thunk&lt; maybe &gt;, public readonly influencers:listeners=listeners.none)</td></tr>
+<tr class="separator:aed66b5f4472e4fa4aa4e6eb715c29fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0eeffc665e3384a9fd425b16eb5e5f97"><td class="memItemLeft" align="right" valign="top"><a id="a0eeffc665e3384a9fd425b16eb5e5f97"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (this.assumedValue !==undefined)</td></tr>
+<tr class="separator:a0eeffc665e3384a9fd425b16eb5e5f97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4dcc9a3711d4bf7fed1ae134033fffa4"><td class="memItemLeft" align="right" valign="top"><a id="a4dcc9a3711d4bf7fed1ae134033fffa4"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (value !==this.cached)</td></tr>
 <tr class="separator:a4dcc9a3711d4bf7fed1ae134033fffa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2a3892adc5724b4d1411b6058b1edaf"><td class="memItemLeft" align="right" valign="top">set&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpredicate.html#aa2a3892adc5724b4d1411b6058b1edaf">assume</a> (value:maybe)</td></tr>
+<tr class="separator:aa2a3892adc5724b4d1411b6058b1edaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a11d16996bf884330b3807dfc38d91a44"><td class="memItemLeft" align="right" valign="top"><a id="a11d16996bf884330b3807dfc38d91a44"></a>
 cached&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: maybe = undefined</td></tr>
 <tr class="separator:a11d16996bf884330b3807dfc38d91a44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a47031125b608f66ecc0a044937681d"><td class="memItemLeft" align="right" valign="top"><a id="a0a47031125b608f66ecc0a044937681d"></a>
-pass&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: thunk&lt;maybe&gt; = (): maybe =&gt; { const value = this.test()</td></tr>
-<tr class="separator:a0a47031125b608f66ecc0a044937681d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a7b5537c348a7175b12d04ce09902c8"><td class="memItemLeft" align="right" valign="top"><a id="a6a7b5537c348a7175b12d04ce09902c8"></a>
+pass&#160;</td><td class="memItemRight" valign="bottom"><b>__pad2__</b>: thunk&lt;maybe&gt; = (): maybe =&gt; { const value = this.test()</td></tr>
+<tr class="separator:a6a7b5537c348a7175b12d04ce09902c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d37c8016c0c17fc3b519e143aa3a838"><td class="memItemLeft" align="right" valign="top"><a id="a0d37c8016c0c17fc3b519e143aa3a838"></a>
 return&#160;</td><td class="memItemRight" valign="bottom"><b>value</b></td></tr>
 <tr class="separator:a0d37c8016c0c17fc3b519e143aa3a838"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -105,12 +111,12 @@ return&#160;</td><td class="memItemRight" valign="bottom"><b>value</b></td></tr>
 <tr class="separator:af03256084e22cbc4d28171479271aceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a22979ec9f0039f716c87ddecd6534817"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>compliant</b></td></tr>
 <tr class="separator:a22979ec9f0039f716c87ddecd6534817"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae4a7073df06696003270b25235b18f12"><td class="memItemLeft" align="right" valign="top"><a id="ae4a7073df06696003270b25235b18f12"></a>
-ok&#160;</td><td class="memItemRight" valign="bottom"><b>__pad2__</b>: thunk&lt;boolean&gt; = () =&gt; this.is(true)</td></tr>
-<tr class="separator:ae4a7073df06696003270b25235b18f12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb4485245e2a9209643ce09b9a56a900"><td class="memItemLeft" align="right" valign="top"><a id="adb4485245e2a9209643ce09b9a56a900"></a>
-fail&#160;</td><td class="memItemRight" valign="bottom"><b>__pad3__</b>: thunk&lt;boolean&gt; = () =&gt; this.is(false) || this.is(undefined)</td></tr>
-<tr class="separator:adb4485245e2a9209643ce09b9a56a900"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe96096a2f2db8c292fd83c5ea311a84"><td class="memItemLeft" align="right" valign="top"><a id="abe96096a2f2db8c292fd83c5ea311a84"></a>
+ok&#160;</td><td class="memItemRight" valign="bottom"><b>__pad3__</b>: thunk&lt;boolean&gt; = () =&gt; this.is(true)</td></tr>
+<tr class="separator:abe96096a2f2db8c292fd83c5ea311a84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4cbe3d8a80a805835abf0b83b4d84ba"><td class="memItemLeft" align="right" valign="top"><a id="ac4cbe3d8a80a805835abf0b83b4d84ba"></a>
+fail&#160;</td><td class="memItemRight" valign="bottom"><b>__pad4__</b>: thunk&lt;boolean&gt; = () =&gt; this.is(false) || this.is(undefined)</td></tr>
+<tr class="separator:ac4cbe3d8a80a805835abf0b83b4d84ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a1afc7b98539bf307d831a0137b9898"><td class="memItemLeft" align="right" valign="top"><a id="a0a1afc7b98539bf307d831a0137b9898"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>invert</b> = () =&gt; new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; this.fail(), this.influencers)</td></tr>
 <tr class="separator:a0a1afc7b98539bf307d831a0137b9898"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -132,7 +138,44 @@ static&#160;</td><td class="memItemRight" valign="bottom"><b>yes</b> = new <a cl
 <tr class="memitem:ab7b48e646a28a38979434ae9ea46f7ff"><td class="memItemLeft" align="right" valign="top"><a id="ab7b48e646a28a38979434ae9ea46f7ff"></a>
 static&#160;</td><td class="memItemRight" valign="bottom"><b>no</b> = new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; false)</td></tr>
 <tr class="separator:ab7b48e646a28a38979434ae9ea46f7ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:a8be02cac01cd3c6e6524ddbc4b929322"><td class="memItemLeft" align="right" valign="top"><a id="a8be02cac01cd3c6e6524ddbc4b929322"></a>
+assumedValue&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: maybe = undefined</td></tr>
+<tr class="separator:a8be02cac01cd3c6e6524ddbc4b929322"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="aa2a3892adc5724b4d1411b6058b1edaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2a3892adc5724b4d1411b6058b1edaf">&#9670;&nbsp;</a></span>assume()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">set predicate::assume </td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>value:maybe</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Override value, if different.</p>
+<p>Allows 'unsticking' predicates that may not be able to express their condition perfectly, or to allow overrides during troubleshooting - by a human, or otherwise.</p>
+<p>Note: the predicate will only assume a value that it doesn't have, and the next time the predicate finds the assumed value matches the tested value, it reverts automatically to normal behavior, discarding the assumption.</p>
+<p>@emits 'value-changed' if the assumed value is set. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="a22979ec9f0039f716c87ddecd6534817"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a22979ec9f0039f716c87ddecd6534817">&#9670;&nbsp;</a></span>compliant</h2>

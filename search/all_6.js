@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['leibnizmadhavapi_13',['LeibnizMadhavaPi',['../classStreaming_1_1LeibnizMadhavaPi.html',1,'Streaming']]],
-  ['listener_14',['listener',['../classlistener.html',1,'']]],
-  ['listeners_15',['listeners',['../classlisteners.html',1,'']]]
+  ['leibnizmadhavapi_15',['LeibnizMadhavaPi',['../classSeries_1_1LeibnizMadhavaPi.html',1,'Series']]],
+  ['listener_16',['listener',['../classlistener.html',1,'']]],
+  ['listeners_17',['listeners',['../classlisteners.html',1,'']]]
 ];
