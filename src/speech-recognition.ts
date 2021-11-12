@@ -327,7 +327,7 @@ class speech extends api implements Recogniser {
 
       action.make(() => this.tick++, 'pulse').naming(),
       action
-        .make(() => (Status.ticks.number = this.ticks))
+        .make(() => (Status.ticks.number = this.tick))
         .asyncp(predicate.yes)
         .upon(['tick']),
       action.make(this.ticker).upon(['tick']),
