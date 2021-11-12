@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['series_77',['Series',['../namespaceSeries.html',1,'']]]
+  ['series_79',['Series',['../namespaceSeries.html',1,'']]]
 ];
