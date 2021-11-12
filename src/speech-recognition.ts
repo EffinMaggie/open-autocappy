@@ -156,35 +156,51 @@ class speech extends api implements Recogniser {
 
   result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event));
 
-  process = async (event: Event) => {
-    let doSnapshot = false;
-    const latestProcessingTime = event.timeStamp + this.maxProcessTimeAllowance;
+  processing: number = 0;
 
-    while (this.queued.length) {
-      if (latestProcessingTime <= performance.now()) {
-        console.warn(`exceeded processing time allowance with ${this.queued.length} updates left`);
-        break;
-      }
-
-      const data = this.queued.shift();
-
-      if (!data) {
-        console.error('bogus event from SpeechRecognition API: ', event);
-        continue;
-      }
-
-      const ts = SpeechAPI.fromData(data);
-      for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
-        canStoreTranscript(transcript);
-
-        DOM.merge(transcript, ts);
-      }
-
-      doSnapshot = true;
+  process = async () => {
+    if (this.processing > 0) {
+      // never allow two threads to be processing stuff at the same time,
+      // as it won't help performance and the queue and snapshotting steps
+      // may not be reentrant. The order of the queue processing should
+      // not be changed from the order we got results in.
+      return;
     }
 
-    if (doSnapshot) {
-      this.snapshot();
+    this.processing++;
+
+    try {
+      let doSnapshot = false;
+      const latestProcessingTime = performance.now() + this.maxProcessTimeAllowance;
+
+      while (this.queued.length) {
+        if (latestProcessingTime <= performance.now()) {
+          console.warn(`exceeded processing time allowance with ${this.queued.length} updates left`);
+          break;
+        }
+
+        const data = this.queued.shift();
+
+        if (!data) {
+          console.error('bogus event from SpeechRecognition API; skipping');
+          continue;
+        }
+
+        const ts = SpeechAPI.fromData(data);
+        for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
+          canStoreTranscript(transcript);
+
+          DOM.merge(transcript, ts);
+        }
+
+        doSnapshot = true;
+      }
+
+      if (doSnapshot) {
+        this.snapshot();
+      }
+    } finally {
+      this.processing--;
     }
   };
 
@@ -213,6 +229,8 @@ class speech extends api implements Recogniser {
       // we should always be running, therefore if we're not, try to
       // start again - the API likes to "d'oh" out randomly.
       this.start();
+    } else {
+      this.process();
     }
 
     if (this.predicates.running.ok()) {
@@ -304,11 +322,6 @@ class speech extends api implements Recogniser {
     [this],
     new actions([
       action.make(this.result, 'result').upon(['result', 'nomatch']),
-      action
-        .make(this.process, 'process')
-        .reentrantp(predicate.no)
-        .asyncp(predicate.yes)
-        .upon(['tick']),
 
       action
         .make((event: Event) => {
@@ -330,7 +343,6 @@ class speech extends api implements Recogniser {
           'speechend',
         ]),
 
-      action.make(() => this.tick++, 'pulse').naming(),
       action
         .make(() => (Status.ticks.number = this.tick))
         .asyncp(predicate.yes)
@@ -354,10 +366,9 @@ class speech extends api implements Recogniser {
     // responses while the API is very actively talking with us, but a
     // gradual decay in load for zombie or recovery cases, to give the
     // browser some breathing room.
-    const delay = (
+    const delay =
       Math.max(this.deviation.average, 50) +
-      (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100
-    );
+      (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
@@ -386,9 +397,9 @@ class speech extends api implements Recogniser {
   pulsar() {
     this.scheduleNextPulse();
 
-    // synchronously process 'tick' events. Slow handlers for this event
-    // are expected to be asynchronous on their own.
-    poke(this, 'pulse');
+    // this will trigger 'tick' events on updates, which may further
+    // trigger longer, async processing.
+    this.tick++;
   }
 
   boundPulsar = this.pulsar.bind(this);
@@ -398,7 +409,7 @@ class speech extends api implements Recogniser {
       return;
     }
 
-    let timeUntilPulse = (this.nextPulseAt - performance.now());
+    let timeUntilPulse = this.nextPulseAt - performance.now();
     this.nextPulseAt = undefined;
 
     if (this.pulsarTimeoutID !== undefined) {
