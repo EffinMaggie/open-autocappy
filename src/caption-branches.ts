@@ -6,84 +6,7 @@ import { DateBetween, MDate, now } from './dated.js';
 
 import { Branch } from './caption-branch.js';
 import { Branches, Alternatives } from './caption-alternatives.js';
-
-export class Transcript extends OuterHull<Alternatives> {
-  constructor(
-    ts: Iterable<Alternatives>,
-    public readonly resultIndex?: number,
-    public readonly resultLength?: number
-  ) {
-    super(Transcript.merge(ts, resultIndex, resultLength));
-  }
-
-  static *merge(
-    ts: Iterable<Alternatives>,
-    resultIndex?: number,
-    resultLength?: number
-  ): Generator<Alternatives> {
-    let finalIndices = new Set<number>();
-    let abandonedIndices = new Set<number>();
-
-    let byIndex = new Map<number, Alternatives>();
-
-    for (const bs of ts) {
-      const index = bs.index;
-
-      if (index === undefined) {
-        yield bs;
-        continue;
-      }
-
-      const indexVal = byIndex.get(index);
-
-      const isFinal: boolean =
-        bs.final ?? ((resultIndex !== undefined && index < resultIndex) || finalIndices.has(index));
-      const isAbandoned: boolean =
-        !isFinal &&
-        (bs.abandoned ??
-          ((resultLength !== undefined && index >= resultLength) || abandonedIndices.has(index)));
-
-      if (isFinal && !finalIndices.has(index)) {
-        finalIndices.add(index);
-
-        // it is possible that the index is also in the abandoned set; I mean,
-        // actually it shouldn't be possible, but the signal is weak and the
-        // API is hella funky.
-        //
-        // we don't need to remove the index from the other set, fortunately,
-        // as long as we always check for finality before abandonment. Yay.
-      }
-
-      if (isAbandoned && !abandonedIndices.has(index)) {
-        abandonedIndices.add(index);
-      }
-
-      byIndex.set(index, indexVal === undefined ? bs : indexVal.concat(bs));
-    }
-
-    for (const idVal of byIndex) {
-      const index: number = idVal[0];
-      const bs: Alternatives = idVal[1];
-
-      if (finalIndices.has(index)) {
-        yield new Alternatives(bs.branches, index, true);
-      } else if (abandonedIndices.has(index)) {
-        yield new Alternatives(bs.branches, undefined, false);
-      } else {
-        // anything left is interim results
-        yield new Alternatives(bs.branches, index, false);
-      }
-    }
-  }
-
-  concat(bs: Iterable<Alternatives>, resultIndex?: number, resultLength?: number): Transcript {
-    return new Transcript(
-      this.catter(bs),
-      resultIndex ?? this.resultIndex ?? 0,
-      resultLength ?? this.resultLength
-    );
-  }
-}
+import { Transcript } from './caption-transcript.js';
 
 /**
  * Alternatives are serialised to the DOM when writing output; the Element created with to() has no issues storing all of the data we have, so the from() function should recreate an identical Branch from such an Element.
@@ -201,7 +124,7 @@ export const DOM = {
     const tlen = t.length;
     const as = t as Iterable<Alternatives>;
 
-    for (const bs of ts) {
+    for (const bs of ts.lines) {
       if (i < tlen) {
         if (bs != as[i]) {
           ol.replaceChild(bs, as[i]);
@@ -220,7 +143,7 @@ export const DOM = {
 
   merge: (where: HTMLOListElement, ts: Transcript) => {
     const t = DOM.fromOl(where);
-    const c: Transcript = t.concat(ts);
+    const c: Transcript = t.concat(ts.lines);
 
     DOM.toOl(c, where);
   },

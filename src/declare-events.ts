@@ -293,9 +293,6 @@ export const poke = (observer: EventTarget, event: string, relay?: any) => {
   observer.dispatchEvent.bind(observer)(new CustomEvent(event, { detail: relay }));
 };
 
-export const pake = async (observer: EventTarget, event: string, relay?: any) =>
-  poke(observer, event, relay);
-
 export class tracker extends predicate {
   private value: maybe = undefined;
 
@@ -314,7 +311,7 @@ export class tracker extends predicate {
             () => {
               if (!this.value) {
                 this.value = true;
-                pake(this, 'value-changed');
+                poke(this, 'value-changed');
               }
             },
             name,
@@ -324,7 +321,7 @@ export class tracker extends predicate {
             () => {
               if (this.value) {
                 this.value = false;
-                pake(this, 'value-changed');
+                poke(this, 'value-changed');
               }
             },
             name,

@@ -127,7 +127,9 @@ class speech extends api implements Recogniser {
 
     this.ticks = now;
 
-    poke(this, 'tick');
+    if (now > 0) {
+      poke(this, 'tick');
+    }
   }
 
   protected static historySelector = '.captions ol.history';
@@ -140,11 +142,11 @@ class speech extends api implements Recogniser {
 
       for (const li of document.querySelectorAll(
         full ? speech.transcriptLineSelector : speech.transcriptSafeLineSelector
-      )) {
+       )) {
         li.removeAttribute('data-index');
         if (ol) {
           li.parentNode?.removeChild(li);
-          ol.appendChild(li);
+          ol.append(li);
         }
       }
       const ts = DOM.fromOl(ol);
@@ -164,6 +166,7 @@ class speech extends api implements Recogniser {
       // as it won't help performance and the queue and snapshotting steps
       // may not be reentrant. The order of the queue processing should
       // not be changed from the order we got results in.
+      console.log('already processing');
       return;
     }
 
@@ -250,7 +253,9 @@ class speech extends api implements Recogniser {
   };
 
   protected readonly defaultPulseDelay: number = 500;
+  protected readonly defaultProcessTimeAllowance: number = 75;
   protected readonly minPulseDelay: number = 50;
+  protected readonly minProcessTimeAllowance: number = 30;
   protected readonly resetPulsarInterval: number = 100;
 
   protected lastTimingSample?: number;
@@ -328,7 +333,6 @@ class speech extends api implements Recogniser {
           this.callbackTimingSample(event.timeStamp);
           this.tick = 0;
         })
-        .asyncp(predicate.yes)
         .upon([
           'start',
           'end',
@@ -367,12 +371,12 @@ class speech extends api implements Recogniser {
     // gradual decay in load for zombie or recovery cases, to give the
     // browser some breathing room.
     const delay =
-      Math.max(this.deviation.average, 50) +
+      Math.max(this.deviation.average, this.minPulseDelay) +
       (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
-    return isNaN(delay) ? this.defaultPulseDelay : delay;
+    return isNaN(delay) ? this.defaultPulseDelay : Math.max(delay, this.minPulseDelay);
   }
 
   get maxProcessTimeAllowance(): number {
@@ -384,7 +388,9 @@ class speech extends api implements Recogniser {
     // backlog or the browser is slowing down for other reasons, allowing
     // us to catch up in those cases and ideally take some load off the
     // browser UI threads.
-    return this.pulseDelay / 2;
+    const allowance = this.pulseDelay / 2;
+
+    return isNaN(allowance) ? this.defaultProcessTimeAllowance : Math.max(allowance, this.minProcessTimeAllowance);
   }
 
   protected nextPulseAt?: number;
@@ -405,17 +411,19 @@ class speech extends api implements Recogniser {
   boundPulsar = this.pulsar.bind(this);
 
   resetPulsar() {
-    if (this.nextPulseAt === undefined) {
+    let nextPulseAt = this.nextPulseAt;
+    this.nextPulseAt = undefined;
+
+    if (nextPulseAt === undefined) {
       return;
     }
-
-    let timeUntilPulse = this.nextPulseAt - performance.now();
-    this.nextPulseAt = undefined;
 
     if (this.pulsarTimeoutID !== undefined) {
       window.clearTimeout(this.pulsarTimeoutID);
       this.pulsarTimeoutID = undefined;
     }
+
+    let timeUntilPulse = nextPulseAt - performance.now();
 
     // don't go too fast - also filter NaNs, or negative values, which may
     // arise when the browser is hogged down, since we're fresh out of
@@ -424,7 +432,7 @@ class speech extends api implements Recogniser {
       timeUntilPulse = this.minPulseDelay;
     }
 
-    // ensure we get called again, at the projected time
+    // ensure to pulse at the projected time, or at least close to it
     this.pulsarTimeoutID = window.setTimeout(this.boundPulsar, timeUntilPulse);
   }
 

@@ -11,29 +11,6 @@ export class Branches extends OuterHull<Branch> {
     super(bs);
   }
 
-  sync() {
-    const to: Alternatives = this.alternatives;
-    const spans = to.querySelectorAll('span[is="caption-branch"]');
-    const slen = spans.length;
-    const branches = spans as Iterable<Branch>;
-    let i: number = 0;
-
-    for (const b of this) {
-      if (i < slen) {
-        if (b != branches[i]) {
-          to.replaceChild(b, branches[i]);
-        }
-        i++;
-      } else {
-        to.appendChild(b);
-      }
-    }
-
-    for (; i < slen; i++) {
-      to.removeChild(branches[i]);
-    }
-  }
-
   compare(bs: Branches): CompareResult {
     return this.alternatives.compare(bs.alternatives);
   }
@@ -55,7 +32,7 @@ export class Alternatives extends HTMLLIElement {
     this.index = index;
     this.final = final;
 
-    this.branches.sync();
+    this.replaceChildren(...this.branches);
   }
 
   private accessors = {

@@ -14,6 +14,7 @@
     <meta name="max-alternatives" content="4" />
     <script type="module" src="caption-error.js"></script>
     <script type="module" src="caption-ticker.js"></script>
+    <script type="module" src="caption-transcript.js"></script>
     <script type="module" src="speech-recognition.js"></script>
   </head>
 
@@ -37,7 +38,7 @@
     <p id="status-last-error"></p>
     <p id="status-last-error-message"></p>
 
-    <ol class="transcript"></ol>
-    <ol class="history"></ol>
+    <ol class="transcript" is='caption-transcript'></ol>
+    <ol class="history" is='caption-transcript'></ol>
   </body>
 </html>

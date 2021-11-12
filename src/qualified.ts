@@ -1,6 +1,6 @@
 /** @format */
 
-import { poke, pake } from './declare-events.js';
+import { poke } from './declare-events.js';
 
 export type CompareResult = -1 | 0 | 1;
 
