@@ -158,9 +158,14 @@ class speech extends api implements Recogniser {
 
   process = async (event: Event) => {
     let doSnapshot = false;
-    const endAfter = event.timeStamp + this.maxProcessTimeAllowance;
+    const latestProcessingTime = event.timeStamp + this.maxProcessTimeAllowance;
 
-    while (this.queued.length > 0 && endAfter > event.timeStamp) {
+    while (this.queued.length) {
+      if (latestProcessingTime <= performance.now()) {
+        console.warn(`exceeded processing time allowance with ${this.queued.length} updates left`);
+        break;
+      }
+
       const data = this.queued.shift();
 
       if (!data) {
@@ -176,10 +181,6 @@ class speech extends api implements Recogniser {
       }
 
       doSnapshot = true;
-    }
-
-    if (endAfter <= event.timeStamp) {
-      console.warn(`exceeded processing time allowance with ${this.queued.length} updates left`);
     }
 
     if (doSnapshot) {
@@ -230,9 +231,13 @@ class speech extends api implements Recogniser {
     }
   };
 
+  protected readonly defaultPulseDelay: number = 500;
+  protected readonly minPulseDelay: number = 50;
+  protected readonly resetPulsarInterval: number = 100;
+
   protected lastTimingSample?: number;
-  protected samples = new Series.Sampled([600, 600, 600], 25);
-  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, 600);
+  protected samples = new Series.Sampled([this.defaultPulseDelay], 25);
+  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, this.defaultPulseDelay);
 
   callbackTimingSample(timingMS: number) {
     const lastTimingSample = this.lastTimingSample;
@@ -349,10 +354,14 @@ class speech extends api implements Recogniser {
     // responses while the API is very actively talking with us, but a
     // gradual decay in load for zombie or recovery cases, to give the
     // browser some breathing room.
-    return (
+    const delay = (
       Math.max(this.deviation.average, 50) +
       (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100
     );
+
+    // fall back to default delay time iff somehow the math failed - which
+    // it does sometimes if deviation hasn't been calculated yet.
+    return isNaN(delay) ? this.defaultPulseDelay : delay;
   }
 
   get maxProcessTimeAllowance(): number {
@@ -367,25 +376,60 @@ class speech extends api implements Recogniser {
     return this.pulseDelay / 2;
   }
 
-  pulsar = () => {
-    // set timeout BEFORE any potentially lengthy processing happens, so
-    // the calculated delay more closely reflects intent.
-    window.setTimeout(this.pulsar, this.pulseDelay);
+  protected nextPulseAt?: number;
+  protected pulsarTimeoutID?: number;
 
-    // synchronous processing should be fine here - we already requested
-    // another pulse, and timeout deliveries are supposed to be async.
+  scheduleNextPulse() {
+    this.nextPulseAt = performance.now() + this.pulseDelay;
+  }
+
+  pulsar() {
+    this.scheduleNextPulse();
+
+    // synchronously process 'tick' events. Slow handlers for this event
+    // are expected to be asynchronous on their own.
     poke(this, 'pulse');
-  };
+  }
+
+  boundPulsar = this.pulsar.bind(this);
+
+  resetPulsar() {
+    if (this.nextPulseAt === undefined) {
+      return;
+    }
+
+    let timeUntilPulse = (this.nextPulseAt - performance.now());
+    this.nextPulseAt = undefined;
+
+    if (this.pulsarTimeoutID !== undefined) {
+      window.clearTimeout(this.pulsarTimeoutID);
+      this.pulsarTimeoutID = undefined;
+    }
+
+    // don't go too fast - also filter NaNs, or negative values, which may
+    // arise when the browser is hogged down, since we're fresh out of
+    // Tachyons.
+    if (!(timeUntilPulse > this.minPulseDelay)) {
+      timeUntilPulse = this.minPulseDelay;
+    }
+
+    // ensure we get called again, at the projected time
+    this.pulsarTimeoutID = window.setTimeout(this.boundPulsar, timeUntilPulse);
+  }
 
   constructor() {
     super();
 
+    this.scheduleNextPulse();
+
     Status.serviceURI.string = this.serviceURI ?? '';
 
     this.start();
-
-    window.setTimeout(this.pulsar, this.pulseDelay);
   }
+
+  boundResetPulsar = this.resetPulsar.bind(this);
+
+  pulsarIntervalID = window.setInterval(this.boundResetPulsar, this.resetPulsarInterval);
 }
 
 window.addEventListener('load', () => new speech());
