@@ -13,7 +13,7 @@ function attributeText(attribute: string, coalesce: string, element: HTMLElement
 }
 
 function elementText(coalesce: string, element: HTMLElement): string {
-  if (!element.innerText) {
+  if (!element.innerText || element.innerText == '') {
     return coalesce;
   }
 
@@ -34,9 +34,9 @@ const attributeChange = (
   value?: string
 ): Promise<boolean> => {
   return withAttributeText(attribute, coalesce, element).then((currentValue: string) => {
-    const wantValue: string = value ?? coalesce;
+    const wantValue: string = value || coalesce;
 
-    if (superfluous.has(value)) {
+    if (superfluous.has(wantValue) || wantValue == coalesce) {
       if (element.hasAttribute(attribute)) {
         element.removeAttribute(attribute);
         return true;
@@ -61,9 +61,9 @@ const elementChange = (
   value?: string
 ): Promise<boolean> => {
   return withElementText(coalesce, element).then((currentValue: string) => {
-    const wantValue: string = value ?? coalesce;
+    const wantValue: string = value || coalesce;
 
-    if (superfluous.has(wantValue)) {
+    if (superfluous.has(wantValue) || wantValue === coalesce) {
       if (currentValue !== '') {
         element.innerText = '';
         return true;
@@ -106,10 +106,10 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     const value = nv.trim();
 
     if (this.attribute) {
-      return attributeChange(this.attribute, superfluousValue, this.coalesce, node, value);
+      return attributeChange(this.attribute, this.superfluous, this.coalesce, node, value);
     }
 
-    return elementChange(superfluousValue, this.coalesce, node, value);
+    return elementChange(this.superfluous, this.coalesce, node, value);
   }
 
   get value(): string {
@@ -137,11 +137,14 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     this.value = value;
   }
 
+  superfluous: valueSet;
+
   constructor(
     private readonly attribute?: string,
     private readonly coalesce: string = '[default value]'
   ) {
     super();
+    this.superfluous = superfluousValue;
   }
 }
 

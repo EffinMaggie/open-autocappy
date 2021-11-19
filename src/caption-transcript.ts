@@ -73,7 +73,7 @@ export class Lines extends OuterHull<Alternatives> {
 }
 
 export class Transcript extends HTMLOListElement {
-  public readonly lines: Lines;
+  public lines: Lines;
 
   constructor(
     as: Iterable<Alternatives>,
@@ -83,12 +83,24 @@ export class Transcript extends HTMLOListElement {
     super();
     this.setAttribute('is', 'caption-transcript');
 
+    this.adopt(as, index, length);
+  }
+
+  adopt(as: Iterable<Alternatives>, index?: number, length?: number) {
     this.lines = new Lines(as, this);
 
     this.index = index;
     this.length = length;
 
     this.replaceChildren(...this.lines);
+  }
+
+  load(ts: Transcript) {
+    this.adopt(this.lines.concat(ts.lines), ts.index, ts.length);
+  }
+
+  append(as: Alternatives) {
+    this.adopt(this.lines.concat([as]), this.index, this.length);
   }
 
   private accessors = {

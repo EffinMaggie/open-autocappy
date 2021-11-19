@@ -22,6 +22,7 @@ import {
   UpdateData,
 } from './caption-branches.js';
 import { Alternatives } from './caption-alternatives.js';
+import { Transcript } from './caption-transcript.js';
 import { CaptionError } from './caption-error.js';
 
 type usable = new () => Recogniser;
@@ -119,22 +120,17 @@ class speech extends api implements Recogniser {
     new syncPredicateStyle(this.predicates.running, Status.captioning),
   ];
 
-  protected static historySelector = '.captions ol.history';
   protected static transcriptLineSelector = '.captions ol.transcript > li';
   protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
 
   snapshot = (full: boolean = false) => {
-    for (const ol of document.querySelectorAll(speech.historySelector)) {
-      canStoreTranscript(ol);
-
+    for (const ol of document.querySelectorAll('.captions ol.history[is="caption-transcript"]') as NodeListOf<Transcript>) {
       for (const li of document.querySelectorAll(
         full ? speech.transcriptLineSelector : speech.transcriptSafeLineSelector
        ) as NodeListOf<Alternatives>) {
         li.index = undefined;
         ol.append(li);
       }
-      const ts = DOM.fromOl(ol);
-      DOM.toOl(ts, ol);
     }
   };
 

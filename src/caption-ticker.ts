@@ -18,7 +18,7 @@ export class Ticker extends HTMLParagraphElement {
 
   private accessors = {
     ticks: new OExplicitNodeUpdater(this),
-    interval: new OExplicitNodeUpdater(this, 'data-interval', '500 ms'),
+    interval: new OExplicitNodeUpdater(this, 'data-interval', '500'),
   };
 
   public ticks = new Access.Numeric(this.accessors.ticks);
