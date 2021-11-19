@@ -102,12 +102,14 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     return elementText(this.coalesce, node);
   }
 
-  change(node: HTMLElement, nv?: string) {
+  change(node: HTMLElement, nv: string) {
+    const value = nv.trim();
+
     if (this.attribute) {
-      return attributeChange(this.attribute, superfluousValue, this.coalesce, node, nv);
+      return attributeChange(this.attribute, superfluousValue, this.coalesce, node, value);
     }
 
-    return elementChange(superfluousValue, this.coalesce, node, nv);
+    return elementChange(superfluousValue, this.coalesce, node, value);
   }
 
   get value(): string {

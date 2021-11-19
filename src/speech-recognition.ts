@@ -6,7 +6,6 @@ import {
   action,
   actions,
   listeners,
-  poke,
   predicate,
   tracker,
   syncPredicateStyle,
@@ -22,6 +21,7 @@ import {
   SpeechAPIAlternative,
   UpdateData,
 } from './caption-branches.js';
+import { Alternatives } from './caption-alternatives.js';
 import { CaptionError } from './caption-error.js';
 
 type usable = new () => Recogniser;
@@ -95,7 +95,10 @@ class settings {
 class speech extends api implements Recogniser {
   private readonly settings = new settings();
 
-  private ticks: number = 0;
+  protected ticks = Status.ticks;
+
+  protected readonly defaultProcessTimeAllowance: number = 75;
+  protected readonly minProcessTimeAllowance: number = 20;
 
   private readonly predicates = {
     audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
@@ -104,9 +107,9 @@ class speech extends api implements Recogniser {
     running: new tracker(this, 'isRunning', ['start'], ['end']),
     started: new tracker(this, 'isStarted', ['configure'], ['start']),
 
-    recovery: new predicate(() => this.tick >= 80),
-    panic: new predicate(() => this.tick > 75 && this.tick < 80),
-    zombie: new predicate(() => this.tick > 50 && this.tick < 75),
+    recovery: new predicate(() => this.ticks.tick >= 80),
+    panic: new predicate(() => this.ticks.tick > 75 && this.ticks.tick < 80),
+    zombie: new predicate(() => this.ticks.tick > 50 && this.ticks.tick < 75),
   };
 
   private readonly bindings = [
@@ -115,22 +118,6 @@ class speech extends api implements Recogniser {
     new syncPredicateStyle(this.predicates.speech, Status.speech),
     new syncPredicateStyle(this.predicates.running, Status.captioning),
   ];
-
-  get tick(): number {
-    return this.ticks;
-  }
-
-  set tick(now: number) {
-    if (now == this.tick) {
-      return;
-    }
-
-    this.ticks = now;
-
-    if (now > 0) {
-      poke(this, 'tick');
-    }
-  }
 
   protected static historySelector = '.captions ol.history';
   protected static transcriptLineSelector = '.captions ol.transcript > li';
@@ -142,12 +129,9 @@ class speech extends api implements Recogniser {
 
       for (const li of document.querySelectorAll(
         full ? speech.transcriptLineSelector : speech.transcriptSafeLineSelector
-       )) {
-        li.removeAttribute('data-index');
-        if (ol) {
-          li.parentNode?.removeChild(li);
-          ol.append(li);
-        }
+       ) as NodeListOf<Alternatives>) {
+        li.index = undefined;
+        ol.append(li);
       }
       const ts = DOM.fromOl(ol);
       DOM.toOl(ts, ol);
@@ -252,33 +236,6 @@ class speech extends api implements Recogniser {
     }
   };
 
-  protected readonly defaultPulseDelay: number = 500;
-  protected readonly defaultProcessTimeAllowance: number = 75;
-  protected readonly minPulseDelay: number = 50;
-  protected readonly minProcessTimeAllowance: number = 30;
-  protected readonly resetPulsarInterval: number = 100;
-
-  protected lastTimingSample?: number;
-  protected samples = new Series.Sampled([this.defaultPulseDelay], 25);
-  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, this.defaultPulseDelay);
-
-  callbackTimingSample(timingMS: number) {
-    const lastTimingSample = this.lastTimingSample;
-
-    // always update the last sample
-    this.lastTimingSample = timingMS;
-
-    if (lastTimingSample !== undefined) {
-      // assert timingMS > lastTimingSample, and that it's relative to
-      // how long the document is open; this should be perfect for the
-      // timeStamp of any Event callback.
-      const eventDelay = timingMS - lastTimingSample;
-
-      this.samples.sample(eventDelay);
-      this.deviation.nextTerm(eventDelay);
-    }
-  }
-
   async start() {
     if (this.predicates.recovery.ok()) {
       console.warn(
@@ -330,8 +287,8 @@ class speech extends api implements Recogniser {
 
       action
         .make((event: Event) => {
-          this.callbackTimingSample(event.timeStamp);
-          this.tick = 0;
+          this.ticks.callbackTimingSample(event.timeStamp);
+          this.ticks.tick = 0;
         })
         .upon([
           'start',
@@ -347,37 +304,20 @@ class speech extends api implements Recogniser {
           'speechend',
         ]),
 
-      action
-        .make(() => (Status.ticks.number = this.tick))
-        .asyncp(predicate.yes)
-        .upon(['tick']),
-      action.make(this.ticker).upon(['tick']),
-
       action.make(this.error, 'error').naming(),
       action.make(this.nomatch, 'nomatch').naming(),
     ])
   );
 
+  private readonly weaveTicker = new listeners(
+    [this.ticks],
+    new actions([
+      action.make(this.ticker).upon(['tick']),
+    ])
+  );
+
   private readonly enabled = (this.weave.on = true);
-
-  get pulseDelay(): number {
-    // dynamic intervals require setTimeout() and resetting on each call;
-    // assert that the mean time between API event callbacks is a good
-    // interval, and slow us down by a partial standard deviation.
-    //
-    // the fraction applied to the deviation ranges from .25 to 6, scaling
-    // linearly with ticks in range 0 to 100 - this allows for very fast
-    // responses while the API is very actively talking with us, but a
-    // gradual decay in load for zombie or recovery cases, to give the
-    // browser some breathing room.
-    const delay =
-      Math.max(this.deviation.average, this.minPulseDelay) +
-      (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
-
-    // fall back to default delay time iff somehow the math failed - which
-    // it does sometimes if deviation hasn't been calculated yet.
-    return isNaN(delay) ? this.defaultPulseDelay : Math.max(delay, this.minPulseDelay);
-  }
+  private readonly enabledTicker = (this.weaveTicker.on = true);
 
   get maxProcessTimeAllowance(): number {
     // limit speech API update processing to half the pulse delay.
@@ -388,67 +328,18 @@ class speech extends api implements Recogniser {
     // backlog or the browser is slowing down for other reasons, allowing
     // us to catch up in those cases and ideally take some load off the
     // browser UI threads.
-    const allowance = this.pulseDelay / 2;
+    const allowance = this.ticks.pulseDelay / 2;
 
     return isNaN(allowance) ? this.defaultProcessTimeAllowance : Math.max(allowance, this.minProcessTimeAllowance);
-  }
-
-  protected nextPulseAt?: number;
-  protected pulsarTimeoutID?: number;
-
-  scheduleNextPulse() {
-    this.nextPulseAt = performance.now() + this.pulseDelay;
-  }
-
-  pulsar() {
-    this.scheduleNextPulse();
-
-    // this will trigger 'tick' events on updates, which may further
-    // trigger longer, async processing.
-    this.tick++;
-  }
-
-  boundPulsar = this.pulsar.bind(this);
-
-  resetPulsar() {
-    let nextPulseAt = this.nextPulseAt;
-    this.nextPulseAt = undefined;
-
-    if (nextPulseAt === undefined) {
-      return;
-    }
-
-    if (this.pulsarTimeoutID !== undefined) {
-      window.clearTimeout(this.pulsarTimeoutID);
-      this.pulsarTimeoutID = undefined;
-    }
-
-    let timeUntilPulse = nextPulseAt - performance.now();
-
-    // don't go too fast - also filter NaNs, or negative values, which may
-    // arise when the browser is hogged down, since we're fresh out of
-    // Tachyons.
-    if (!(timeUntilPulse > this.minPulseDelay)) {
-      timeUntilPulse = this.minPulseDelay;
-    }
-
-    // ensure to pulse at the projected time, or at least close to it
-    this.pulsarTimeoutID = window.setTimeout(this.boundPulsar, timeUntilPulse);
   }
 
   constructor() {
     super();
 
-    this.scheduleNextPulse();
-
     Status.serviceURI.string = this.serviceURI ?? '';
 
     this.start();
   }
-
-  boundResetPulsar = this.resetPulsar.bind(this);
-
-  pulsarIntervalID = window.setInterval(this.boundResetPulsar, this.resetPulsarInterval);
 }
 
 window.addEventListener('load', () => new speech());

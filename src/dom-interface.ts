@@ -11,9 +11,7 @@ export namespace Status {
 
   export const serviceURI = new Access.Storage(new ONodeQueryUpdater('#status-service'));
 
-  export const ticks = new Access.Numeric(
-    new ONodeQueryUpdater('p[is="caption-ticker"]', 'data-ticks', '0')
-  );
+  export const ticks = document.querySelector('p[is="caption-ticker"]') as Ticker;
 
   export const captioning = new Access.Classes(
     new ONodeQueryUpdater('#status-captioning', 'class', 'predicate')
