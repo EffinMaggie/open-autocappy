@@ -155,8 +155,8 @@ class speech extends api implements Recogniser {
 
   processing: number = 0;
 
-  process = async () => {
-    if (this.processing > 0) {
+  process = async (synchronous: boolean = false) => {
+    if (!synchronous && this.processing > 0) {
       // never allow two threads to be processing stuff at the same time,
       // as it won't help performance and the queue and snapshotting steps
       // may not be reentrant. The order of the queue processing should
@@ -261,6 +261,11 @@ class speech extends api implements Recogniser {
     this.predicates.started.assume = true;
 
     this.settings.adjust(this);
+
+    // clear out any pending transcript updates before trying to start,
+    // because the API provider will likely recycle ID numbers, which would
+    // cause confusing clashes with the interim records.
+    await this.process(true);
     await this.snapshot(true);
 
     try {
