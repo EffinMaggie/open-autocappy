@@ -64,6 +64,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classTicker-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Ticker Class Reference</div>  </div>
@@ -81,12 +82,66 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a93be0fd9e23788c272471aa1f3d82910"><td class="memItemLeft" align="right" valign="top"><a id="a93be0fd9e23788c272471aa1f3d82910"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> ()</td></tr>
 <tr class="separator:a93be0fd9e23788c272471aa1f3d82910"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42f4b0832a3c7fb662debea4636d9459"><td class="memItemLeft" align="right" valign="top"><a id="a42f4b0832a3c7fb662debea4636d9459"></a>
+get&#160;</td><td class="memItemRight" valign="bottom"><b>tick</b> ()</td></tr>
+<tr class="separator:a42f4b0832a3c7fb662debea4636d9459"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memItemLeft" align="right" valign="top"><a id="af6ccf451cfc71f45bd0102bba46ade0f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>callbackTimingSample</b> (timingMS:number)</td></tr>
+<tr class="separator:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6de562ab5970462c674bb6e02b23743d"><td class="memItemLeft" align="right" valign="top"><a id="a6de562ab5970462c674bb6e02b23743d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>scheduleNextPulse</b> ()</td></tr>
+<tr class="separator:a6de562ab5970462c674bb6e02b23743d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17cab667cf1b3232419559a330f43aaa"><td class="memItemLeft" align="right" valign="top"><a id="a17cab667cf1b3232419559a330f43aaa"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>pulsar</b> ()</td></tr>
+<tr class="separator:a17cab667cf1b3232419559a330f43aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9967c30dfc6794962434fd30fd86a5e3"><td class="memItemLeft" align="right" valign="top"><a id="a9967c30dfc6794962434fd30fd86a5e3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsar</b> ()</td></tr>
+<tr class="separator:a9967c30dfc6794962434fd30fd86a5e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a618f7cf0b998b9ba37e3565749539a08"><td class="memItemLeft" align="right" valign="top"><a id="a618f7cf0b998b9ba37e3565749539a08"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>ticks</b> = new <a class="el" href="classAccess_1_1Numeric.html">Access.Numeric</a>(this.accessors.ticks)</td></tr>
 <tr class="separator:a618f7cf0b998b9ba37e3565749539a08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45d8853ae70e5d456299f7d3d11d5ae7"><td class="memItemLeft" align="right" valign="top"><a id="a45d8853ae70e5d456299f7d3d11d5ae7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>interval</b> = new <a class="el" href="classAccess_1_1Numeric.html">Access.Numeric</a>(this.accessors.interval)</td></tr>
+<tr class="separator:a45d8853ae70e5d456299f7d3d11d5ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b937c6bb251288811daf17ac29a7375"><td class="memItemLeft" align="right" valign="top"><a id="a8b937c6bb251288811daf17ac29a7375"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>boundPulsar</b> = this.pulsar.bind(this)</td></tr>
+<tr class="separator:a8b937c6bb251288811daf17ac29a7375"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abefd7367f00a219b26de7151c626014e"><td class="memItemLeft" align="right" valign="top"><a id="abefd7367f00a219b26de7151c626014e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>boundResetPulsar</b> = this.resetPulsar.bind(this)</td></tr>
+<tr class="separator:abefd7367f00a219b26de7151c626014e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4dbf46686a335f035e0e92a58197d42"><td class="memItemLeft" align="right" valign="top"><a id="ae4dbf46686a335f035e0e92a58197d42"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarIntervalID</b> = window.setInterval(this.boundResetPulsar, this.resetPulsarInterval)</td></tr>
+<tr class="separator:ae4dbf46686a335f035e0e92a58197d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:aaaa80c5c96cf30be0c42b27532c2ef58"><td class="memItemLeft" align="right" valign="top"><a id="aaaa80c5c96cf30be0c42b27532c2ef58"></a>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>defaultPulseDelay</b>: number = 500</td></tr>
+<tr class="separator:aaaa80c5c96cf30be0c42b27532c2ef58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6d9241a821ebcd5d071d1ec92a54265"><td class="memItemLeft" align="right" valign="top"><a id="aa6d9241a821ebcd5d071d1ec92a54265"></a>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>minPulseDelay</b>: number = 50</td></tr>
+<tr class="separator:aa6d9241a821ebcd5d071d1ec92a54265"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8ab591d65adccef8fa340a4ffb1ab00"><td class="memItemLeft" align="right" valign="top"><a id="af8ab591d65adccef8fa340a4ffb1ab00"></a>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>maxPulseDelay</b>: number = 2500</td></tr>
+<tr class="separator:af8ab591d65adccef8fa340a4ffb1ab00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abafc98f8152ab0971742196aef1e1e80"><td class="memItemLeft" align="right" valign="top"><a id="abafc98f8152ab0971742196aef1e1e80"></a>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsarInterval</b>: number = 100</td></tr>
+<tr class="separator:abafc98f8152ab0971742196aef1e1e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d1ad8ab304f581568d1ef7485a08d72"><td class="memItemLeft" align="right" valign="top"><a id="a9d1ad8ab304f581568d1ef7485a08d72"></a>
+lastTimingSample&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number</td></tr>
+<tr class="separator:a9d1ad8ab304f581568d1ef7485a08d72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab42ee87578651ab6cfb71d0a97fbe2a"><td class="memItemLeft" align="right" valign="top"><a id="aab42ee87578651ab6cfb71d0a97fbe2a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>samples</b> = new <a class="el" href="classSeries_1_1Sampled.html">Series.Sampled</a>([this.defaultPulseDelay], 25)</td></tr>
+<tr class="separator:aab42ee87578651ab6cfb71d0a97fbe2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a69ec026a715356f13c8d0c233ac788"><td class="memItemLeft" align="right" valign="top"><a id="a1a69ec026a715356f13c8d0c233ac788"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>deviation</b> = new StdDev.Deviation&lt;<a class="el" href="classSeries_1_1Sampled.html">Series.Sampled</a>&gt;(this.samples, this.defaultPulseDelay)</td></tr>
+<tr class="separator:a1a69ec026a715356f13c8d0c233ac788"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7acf7ab36b9af57539abee372e8ccab"><td class="memItemLeft" align="right" valign="top"><a id="ac7acf7ab36b9af57539abee372e8ccab"></a>
+get pulseDelay()&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarTimeoutID</b>: number</td></tr>
+<tr class="separator:ac7acf7ab36b9af57539abee372e8ccab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/caption-ticker.ts</li>
