@@ -1,5 +1,7 @@
 /** @format */
 
+import { SpeechRecognitionConstructor, SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent, SpeechRecognitionResultList, SpeechRecognitionResult, SpeechRecognitionAlternative } from '../@types/web-speech-api';
+
 import { Series, StdDev } from './streaming.js';
 import { Status, Settings } from './dom-interface.js';
 import {
@@ -11,13 +13,7 @@ import {
   syncPredicateStyle,
 } from './declare-events.js';
 import {
-  Recogniser,
   SpeechAPI,
-  SpeechAPIEvent,
-  SpeechAPIErrorEvent,
-  SpeechAPIResultList,
-  SpeechAPIResult,
-  SpeechAPIAlternative,
   UpdateData,
   SpeechAPIUpdate,
   ErrorUpdate,
@@ -26,21 +22,19 @@ import { Alternatives } from './caption-alternatives.js';
 import { Transcript } from './caption-transcript.js';
 import { Ticker } from './caption-ticker.js';
 
-type usable = new () => Recogniser;
-
-function pickAPI(): usable | undefined {
-  if ('SpeechRecognition' in window) {
-    return window['SpeechRecognition'];
+function pickAPI(): SpeechRecognitionConstructor | undefined {
+  if (window.SpeechRecognition) {
+    return window.SpeechRecognition;
   }
-  if ('webkitSpeechRecognition' in window) {
-    return window['webkitSpeechRecognition'];
+  if (window.webkitSpeechRecognition) {
+    return window.webkitSpeechRecognition;
   }
 
   // uh-oh!
   return undefined;
 }
 
-function assertUsableAPI(api): asserts api is usable {
+function assertUsableAPI(api): asserts api is SpeechRecognitionConstructor {
   // TODO: consider adding additional runtime checks here
 
   console.assert(
@@ -66,7 +60,7 @@ class settings {
     return Number(Settings.alternatives.number);
   }
 
-  adjust = (recogniser: Recogniser) => {
+  adjust = (recogniser: SpeechRecognition) => {
     const want = {
       lang: this.lang,
       continuous: this.continuous,
@@ -89,7 +83,7 @@ class settings {
   };
 }
 
-class speech extends api implements Recogniser {
+class speech extends api implements SpeechRecognition {
   private readonly settings = new settings();
 
   private readonly predicates = {
@@ -152,7 +146,7 @@ class speech extends api implements Recogniser {
 
   queued: UpdateData[] = [];
 
-  result = (event: SpeechAPIEvent) => this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
+  result = (event: SpeechRecognitionEvent) => this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
 
   processing: number = 0;
 
@@ -195,9 +189,9 @@ class speech extends api implements Recogniser {
     }
   };
 
-  error = (event: SpeechAPIErrorEvent) => this.queued.push(new ErrorUpdate(event));
+  error = (event: SpeechRecognitionErrorEvent) => this.queued.push(new ErrorUpdate(event));
 
-  nomatch = (event: SpeechAPIEvent) =>
+  nomatch = (event: SpeechRecognitionEvent) =>
     this.queued.push(
       new ErrorUpdate(
         event.timeStamp,

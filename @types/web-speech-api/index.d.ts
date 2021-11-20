@@ -21,10 +21,10 @@ declare global {
   /*~ Here, declare things that go in the global namespace, or augment
    *~ existing declarations in the global namespace
    */
-  interface window {
+  interface Window {
     /** Central interface for Speech Recognition tasks.
      */
-    SpeechRecognition?: SpeechRecognition;
+    SpeechRecognition?: SpeechRecognitionConstructor;
 
     /** Chrome-specific prefixed variant for SpeechRecognition.
      *
@@ -33,7 +33,7 @@ declare global {
      * Edge do not support window.SpeechRecognition. The interface for both
      * is fortunately identical.
      */
-    webkitSpeechRecognition?: SpeechRecognition;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
 
     /** Central interface for Speech Synthesis tasks.
      *
@@ -43,6 +43,8 @@ declare global {
     SpeechSynthesis: SpeechSynthesis;
   }
 }
+
+export type SpeechRecognitionConstructor = new () => SpeechRecognition;
 
 export interface SpeechRecognition extends EventTarget {
   constructor();
@@ -148,6 +150,8 @@ export interface SpeechRecognition extends EventTarget {
    */
   maxAlternatives: number;
 
+  readonly serviceURI?: string;
+
   start();
   stop();
   abort();
@@ -203,14 +207,14 @@ export interface SpeechRecognitionResultList {
   item(index: number): SpeechRecognitionResult;
 }
 
-export interface SpeechRecognitionEvent {
+export interface SpeechRecognitionEvent extends Event {
   constructor(type: string, eventInitDict: SpeechRecognitionEventInit);
 
   readonly resultIndex: number;
   readonly results: SpeechRecognitionResultList;
 }
 
-export interface SpeechRecognitionEventInit {
+export interface SpeechRecognitionEventInit extends EventInit {
   resultIndex: number;
   results: SpeechRecognitionResultList;
 }

@@ -1,5 +1,7 @@
 /** @format */
 
+import { SpeechRecognitionConstructor, SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent, SpeechRecognitionResultList, SpeechRecognitionResult, SpeechRecognitionAlternative } from '../@types/web-speech-api';
+
 import { ONodeUpdater, OExplicitNodeUpdater, Access } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
@@ -8,57 +10,15 @@ import { Branch } from './caption-branch.js';
 import { Branches, Alternatives } from './caption-alternatives.js';
 import { Transcript } from './caption-transcript.js';
 
-export interface Recogniser extends EventTarget {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  serviceURI?: string;
-
-  constructor();
-
-  start(): void;
-  stop(): void;
-  abort(): void;
-}
-
-export interface SpeechAPIAlternative {
-  transcript: string;
-  confidence: number;
-}
-
-export interface SpeechAPIResult {
-  length: number;
-  isFinal: boolean;
-
-  item(i: number): SpeechAPIAlternative | null;
-}
-
-export interface SpeechAPIResultList {
-  length: number;
-
-  item(i: number): SpeechAPIResult;
-}
-
-export interface SpeechAPIEvent extends Event {
-  resultIndex: number;
-  results: SpeechAPIResultList;
-}
-
-export interface SpeechAPIErrorEvent extends Event {
-  error: string;
-  message: string;
-}
-
 export class SpeechAPIUpdate {
   public readonly error = false;
 
-  results: SpeechAPIResultList;
+  results: SpeechRecognitionResultList;
   index: number;
   length: number;
   timestamp: number;
 
-  constructor(event: SpeechAPIEvent, public readonly language: string) {
+  constructor(event: SpeechRecognitionEvent, public readonly language: string) {
     this.results = event.results;
     this.index = event.resultIndex ?? 0;
     this.length = event.results?.length ?? 0;
@@ -74,20 +34,20 @@ export class ErrorUpdate {
   source: string;
   message?: string;
 
-  constructor(event: SpeechAPIErrorEvent);
+  constructor(event: SpeechRecognitionErrorEvent);
   constructor(timestamp: number, code: string, source: string, message?: string);
 
-  constructor(event: SpeechAPIErrorEvent | number, code?: string, source?: string, message?: string) {
+  constructor(event: SpeechRecognitionErrorEvent | number, code?: string, source?: string, message?: string) {
     if (code) {
       this.timestamp = event as number;
       this.code = code;
       this.source = source || 'Generic Error Event';
       this.message = message;
     } else {
-      this.timestamp = (event as SpeechAPIErrorEvent).timeStamp;
-      this.code = (event as SpeechAPIErrorEvent).error;
+      this.timestamp = (event as SpeechRecognitionErrorEvent).timeStamp;
+      this.code = (event as SpeechRecognitionErrorEvent).error.toString();
       this.source = 'SpeechRecognition API Error Event';
-      this.message = (event as SpeechAPIErrorEvent).message || undefined;
+      this.message = (event as SpeechRecognitionErrorEvent).message || undefined;
     }
   }
 }
@@ -108,7 +68,7 @@ export const Fabricate = {
 
 export const SpeechAPI = {
   fromAlternative: (
-    alt: SpeechAPIAlternative,
+    alt: SpeechRecognitionAlternative,
     final: boolean,
     timestamp: number,
     language: string
@@ -125,7 +85,7 @@ export const SpeechAPI = {
   },
 
   fromResult: (
-    result: SpeechAPIResult,
+    result: SpeechRecognitionResult,
     idx: number,
     timestamp: number,
     language: string
@@ -144,7 +104,7 @@ export const SpeechAPI = {
   },
 
   fromList: (
-    list: SpeechAPIResultList,
+    list: SpeechRecognitionResultList,
     idx: number,
     length: number,
     timestamp: number,
@@ -153,7 +113,7 @@ export const SpeechAPI = {
     let ets: number = timestamp || performance.now();
     let ds: Alternatives[] = [];
     for (let i = idx ?? 0; i < (length ?? list.length); i++) {
-      const result: SpeechAPIResult = list.item(i);
+      const result: SpeechRecognitionResult = list.item(i);
       const branches = SpeechAPI.fromResult(result, i, ets, language);
       ds.push(branches);
     }
