@@ -57,10 +57,13 @@ export class Lines extends OuterHull<Alternatives> {
     }
 
     for (const idVal of byIndex) {
-      const index: number = idVal[0];
+      const index: number | undefined = ((resultLength !== undefined) && (idVal[0] >= resultLength)) ? undefined : idVal[0];
       const bs: Alternatives = idVal[1];
 
-      if (finalIndices.has(index)) {
+      if (index === undefined) {
+        // entries deliberately abandoned in this merge
+        yield new Alternatives(bs.branches, index, false);
+      } else if (finalIndices.has(index)) {
         yield new Alternatives(bs.branches, index, true);
       } else if (abandonedIndices.has(index)) {
         yield new Alternatives(bs.branches, undefined, false);
