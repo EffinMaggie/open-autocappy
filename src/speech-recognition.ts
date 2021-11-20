@@ -23,6 +23,7 @@ import {
 import { Alternatives } from './caption-alternatives.js';
 import { Transcript } from './caption-transcript.js';
 import { CaptionError } from './caption-error.js';
+import { Ticker } from './caption-ticker.js';
 
 type usable = new () => Recogniser;
 
@@ -90,12 +91,6 @@ class settings {
 class speech extends api implements Recogniser {
   private readonly settings = new settings();
 
-  protected ticks = Status.ticks;
-
-  protected readonly defaultProcessTimeAllowance: number = 100;
-  protected readonly minProcessTimeAllowance: number = 40;
-  protected readonly maxUnfinishedUpdates: number = 40;
-
   private readonly predicates = {
     audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
     sound: new tracker(this, 'hasSound', ['soundstart'], ['soundend']),
@@ -107,6 +102,8 @@ class speech extends api implements Recogniser {
     panic: new predicate(() => this.ticks.tick > 75 && this.ticks.tick < 80),
     zombie: new predicate(() => this.ticks.tick > 50 && this.ticks.tick < 75),
   };
+
+  protected ticks = document.querySelector('p[is="caption-ticker"]') as Ticker;
 
   protected transcript = document.querySelector(
     '.captions ol.transcript[is="caption-transcript"]'
@@ -322,22 +319,6 @@ class speech extends api implements Recogniser {
 
   private readonly enabled = (this.weave.on = true);
   private readonly enabledTicker = (this.weaveTicker.on = true);
-
-  get maxProcessTimeAllowance(): number {
-    // limit speech API update processing to half the pulse delay.
-    //
-    // since the pulse delay scales with uninterrupted ticks, this means
-    // we have relatively little time in times when the browser is hitting
-    // us with lots of updates, while backing off in case we accrue a
-    // backlog or the browser is slowing down for other reasons, allowing
-    // us to catch up in those cases and ideally take some load off the
-    // browser UI threads.
-    const allowance = this.ticks.pulseDelay / 2;
-
-    return isNaN(allowance)
-      ? this.defaultProcessTimeAllowance
-      : Math.max(allowance, this.minProcessTimeAllowance);
-  }
 
   constructor() {
     super();

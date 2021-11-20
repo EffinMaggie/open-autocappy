@@ -1,7 +1,6 @@
 /** @format */
 
 import { ONodeQueryUpdater, Access } from './dom-manipulation.js';
-import { Ticker } from './caption-ticker.js';
 
 export namespace Status {
   export const lastError = new Access.Storage(new ONodeQueryUpdater('#status-last-error'));
@@ -10,8 +9,6 @@ export namespace Status {
   );
 
   export const serviceURI = new Access.Storage(new ONodeQueryUpdater('#status-service'));
-
-  export const ticks = document.querySelector('p[is="caption-ticker"]') as Ticker;
 
   export const captioning = new Access.Classes(
     new ONodeQueryUpdater('#status-captioning', 'class', 'predicate')
