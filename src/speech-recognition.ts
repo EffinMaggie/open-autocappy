@@ -1,6 +1,14 @@
 /** @format */
 
-import { SpeechRecognitionConstructor, SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent, SpeechRecognitionResultList, SpeechRecognitionResult, SpeechRecognitionAlternative } from '../@types/web-speech-api';
+import {
+  SpeechRecognitionConstructor,
+  SpeechRecognition,
+  SpeechRecognitionEvent,
+  SpeechRecognitionErrorEvent,
+  SpeechRecognitionResultList,
+  SpeechRecognitionResult,
+  SpeechRecognitionAlternative,
+} from '../@types/web-speech-api';
 
 import { Series, StdDev } from './streaming.js';
 import { Status, Settings } from './dom-interface.js';
@@ -12,12 +20,7 @@ import {
   tracker,
   syncPredicateStyle,
 } from './declare-events.js';
-import {
-  SpeechAPI,
-  UpdateData,
-  SpeechAPIUpdate,
-  ErrorUpdate,
-} from './caption-branches.js';
+import { SpeechAPI, UpdateData, SpeechAPIUpdate, ErrorUpdate } from './caption-branches.js';
 import { Alternatives } from './caption-alternatives.js';
 import { Transcript } from './caption-transcript.js';
 import { Ticker } from './caption-ticker.js';
@@ -146,7 +149,8 @@ class speech extends api implements SpeechRecognition {
 
   queued: UpdateData[] = [];
 
-  result = (event: SpeechRecognitionEvent) => this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
+  result = (event: SpeechRecognitionEvent) =>
+    this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
 
   processing: number = 0;
 

@@ -1,3 +1,5 @@
+/** @format */
+
 // Type definitions for Web Speech API - 18 August 2020 Draft
 // Project: https://wicg.github.io/speech-api/#api_description
 // Definitions by: Maggie Danger https://github.com/EffinMaggie

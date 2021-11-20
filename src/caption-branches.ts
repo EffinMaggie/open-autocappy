@@ -1,6 +1,14 @@
 /** @format */
 
-import { SpeechRecognitionConstructor, SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent, SpeechRecognitionResultList, SpeechRecognitionResult, SpeechRecognitionAlternative } from '../@types/web-speech-api';
+import {
+  SpeechRecognitionConstructor,
+  SpeechRecognition,
+  SpeechRecognitionEvent,
+  SpeechRecognitionErrorEvent,
+  SpeechRecognitionResultList,
+  SpeechRecognitionResult,
+  SpeechRecognitionAlternative,
+} from '../@types/web-speech-api';
 
 import { ONodeUpdater, OExplicitNodeUpdater, Access } from './dom-manipulation.js';
 import { CompareResult, PartialOrder, QValue, OuterHull, sort } from './qualified.js';
@@ -37,7 +45,12 @@ export class ErrorUpdate {
   constructor(event: SpeechRecognitionErrorEvent);
   constructor(timestamp: number, code: string, source: string, message?: string);
 
-  constructor(event: SpeechRecognitionErrorEvent | number, code?: string, source?: string, message?: string) {
+  constructor(
+    event: SpeechRecognitionErrorEvent | number,
+    code?: string,
+    source?: string,
+    message?: string
+  ) {
     if (code) {
       this.timestamp = event as number;
       this.code = code;
