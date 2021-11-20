@@ -1,6 +1,7 @@
 /** @format */
 
 import { MutableValue, ToString, FromString } from './qualified.js';
+import { action, actions, listeners, poke } from './declare-events.js';
 
 const defaultStringValue: string = '[default value]';
 
@@ -25,9 +26,10 @@ const attributeChange = (
   superfluous: valueSet,
   coalesce: string,
   element: HTMLElement,
-  value?: string
+  value: string,
+  cachedValue?: string
 ): void => {
-  const currentValue: string = attributeText(attribute, coalesce, element);
+  const currentValue: string = cachedValue ?? attributeText(attribute, coalesce, element);
   const wantValue: string = value || coalesce;
 
   if (superfluous.has(wantValue) || wantValue == coalesce) {
@@ -43,9 +45,10 @@ const elementChange = (
   superfluous: valueSet,
   coalesce: string,
   element: HTMLElement,
-  value?: string
+  value: string,
+  cachedValue?: string
 ): void => {
-  const currentValue: string = elementText(coalesce, element);
+  const currentValue: string = cachedValue ?? elementText(coalesce, element);
   const wantValue: string = value || coalesce;
 
   if (superfluous.has(wantValue) || wantValue === coalesce) {
@@ -82,20 +85,27 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     const value = nv.trim();
 
     if (this.attribute) {
-      attributeChange(this.attribute, this.superfluous, this.coalesce, node, value);
+      attributeChange(this.attribute, this.superfluous, this.coalesce, node, value, this.cachedValue);
     } else {
-      elementChange(this.superfluous, this.coalesce, node, value);
+      elementChange(this.superfluous, this.coalesce, node, value, this.cachedValue);
     }
   }
 
   get value(): string {
+    if (this.cachedValue !== undefined) {
+      return this.cachedValue;
+    }
+
     for (let node of this.nodes) {
       const nv = this.text(node);
 
       if (nv !== undefined) {
+        this.cachedValue = nv;
         return nv;
       }
     }
+
+    this.cachedValue = this.coalesce;
     return this.coalesce;
   }
 
@@ -103,6 +113,8 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     for (const node of this.nodes) {
       this.change(node, to);
     }
+
+    this.cachedValue = to;
   }
 
   get string() {
@@ -113,7 +125,67 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     this.value = value;
   }
 
-  superfluous: valueSet;
+  protected superfluous: valueSet;
+
+  protected lastConfirmedCacheStatus?: boolean;
+  protected lastConfirmedValue?: string;
+
+  protected get cacheEnabled(): boolean {
+    return this.lastConfirmedCacheStatus ?? false;
+  }
+
+  protected set cacheEnabled(value: boolean) {
+    if (this.cacheEnabled !== value) {
+      this.lastConfirmedCacheStatus = value;
+      if (value) {
+        const mutationOpts = this.attribute
+          ? {
+              attributeFilter: [this.attribute],
+            }
+          : {
+              characterData: true,
+            };
+
+        for (const node of this.nodes) {
+          this.observer.observe(node, mutationOpts);
+        }
+      } else {
+        this.lastConfirmedCacheStatus = false;
+        this.observer.disconnect();
+        this.cachedValue = undefined;
+      }
+    }
+  }
+
+  protected get cachedValue(): string | undefined {
+    if (!this.cacheEnabled) {
+      return undefined;
+    }
+
+    return this.lastConfirmedValue;
+  }
+
+  protected set cachedValue(value: string | undefined) {
+    if (value === undefined) {
+      this.lastConfirmedValue = undefined;
+    } else if (this.cacheEnabled) {
+      if (this.lastConfirmedValue !== value) {
+        this.lastConfirmedValue = value;
+        poke(this, 'value-change-observed');
+      }
+    }
+  }
+
+  syncCache = () => {
+    this.cachedValue = undefined;
+    this.cachedValue = this.value;
+  };
+
+  protected observer: MutationObserver = new MutationObserver(
+    // don't try to be smart here, instead make sure to be very selective
+    // during registration.
+    this.syncCache
+  );
 
   constructor(
     private readonly attribute?: string,
@@ -135,20 +207,18 @@ export class OExplicitNodeUpdater extends ONodeUpdater {
 
   constructor(private readonly node: HTMLElement, attribute?: string, coalesce?: string) {
     super(attribute, coalesce);
+    this.cacheEnabled = true;
   }
 }
 
 export class ONodeQueryUpdater extends ONodeUpdater {
   get nodes(): Iterable<HTMLElement> {
-    if (this.query) {
-      return document.querySelectorAll(this.query);
-    }
-
-    return [];
+    return document.querySelectorAll(this.query);
   }
 
   constructor(protected readonly query: string, attribute?: string, coalesce?: string) {
     super(attribute, coalesce);
+    this.cacheEnabled = true;
   }
 }
 
@@ -178,13 +248,35 @@ export namespace Access {
   }
 
   export class Numeric extends FromNode {
+    observedValue?: number;
+
     get number(): number {
+      if (this.observedValue !== undefined) {
+        return this.observedValue;
+      }
+
       return Number(this.updater.value);
     }
 
     set number(value: number) {
       this.updater.value = value.toString();
+
+      if (this.observedValue !== undefined) {
+        this.observedValue = value;
+      }
     }
+
+    cache = () => {
+      this.observedValue = undefined;
+      this.observedValue = Number(this.updater.value);
+    };
+
+    private readonly weave = new listeners(
+      [this.updater],
+      new actions([action.make(this.cache, 'cache-value').upon(['value-change-observed'])])
+    );
+
+    private readonly enabled = (this.weave.on = true);
   }
 
   export class Classes extends FromNode {

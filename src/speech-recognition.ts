@@ -214,7 +214,7 @@ class speech extends api implements Recogniser {
     Status.lastErrorMessage.string = 'API reached patience limit';
   };
 
-  ticker = () => {
+  ticker = async () => {
     if (this.predicates.running.fail()) {
       // we should always be running, therefore if we're not, try to
       // start again - the API likes to "d'oh" out randomly.
