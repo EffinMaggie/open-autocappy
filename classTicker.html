@@ -88,15 +88,9 @@ get&#160;</td><td class="memItemRight" valign="bottom"><b>tick</b> ()</td></tr>
 <tr class="memitem:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memItemLeft" align="right" valign="top"><a id="af6ccf451cfc71f45bd0102bba46ade0f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>callbackTimingSample</b> (timingMS:number)</td></tr>
 <tr class="separator:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6de562ab5970462c674bb6e02b23743d"><td class="memItemLeft" align="right" valign="top"><a id="a6de562ab5970462c674bb6e02b23743d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>scheduleNextPulse</b> ()</td></tr>
-<tr class="separator:a6de562ab5970462c674bb6e02b23743d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17cab667cf1b3232419559a330f43aaa"><td class="memItemLeft" align="right" valign="top"><a id="a17cab667cf1b3232419559a330f43aaa"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>pulsar</b> ()</td></tr>
-<tr class="separator:a17cab667cf1b3232419559a330f43aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9967c30dfc6794962434fd30fd86a5e3"><td class="memItemLeft" align="right" valign="top"><a id="a9967c30dfc6794962434fd30fd86a5e3"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsar</b> ()</td></tr>
-<tr class="separator:a9967c30dfc6794962434fd30fd86a5e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9b8d5c894715048b3436a862cebb61c"><td class="memItemLeft" align="right" valign="top"><a id="af9b8d5c894715048b3436a862cebb61c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>scheduleNextPulse</b> (now:number=this.currentPulseAt ?? performance.now())</td></tr>
+<tr class="separator:af9b8d5c894715048b3436a862cebb61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -106,26 +100,20 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a45d8853ae70e5d456299f7d3d11d5ae7"><td class="memItemLeft" align="right" valign="top"><a id="a45d8853ae70e5d456299f7d3d11d5ae7"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>interval</b> = new <a class="el" href="classAccess_1_1Numeric.html">Access.Numeric</a>(this.accessors.interval)</td></tr>
 <tr class="separator:a45d8853ae70e5d456299f7d3d11d5ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b937c6bb251288811daf17ac29a7375"><td class="memItemLeft" align="right" valign="top"><a id="a8b937c6bb251288811daf17ac29a7375"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>boundPulsar</b> = this.pulsar.bind(this)</td></tr>
-<tr class="separator:a8b937c6bb251288811daf17ac29a7375"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abefd7367f00a219b26de7151c626014e"><td class="memItemLeft" align="right" valign="top"><a id="abefd7367f00a219b26de7151c626014e"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>boundResetPulsar</b> = this.resetPulsar.bind(this)</td></tr>
-<tr class="separator:abefd7367f00a219b26de7151c626014e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae4dbf46686a335f035e0e92a58197d42"><td class="memItemLeft" align="right" valign="top"><a id="ae4dbf46686a335f035e0e92a58197d42"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarIntervalID</b> = window.setInterval(this.boundResetPulsar, this.resetPulsarInterval)</td></tr>
-<tr class="separator:ae4dbf46686a335f035e0e92a58197d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2669e20028029323e0cec7985691a54a"><td class="memItemLeft" align="right" valign="top"><a id="a2669e20028029323e0cec7985691a54a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>pulsar</b></td></tr>
+<tr class="separator:a2669e20028029323e0cec7985691a54a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:aaaa80c5c96cf30be0c42b27532c2ef58"><td class="memItemLeft" align="right" valign="top"><a id="aaaa80c5c96cf30be0c42b27532c2ef58"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>defaultPulseDelay</b>: number = 150</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>defaultPulseDelay</b>: number = 100</td></tr>
 <tr class="separator:aaaa80c5c96cf30be0c42b27532c2ef58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6d9241a821ebcd5d071d1ec92a54265"><td class="memItemLeft" align="right" valign="top"><a id="aa6d9241a821ebcd5d071d1ec92a54265"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>minPulseDelay</b>: number = 20</td></tr>
 <tr class="separator:aa6d9241a821ebcd5d071d1ec92a54265"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8ab591d65adccef8fa340a4ffb1ab00"><td class="memItemLeft" align="right" valign="top"><a id="af8ab591d65adccef8fa340a4ffb1ab00"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>maxPulseDelay</b>: number = 300</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>maxPulseDelay</b>: number = 500</td></tr>
 <tr class="separator:af8ab591d65adccef8fa340a4ffb1ab00"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abafc98f8152ab0971742196aef1e1e80"><td class="memItemLeft" align="right" valign="top"><a id="abafc98f8152ab0971742196aef1e1e80"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsarInterval</b>: number = 50</td></tr>
@@ -142,9 +130,12 @@ lastTimingSample&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__<
 <tr class="memitem:af2c32843bc14a96fda5e849fb01d2425"><td class="memItemLeft" align="right" valign="top"><a id="af2c32843bc14a96fda5e849fb01d2425"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>median</b> = new StdDev.Median&lt;<a class="el" href="classSeries_1_1Sampled.html">Series.Sampled</a>&gt;(this.samples, this.defaultPulseDelay)</td></tr>
 <tr class="separator:af2c32843bc14a96fda5e849fb01d2425"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac7acf7ab36b9af57539abee372e8ccab"><td class="memItemLeft" align="right" valign="top"><a id="ac7acf7ab36b9af57539abee372e8ccab"></a>
-get pulseDelay()&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarTimeoutID</b>: number</td></tr>
-<tr class="separator:ac7acf7ab36b9af57539abee372e8ccab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fb11545ca49b7b090823ea39bb83ae9"><td class="memItemLeft" align="right" valign="top"><a id="a8fb11545ca49b7b090823ea39bb83ae9"></a>
+get pulseDelay()&#160;</td><td class="memItemRight" valign="bottom"><b>currentPulseAt</b>: number</td></tr>
+<tr class="separator:a8fb11545ca49b7b090823ea39bb83ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5715f7685d9de40db69d1e80dc5ddce"><td class="memItemLeft" align="right" valign="top"><a id="af5715f7685d9de40db69d1e80dc5ddce"></a>
+pulsarTimeoutID&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: number</td></tr>
+<tr class="separator:af5715f7685d9de40db69d1e80dc5ddce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/caption-ticker.ts</li>
