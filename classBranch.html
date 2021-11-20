@@ -63,6 +63,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classBranch-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Branch Class Reference</div>  </div>
@@ -77,9 +78,9 @@ Inheritance diagram for Branch:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae48b7c8ae98c76c6380554e3bfb40012"><td class="memItemLeft" align="right" valign="top"><a id="ae48b7c8ae98c76c6380554e3bfb40012"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (when:DateBetween, confidence:QValue, final:boolean=false, text:string='', source:string='', language:string='')</td></tr>
-<tr class="separator:ae48b7c8ae98c76c6380554e3bfb40012"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac771d8c9e8495366f8415830c1eee7e8"><td class="memItemLeft" align="right" valign="top"><a id="ac771d8c9e8495366f8415830c1eee7e8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (when:DateBetween, confidence:QValue, final:boolean, text:string, source:string, language:string, error?:string,)</td></tr>
+<tr class="separator:ac771d8c9e8495366f8415830c1eee7e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad059ef58a76ba2bdf34c86335557909e"><td class="memItemLeft" align="right" valign="top"><a id="ad059ef58a76ba2bdf34c86335557909e"></a>
 get&#160;</td><td class="memItemRight" valign="bottom"><b>confidence</b> ()</td></tr>
 <tr class="separator:ad059ef58a76ba2bdf34c86335557909e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -98,9 +99,18 @@ get&#160;</td><td class="memItemRight" valign="bottom"><b>source</b> ()</td></tr
 <tr class="memitem:a9a6a96a8b21b7f4556c601288d5127d0"><td class="memItemLeft" align="right" valign="top"><a id="a9a6a96a8b21b7f4556c601288d5127d0"></a>
 get&#160;</td><td class="memItemRight" valign="bottom"><b>language</b> ()</td></tr>
 <tr class="separator:a9a6a96a8b21b7f4556c601288d5127d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70c9f560e7b16607e5c4460cbcabdb1a"><td class="memItemLeft" align="right" valign="top"><a id="a70c9f560e7b16607e5c4460cbcabdb1a"></a>
+get&#160;</td><td class="memItemRight" valign="bottom"><b>error</b> ()</td></tr>
+<tr class="separator:a70c9f560e7b16607e5c4460cbcabdb1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a400a21cd7a843f19a6f98068854f87d9"><td class="memItemLeft" align="right" valign="top"><a id="a400a21cd7a843f19a6f98068854f87d9"></a>
 get&#160;</td><td class="memItemRight" valign="bottom"><b>text</b> ()</td></tr>
 <tr class="separator:a400a21cd7a843f19a6f98068854f87d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:ac547f573730bd1bd3f242afa58a80e31"><td class="memItemLeft" align="right" valign="top"><a id="ac547f573730bd1bd3f242afa58a80e31"></a>
+static&#160;</td><td class="memItemRight" valign="bottom"><b>makeError</b> (when:DateBetween, error:string, source:string, message:string=error)</td></tr>
+<tr class="separator:ac547f573730bd1bd3f242afa58a80e31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/caption-branch.ts</li>

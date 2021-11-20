@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['extendedpartialorder_55',['extendedPartialOrder',['../classextendedPartialOrder.html',1,'']]]
+  ['errorupdate_56',['ErrorUpdate',['../classErrorUpdate.html',1,'']]],
+  ['extendedpartialorder_57',['extendedPartialOrder',['../classextendedPartialOrder.html',1,'']]]
 ];
