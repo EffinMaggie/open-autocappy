@@ -17,7 +17,7 @@ export class Ticker extends HTMLParagraphElement {
   }
 
   private accessors = {
-    ticks: new OExplicitNodeUpdater(this),
+    ticks: new OExplicitNodeUpdater(this, undefined, '0'),
     interval: new OExplicitNodeUpdater(this, 'data-interval', '500'),
   };
 
@@ -82,7 +82,7 @@ export class Ticker extends HTMLParagraphElement {
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
-    return isNaN(delay) ? this.defaultPulseDelay : Math.min(Math.max(delay, this.minPulseDelay), this.maxPulseDelay);
+    return isNaN(delay) ? this.defaultPulseDelay : Math.floor(Math.min(Math.max(delay, this.minPulseDelay), this.maxPulseDelay));
   }
 
   protected nextPulseAt?: number;

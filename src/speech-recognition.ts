@@ -11,7 +11,6 @@ import {
   syncPredicateStyle,
 } from './declare-events.js';
 import {
-  DOM,
   Recogniser,
   SpeechAPI,
   SpeechAPIEvent,
@@ -50,11 +49,6 @@ function assertUsableAPI(api): asserts api is usable {
 
 const api = pickAPI();
 assertUsableAPI(api);
-
-function canStoreTranscript(where: Element): asserts where is HTMLOListElement {
-  console.assert(where);
-  console.assert(where && where.nodeName.toLowerCase() === 'ol');
-}
 
 class settings {
   get lang(): string {
@@ -124,13 +118,18 @@ class speech extends api implements Recogniser {
   protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
 
   snapshot = (full: boolean = false) => {
+    // with the current DOM enhancements, maybe we don't need to snapshot.
+    // return;
+
     for (const ol of document.querySelectorAll('.captions ol.history[is="caption-transcript"]') as NodeListOf<Transcript>) {
+      let moveNodes: Alternatives[] = [];
       for (const li of document.querySelectorAll(
         full ? speech.transcriptLineSelector : speech.transcriptSafeLineSelector
        ) as NodeListOf<Alternatives>) {
         li.index = undefined;
-        ol.append(li);
+        moveNodes.push(li);
       }
+      ol.take(moveNodes);
     }
   };
 
@@ -170,10 +169,8 @@ class speech extends api implements Recogniser {
         }
 
         const ts = SpeechAPI.fromData(data);
-        for (const transcript of document.querySelectorAll('.captions ol.transcript')) {
-          canStoreTranscript(transcript);
-
-          DOM.merge(transcript, ts);
+        for (const transcript of document.querySelectorAll('.captions ol.transcript') as NodeListOf<Transcript>) {
+          transcript.load(ts);
         }
 
         doSnapshot = true;

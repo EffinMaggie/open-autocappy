@@ -20,38 +20,23 @@ function elementText(coalesce: string, element: HTMLElement): string {
   return element.innerText;
 }
 
-const withAttributeText = async (attribute: string, coalesce: string, element: HTMLElement) =>
-  attributeText(attribute, coalesce, element);
-
-const withElementText = async (coalesce: string, element: HTMLElement) =>
-  elementText(coalesce, element);
-
 const attributeChange = (
   attribute: string,
   superfluous: valueSet,
   coalesce: string,
   element: HTMLElement,
   value?: string
-): Promise<boolean> => {
-  return withAttributeText(attribute, coalesce, element).then((currentValue: string) => {
+): void => {
+    const currentValue: string = attributeText(attribute, coalesce, element);
     const wantValue: string = value || coalesce;
 
     if (superfluous.has(wantValue) || wantValue == coalesce) {
       if (element.hasAttribute(attribute)) {
         element.removeAttribute(attribute);
-        return true;
       }
-
-      return false;
-    }
-
-    if (currentValue != wantValue) {
+    } else if (currentValue != wantValue) {
       element.setAttribute(attribute, wantValue);
-      return true;
     }
-
-    return false;
-  });
 };
 
 const elementChange = (
@@ -59,26 +44,17 @@ const elementChange = (
   coalesce: string,
   element: HTMLElement,
   value?: string
-): Promise<boolean> => {
-  return withElementText(coalesce, element).then((currentValue: string) => {
+): void => {
+    const currentValue: string = elementText(coalesce, element);
     const wantValue: string = value || coalesce;
 
     if (superfluous.has(wantValue) || wantValue === coalesce) {
       if (currentValue !== '') {
         element.innerText = '';
-        return true;
       }
-
-      return false;
+    } else if (currentValue != wantValue) {
+      element.innerText = wantValue;
     }
-
-    if (wantValue === currentValue) {
-      return false;
-    }
-
-    element.innerText = wantValue;
-    return true;
-  });
 };
 
 export class ONodeUpdater extends EventTarget implements MutableValue<string>, FromString {
@@ -106,10 +82,10 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     const value = nv.trim();
 
     if (this.attribute) {
-      return attributeChange(this.attribute, this.superfluous, this.coalesce, node, value);
+      attributeChange(this.attribute, this.superfluous, this.coalesce, node, value);
+    } else {
+      elementChange(this.superfluous, this.coalesce, node, value);
     }
-
-    return elementChange(this.superfluous, this.coalesce, node, value);
   }
 
   get value(): string {
@@ -226,12 +202,12 @@ export namespace Access {
       let s = new Set(attr);
       s.delete('');
 
-      for (const cls of add) {
-        s.add(cls);
-      }
-
       for (const cls of remove) {
         s.delete(cls);
+      }
+
+      for (const cls of add) {
+        s.add(cls);
       }
 
       this.classes = s;

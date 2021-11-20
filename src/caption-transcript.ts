@@ -95,6 +95,10 @@ export class Transcript extends HTMLOListElement {
     this.replaceChildren(...this.lines);
   }
 
+  take(ts: Iterable<Alternatives>) {
+    this.adopt(this.lines.concat(ts), this.index, this.length);
+  }
+
   load(ts: Transcript) {
     this.adopt(this.lines.concat(ts.lines), ts.index, ts.length);
   }

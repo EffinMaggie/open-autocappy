@@ -36,7 +36,7 @@ export class Alternatives extends HTMLLIElement {
   }
 
   private accessors = {
-    classes: new OExplicitNodeUpdater(this, 'class', ''),
+    classes: new OExplicitNodeUpdater(this, 'class', 'undecided'),
     index: new OExplicitNodeUpdater(this, 'data-index', '-1'),
   };
 
@@ -51,16 +51,20 @@ export class Alternatives extends HTMLLIElement {
 
   set final(final: boolean) {
     if (final) {
-      this.model.classes.modify(['abandoned', 'interim'], ['final']);
-    } else if (this.abandoned) {
-      this.model.classes.modify(['final', 'interim'], ['abandoned']);
+      this.model.classes.modify(['abandoned', 'interim', 'undecided'], ['final']);
+    } else if (this.index === undefined) {
+      this.model.classes.modify(['final', 'interim', 'undecided'], ['abandoned']);
     } else {
-      this.model.classes.modify(['abandoned', 'final'], ['interim']);
+      this.model.classes.modify(['abandoned', 'final', 'undecided'], ['interim']);
     }
   }
 
   get index(): number | undefined {
-    return this.model.index.number >= 0 ? this.model.index.number : undefined;
+    if (this.model.index.number === -1) {
+      return undefined;
+    }
+
+    return this.model.index.number;
   }
 
   set index(index: number | undefined) {
@@ -72,7 +76,7 @@ export class Alternatives extends HTMLLIElement {
   }
 
   get abandoned(): boolean {
-    return !this.final && this.index === undefined;
+    return !this.final && (this.index === undefined);
   }
 
   *whenHull(): Generator<MDate> {
