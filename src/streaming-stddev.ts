@@ -20,7 +20,6 @@ export namespace StdDev {
           sorted.sort((a, b) => (a - b));
 
           const median = sorted[Math.floor(sorted.length/2)];
-          console.log(sorted, median);
 
           return median;
         },

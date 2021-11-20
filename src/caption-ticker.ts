@@ -75,7 +75,7 @@ export class Ticker extends HTMLParagraphElement {
       Math.max(this.minPulseDelay, this.median.approximation);
 
     delay += 
-      (Math.min(this.deviation.deviation, this.maxPulseDelay - delay) * Math.log2(this.tick + 3) / 10);
+      (Math.min(this.deviation.deviation, this.maxPulseDelay - delay) * (Math.log2(this.tick + 3) / 10 - 0.2));
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
