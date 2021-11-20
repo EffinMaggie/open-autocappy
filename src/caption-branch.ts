@@ -5,13 +5,14 @@ import { CompareResult, PartialOrder, QValue, OuterHull } from './qualified.js';
 import { DateBetween } from './dated.js';
 
 export class Branch extends HTMLSpanElement implements PartialOrder {
-  constructor(
+  public constructor(
     when: DateBetween,
     confidence: QValue,
-    final: boolean = false,
-    text: string = '',
-    source: string = '',
-    language: string = ''
+    final: boolean,
+    text: string,
+    source: string,
+    language: string,
+    error?: string,
   ) {
     super();
     this.setAttribute('is', 'caption-branch');
@@ -22,6 +23,18 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     this.text = text;
     this.source = source;
     this.language = language;
+    this.error = error;
+  }
+
+  public static makeError(when: DateBetween, error: string, source: string, message: string = error): Branch {
+    return new Branch(
+      when,
+      new QValue(1.0),
+      true,
+      message,
+      source,
+      'error-code',
+      error);
   }
 
   private accessors = {
@@ -30,6 +43,8 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     when: new OExplicitNodeUpdater(this, 'data-when', ''),
     source: new OExplicitNodeUpdater(this, 'data-source', ''),
     lang: new OExplicitNodeUpdater(this, 'lang', ''),
+    error: new OExplicitNodeUpdater(this, 'data-error', ''),
+
     text: new OExplicitNodeUpdater(this, undefined, ''),
   };
 
@@ -39,6 +54,8 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     when: new Access.Storage(this.accessors.when),
     source: new Access.Storage(this.accessors.source),
     language: new Access.Storage(this.accessors.lang),
+    error: new Access.Storage(this.accessors.error),
+
     text: new Access.Storage(this.accessors.text),
   };
 
@@ -92,6 +109,20 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
 
   set language(language: string) {
     this.model.language.string = language;
+  }
+
+  get error(): string | undefined {
+    return this.model.error.string || undefined;
+  }
+
+  set error(error: string | undefined) {
+    this.model.error.string = error ?? '';
+
+    if (error) {
+      this.model.classes.modify(undefined, ['error']);
+    } else {
+      this.model.classes.modify(['error'], undefined);
+    }
   }
 
   get text(): string {

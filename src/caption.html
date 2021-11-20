@@ -12,21 +12,12 @@
     <meta name="continuous" content="true" />
     <meta name="interim-results" content="true" />
     <meta name="max-alternatives" content="4" />
-    <script type="module" src="caption-error.js"></script>
     <script type="module" src="caption-ticker.js"></script>
     <script type="module" src="caption-transcript.js"></script>
     <script type="module" src="speech-recognition.js"></script>
   </head>
 
   <body class="captions">
-    <template id="caption-error">
-      <link rel="stylesheet" type="text/css" href="caption-error.css" />
-      <li>
-        <slot name="error-type" class="error-type">error</slot>:
-        <slot name="error-description" class="error-description">description missing</slot>
-      </li>
-    </template>
-
     <p is="caption-ticker"></p>
 
     <p id="status-captioning">Captioning</p>
@@ -34,9 +25,6 @@
     <p id="status-sound">Sound</p>
     <p id="status-speech">Speech</p>
     <p id="status-service"></p>
-
-    <p id="status-last-error"></p>
-    <p id="status-last-error-message"></p>
 
     <ol class="transcript" is="caption-transcript"></ol>
     <ol class="history" is="caption-transcript"></ol>

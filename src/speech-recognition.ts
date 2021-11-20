@@ -19,10 +19,11 @@ import {
   SpeechAPIResult,
   SpeechAPIAlternative,
   UpdateData,
+  SpeechAPIUpdate,
+  ErrorUpdate,
 } from './caption-branches.js';
 import { Alternatives } from './caption-alternatives.js';
 import { Transcript } from './caption-transcript.js';
-import { CaptionError } from './caption-error.js';
 import { Ticker } from './caption-ticker.js';
 
 type usable = new () => Recogniser;
@@ -151,7 +152,7 @@ class speech extends api implements Recogniser {
 
   queued: UpdateData[] = [];
 
-  result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event, this.settings.lang));
+  result = (event: SpeechAPIEvent) => this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
 
   processing: number = 0;
 
@@ -194,20 +195,7 @@ class speech extends api implements Recogniser {
     }
   };
 
-  error = (event: SpeechAPIErrorEvent) => {
-    Status.lastError.string = event.error;
-
-    switch (event.error) {
-      case 'no-speech':
-        Status.lastErrorMessage.string =
-          'microphone is not hearing your voice; if you are still talking, please speak up';
-        return;
-    }
-
-    console.warn('SpeechRecognition API error', event.error, event.message, event);
-
-    Status.lastErrorMessage.string = event.message;
-  };
+  error = (event: SpeechAPIErrorEvent) => this.queued.push(new ErrorUpdate(event));
 
   nomatch = (event: SpeechAPIEvent) => {
     Status.lastError.string = 'no-match';

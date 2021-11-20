@@ -50,7 +50,9 @@ export interface SpeechAPIErrorEvent extends Event {
   message: string;
 }
 
-export class UpdateData {
+export class SpeechAPIUpdate {
+  public readonly error = false;
+
   results: SpeechAPIResultList;
   index: number;
   length: number;
@@ -63,6 +65,42 @@ export class UpdateData {
     this.timestamp = event.timeStamp ?? -1;
   }
 }
+
+export class ErrorUpdate {
+  public readonly error = true;
+
+  timestamp: number;
+  code: string;
+  source: string;
+  message?: string;
+
+  constructor(event: SpeechAPIErrorEvent) {
+    this.timestamp = event.timeStamp;
+    this.code = event.error;
+    this.source = 'SpeechRecognition API Error Event';
+    this.message = event.message || undefined;
+  }
+}
+
+export type UpdateData = SpeechAPIUpdate | ErrorUpdate;
+
+export const Fabricate = {
+  Error: (timestamp: number, error: string, source: string, message?: string): Transcript => {
+    const bs: Branch[] = [
+      Branch.makeError(
+        new DateBetween([new MDate(timestamp)]),
+        error,
+        source,
+        message),
+    ];
+
+    const alts: Alternatives[] = [
+      new Alternatives(bs, undefined, true),
+    ];
+
+    return new Transcript(alts);
+  }
+};
 
 export const SpeechAPI = {
   fromAlternative: (alt: SpeechAPIAlternative, final: boolean, timestamp: number, language: string): Branch => {
@@ -110,6 +148,10 @@ export const SpeechAPI = {
   },
 
   fromData: (data: UpdateData): Transcript => {
+    if (data.error) {
+      return Fabricate.Error(data.timestamp, data.code, data.source, data.message);
+    }
+
     return SpeechAPI.fromList(data.results, data.index, data.length, data.timestamp, data.language);
   },
 };
