@@ -36,13 +36,6 @@ declare global {
      * is fortunately identical.
      */
     webkitSpeechRecognition?: SpeechRecognitionConstructor;
-
-    /** Central interface for Speech Synthesis tasks.
-     *
-     * This appears to be predefined in Typescript - unlike the recognition
-     * interface, so I won't be redeclaring these interfaces
-     */
-    SpeechSynthesis: SpeechSynthesis;
   }
 }
 
