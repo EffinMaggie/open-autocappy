@@ -42,7 +42,8 @@ export class Ticker extends HTMLParagraphElement {
 
   protected lastTimingSample?: number;
   protected samples = new Series.Sampled([this.defaultPulseDelay], 25);
-  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, this.defaultPulseDelay);
+  protected deviation = new StdDev.Deviation<Series.Sampled>(this.samples, 0);
+  protected median = new StdDev.Median<Series.Sampled>(this.samples, this.defaultPulseDelay);
 
   public callbackTimingSample(timingMS: number) {
     const lastTimingSample = this.lastTimingSample;
@@ -58,6 +59,7 @@ export class Ticker extends HTMLParagraphElement {
 
       this.samples.sample(eventDelay);
       this.deviation.nextTerm(eventDelay);
+      this.median.nextTerm(eventDelay);
     }
   }
 
@@ -72,7 +74,7 @@ export class Ticker extends HTMLParagraphElement {
     // gradual decay in load for zombie or recovery cases, to give the
     // browser some breathing room.
     const delay =
-      Math.max(this.minPulseDelay, this.deviation.average) +
+      Math.max(this.minPulseDelay, this.median.approximation) +
       (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
 
     // fall back to default delay time iff somehow the math failed - which
