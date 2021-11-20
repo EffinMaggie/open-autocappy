@@ -197,10 +197,15 @@ class speech extends api implements Recogniser {
 
   error = (event: SpeechAPIErrorEvent) => this.queued.push(new ErrorUpdate(event));
 
-  nomatch = (event: SpeechAPIEvent) => {
-    Status.lastError.string = 'no-match';
-    Status.lastErrorMessage.string = 'API reached patience limit';
-  };
+  nomatch = (event: SpeechAPIEvent) =>
+    this.queued.push(
+      new ErrorUpdate(
+        event.timeStamp,
+        'nomatch',
+        'SpeechRecognition API',
+        'API did not recognise valid voice inputs and has abandoned any partial results'
+      )
+    );
 
   ticker = async () => {
     if (this.predicates.running.fail()) {

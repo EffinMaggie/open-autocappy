@@ -12,7 +12,7 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     text: string,
     source: string,
     language: string,
-    error?: string,
+    error?: string
   ) {
     super();
     this.setAttribute('is', 'caption-branch');
@@ -26,15 +26,13 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     this.error = error;
   }
 
-  public static makeError(when: DateBetween, error: string, source: string, message: string = error): Branch {
-    return new Branch(
-      when,
-      new QValue(1.0),
-      true,
-      message,
-      source,
-      'error-code',
-      error);
+  public static makeError(
+    when: DateBetween,
+    error: string,
+    source: string,
+    message: string = error
+  ): Branch {
+    return new Branch(when, new QValue(1.0), true, message, source, 'error-code', error);
   }
 
   private accessors = {

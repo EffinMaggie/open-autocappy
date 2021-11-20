@@ -74,11 +74,21 @@ export class ErrorUpdate {
   source: string;
   message?: string;
 
-  constructor(event: SpeechAPIErrorEvent) {
-    this.timestamp = event.timeStamp;
-    this.code = event.error;
-    this.source = 'SpeechRecognition API Error Event';
-    this.message = event.message || undefined;
+  constructor(event: SpeechAPIErrorEvent);
+  constructor(timestamp: number, code: string, source: string, message?: string);
+
+  constructor(event: SpeechAPIErrorEvent | number, code?: string, source?: string, message?: string) {
+    if (code) {
+      this.timestamp = event as number;
+      this.code = code;
+      this.source = source || 'Generic Error Event';
+      this.message = message;
+    } else {
+      this.timestamp = (event as SpeechAPIErrorEvent).timeStamp;
+      this.code = (event as SpeechAPIErrorEvent).error;
+      this.source = 'SpeechRecognition API Error Event';
+      this.message = (event as SpeechAPIErrorEvent).message || undefined;
+    }
   }
 }
 
@@ -87,23 +97,22 @@ export type UpdateData = SpeechAPIUpdate | ErrorUpdate;
 export const Fabricate = {
   Error: (timestamp: number, error: string, source: string, message?: string): Transcript => {
     const bs: Branch[] = [
-      Branch.makeError(
-        new DateBetween([new MDate(timestamp)]),
-        error,
-        source,
-        message),
+      Branch.makeError(new DateBetween([new MDate(timestamp)]), error, source, message),
     ];
 
-    const alts: Alternatives[] = [
-      new Alternatives(bs, undefined, true),
-    ];
+    const alts: Alternatives[] = [new Alternatives(bs, undefined, true)];
 
     return new Transcript(alts);
-  }
+  },
 };
 
 export const SpeechAPI = {
-  fromAlternative: (alt: SpeechAPIAlternative, final: boolean, timestamp: number, language: string): Branch => {
+  fromAlternative: (
+    alt: SpeechAPIAlternative,
+    final: boolean,
+    timestamp: number,
+    language: string
+  ): Branch => {
     let ets: number = timestamp || performance.now();
     return new Branch(
       new DateBetween([new MDate(ets)]),
@@ -115,7 +124,12 @@ export const SpeechAPI = {
     );
   },
 
-  fromResult: (result: SpeechAPIResult, idx: number, timestamp: number, language: string): Alternatives => {
+  fromResult: (
+    result: SpeechAPIResult,
+    idx: number,
+    timestamp: number,
+    language: string
+  ): Alternatives => {
     let bs: Branch[] = [];
     let ets: number = timestamp || performance.now();
     for (let i = 0; i < result.length; i++) {
@@ -134,7 +148,7 @@ export const SpeechAPI = {
     idx: number,
     length: number,
     timestamp: number,
-    language: string,
+    language: string
   ): Transcript => {
     let ets: number = timestamp || performance.now();
     let ds: Alternatives[] = [];
