@@ -2,12 +2,7 @@
 
 import { Series, StdDev } from './streaming.js';
 import { OExplicitNodeUpdater, Access } from './dom-manipulation.js';
-import {
-  action,
-  actions,
-  listeners,
-  poke,
-} from './declare-events.js';
+import { action, actions, listeners, poke } from './declare-events.js';
 
 export class Ticker extends HTMLParagraphElement {
   constructor() {
@@ -77,12 +72,14 @@ export class Ticker extends HTMLParagraphElement {
     // gradual decay in load for zombie or recovery cases, to give the
     // browser some breathing room.
     const delay =
-        Math.max(this.minPulseDelay, this.deviation.average) +
-        (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
+      Math.max(this.minPulseDelay, this.deviation.average) +
+      (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
-    return isNaN(delay) ? this.defaultPulseDelay : Math.floor(Math.min(Math.max(delay, this.minPulseDelay), this.maxPulseDelay));
+    return isNaN(delay)
+      ? this.defaultPulseDelay
+      : Math.floor(Math.min(Math.max(delay, this.minPulseDelay), this.maxPulseDelay));
   }
 
   protected nextPulseAt?: number;

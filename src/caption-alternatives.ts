@@ -76,7 +76,7 @@ export class Alternatives extends HTMLLIElement {
   }
 
   get abandoned(): boolean {
-    return !this.final && (this.index === undefined);
+    return !this.final && this.index === undefined;
   }
 
   *whenHull(): Generator<MDate> {

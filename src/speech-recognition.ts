@@ -108,9 +108,12 @@ class speech extends api implements Recogniser {
     zombie: new predicate(() => this.ticks.tick > 50 && this.ticks.tick < 75),
   };
 
-
-  protected transcript = document.querySelector('.captions ol.transcript[is="caption-transcript"]') as Transcript;
-  protected history = document.querySelector('.captions ol.history[is="caption-transcript"]') as Transcript;
+  protected transcript = document.querySelector(
+    '.captions ol.transcript[is="caption-transcript"]'
+  ) as Transcript;
+  protected history = document.querySelector(
+    '.captions ol.history[is="caption-transcript"]'
+  ) as Transcript;
 
   private readonly bindings = [
     new syncPredicateStyle(this.predicates.audio, Status.audio),
@@ -132,8 +135,10 @@ class speech extends api implements Recogniser {
     try {
       let didMove: boolean = false;
       for (const li of this.transcript.querySelectorAll(
-        full ? 'li[is="caption-alternatives"]' : 'li[is="caption-alternatives"].final, li[is="caption-alternatives"].abandoned'
-       ) as NodeListOf<Alternatives>) {
+        full
+          ? 'li[is="caption-alternatives"]'
+          : 'li[is="caption-alternatives"].final, li[is="caption-alternatives"].abandoned'
+      ) as NodeListOf<Alternatives>) {
         li.index = undefined;
         this.history.appendChild(li);
         didMove = true;
@@ -178,8 +183,8 @@ class speech extends api implements Recogniser {
 
         const ts = SpeechAPI.fromData(data);
 
-        doSnapshot ||= (ts.index != this.transcript.index);
-        doSnapshot ||= (ts.length != this.transcript.length);
+        doSnapshot ||= ts.index != this.transcript.index;
+        doSnapshot ||= ts.length != this.transcript.length;
 
         this.transcript.load(ts);
       }
@@ -312,9 +317,7 @@ class speech extends api implements Recogniser {
 
   private readonly weaveTicker = new listeners(
     [this.ticks],
-    new actions([
-      action.make(this.ticker).upon(['tick']),
-    ])
+    new actions([action.make(this.ticker).upon(['tick'])])
   );
 
   private readonly enabled = (this.weave.on = true);
@@ -331,7 +334,9 @@ class speech extends api implements Recogniser {
     // browser UI threads.
     const allowance = this.ticks.pulseDelay / 2;
 
-    return isNaN(allowance) ? this.defaultProcessTimeAllowance : Math.max(allowance, this.minProcessTimeAllowance);
+    return isNaN(allowance)
+      ? this.defaultProcessTimeAllowance
+      : Math.max(allowance, this.minProcessTimeAllowance);
   }
 
   constructor() {

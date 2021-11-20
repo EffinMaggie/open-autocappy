@@ -75,11 +75,7 @@ export class Lines extends OuterHull<Alternatives> {
 export class Transcript extends HTMLOListElement {
   public lines: Lines;
 
-  constructor(
-    as: Iterable<Alternatives>,
-    index?: number,
-    length?: number
-  ) {
+  constructor(as: Iterable<Alternatives>, index?: number, length?: number) {
     super();
     this.setAttribute('is', 'caption-transcript');
 
@@ -87,7 +83,11 @@ export class Transcript extends HTMLOListElement {
   }
 
   sync() {
-    this.adopt(this.querySelectorAll('li[is="caption-alternatives"]') as NodeListOf<Alternatives>, this.index, this.length);
+    this.adopt(
+      this.querySelectorAll('li[is="caption-alternatives"]') as NodeListOf<Alternatives>,
+      this.index,
+      this.length
+    );
   }
 
   adopt(as: Iterable<Alternatives>, index?: number, length?: number) {
@@ -146,11 +146,7 @@ export class Transcript extends HTMLOListElement {
   }
 
   concat(bs: Iterable<Alternatives>, index?: number, length?: number): Transcript {
-    return new Transcript(
-      this.lines.catter(bs),
-      index ?? this.index ?? 0,
-      length ?? this.length
-    );
+    return new Transcript(this.lines.catter(bs), index ?? this.index ?? 0, length ?? this.length);
   }
 }
 

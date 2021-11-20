@@ -27,16 +27,16 @@ const attributeChange = (
   element: HTMLElement,
   value?: string
 ): void => {
-    const currentValue: string = attributeText(attribute, coalesce, element);
-    const wantValue: string = value || coalesce;
+  const currentValue: string = attributeText(attribute, coalesce, element);
+  const wantValue: string = value || coalesce;
 
-    if (superfluous.has(wantValue) || wantValue == coalesce) {
-      if (element.hasAttribute(attribute)) {
-        element.removeAttribute(attribute);
-      }
-    } else if (currentValue != wantValue) {
-      element.setAttribute(attribute, wantValue);
+  if (superfluous.has(wantValue) || wantValue == coalesce) {
+    if (element.hasAttribute(attribute)) {
+      element.removeAttribute(attribute);
     }
+  } else if (currentValue != wantValue) {
+    element.setAttribute(attribute, wantValue);
+  }
 };
 
 const elementChange = (
@@ -45,16 +45,16 @@ const elementChange = (
   element: HTMLElement,
   value?: string
 ): void => {
-    const currentValue: string = elementText(coalesce, element);
-    const wantValue: string = value || coalesce;
+  const currentValue: string = elementText(coalesce, element);
+  const wantValue: string = value || coalesce;
 
-    if (superfluous.has(wantValue) || wantValue === coalesce) {
-      if (currentValue !== '') {
-        element.innerText = '';
-      }
-    } else if (currentValue != wantValue) {
-      element.innerText = wantValue;
+  if (superfluous.has(wantValue) || wantValue === coalesce) {
+    if (currentValue !== '') {
+      element.innerText = '';
     }
+  } else if (currentValue != wantValue) {
+    element.innerText = wantValue;
+  }
 };
 
 export class ONodeUpdater extends EventTarget implements MutableValue<string>, FromString {
