@@ -71,11 +71,11 @@ export class Ticker extends HTMLParagraphElement {
     // The additional delay gets longer with the number of ticks since an API
     // callback occurred. This is to keep standard reaction times fast, while
     // backing off if we happen to be too aggressive.
-    let delay =
-      Math.max(this.minPulseDelay, this.median.approximation);
+    let delay = Math.max(this.minPulseDelay, this.median.approximation);
 
-    delay += 
-      (Math.min(this.deviation.deviation, this.maxPulseDelay - delay) * (Math.log2(this.tick + 3) / 10 - 0.2));
+    delay +=
+      Math.min(this.deviation.deviation, this.maxPulseDelay - delay) *
+      (Math.log2(this.tick + 3) / 10 - 0.2);
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
@@ -100,7 +100,7 @@ export class Ticker extends HTMLParagraphElement {
     // this will trigger 'tick' events on updates, which may further
     // trigger longer, async processing.
     this.tick++;
-  }
+  };
 
   resetPulsar = () => {
     let nextPulseAt = this.nextPulseAt;
@@ -128,7 +128,7 @@ export class Ticker extends HTMLParagraphElement {
 
     // ensure to pulse at the projected time, or at least close to it
     this.pulsarTimeoutID = window.setTimeout(this.pulsar, timeUntilPulse);
-  }
+  };
 
   pulsarIntervalID = window.setInterval(this.resetPulsar, this.resetPulsarInterval);
 }

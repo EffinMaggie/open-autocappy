@@ -57,7 +57,8 @@ export class Lines extends OuterHull<Alternatives> {
     }
 
     for (const idVal of byIndex) {
-      const index: number | undefined = ((resultLength !== undefined) && (idVal[0] >= resultLength)) ? undefined : idVal[0];
+      const index: number | undefined =
+        resultLength !== undefined && idVal[0] >= resultLength ? undefined : idVal[0];
       const bs: Alternatives = idVal[1];
 
       if (index === undefined) {
