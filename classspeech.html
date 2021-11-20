@@ -161,10 +161,16 @@ Protected Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (event: SpeechAPIEvent) =&gt; {</div>
-<div class="line">    Status.lastError.string = <span class="stringliteral">&#39;no-match&#39;</span>;</div>
-<div class="line">    Status.lastErrorMessage.string = <span class="stringliteral">&#39;API reached patience limit&#39;</span>;</div>
-<div class="line">  }</div>
+<b>Initial value:</b><div class="fragment"><div class="line">= (event: SpeechAPIEvent) =&gt;</div>
+<div class="line">    this.queued.push(</div>
+<div class="line">      <span class="keyword">new</span> <a class="code" href="classErrorUpdate.html">ErrorUpdate</a>(</div>
+<div class="line">        event.timeStamp,</div>
+<div class="line">        <span class="stringliteral">&#39;nomatch&#39;</span>,</div>
+<div class="line">        <span class="stringliteral">&#39;SpeechRecognition API&#39;</span>,</div>
+<div class="line">        <span class="stringliteral">&#39;API did not recognise valid voice inputs and has abandoned any partial results&#39;</span></div>
+<div class="line">      )</div>
+<div class="line">    )</div>
+<div class="ttc" id="aclassErrorUpdate_html"><div class="ttname"><a href="classErrorUpdate.html">ErrorUpdate</a></div><div class="ttdef"><b>Definition:</b> caption-branches.ts:69</div></div>
 </div><!-- fragment -->
 </div>
 </div>
