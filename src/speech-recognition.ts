@@ -151,7 +151,7 @@ class speech extends api implements Recogniser {
 
   queued: UpdateData[] = [];
 
-  result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event));
+  result = (event: SpeechAPIEvent) => this.queued.push(new UpdateData(event, this.settings.lang));
 
   processing: number = 0;
 

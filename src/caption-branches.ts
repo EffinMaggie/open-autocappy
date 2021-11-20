@@ -56,7 +56,7 @@ export class UpdateData {
   length: number;
   timestamp: number;
 
-  constructor(event: SpeechAPIEvent) {
+  constructor(event: SpeechAPIEvent, public readonly language: string) {
     this.results = event.results;
     this.index = event.resultIndex ?? 0;
     this.length = event.results?.length ?? 0;
@@ -65,24 +65,25 @@ export class UpdateData {
 }
 
 export const SpeechAPI = {
-  fromAlternative: (alt: SpeechAPIAlternative, final?: boolean, timestamp?: number): Branch => {
+  fromAlternative: (alt: SpeechAPIAlternative, final: boolean, timestamp: number, language: string): Branch => {
     let ets: number = timestamp || performance.now();
     return new Branch(
       new DateBetween([new MDate(ets)]),
       new QValue(alt.confidence),
       final,
       alt.transcript,
-      'speech-api'
+      'speech-api',
+      language
     );
   },
 
-  fromResult: (result: SpeechAPIResult, idx?: number, timestamp?: number): Alternatives => {
+  fromResult: (result: SpeechAPIResult, idx: number, timestamp: number, language: string): Alternatives => {
     let bs: Branch[] = [];
     let ets: number = timestamp || performance.now();
     for (let i = 0; i < result.length; i++) {
       const alt = result.item(i);
       if (alt) {
-        const branch = SpeechAPI.fromAlternative(alt, result.isFinal, ets);
+        const branch = SpeechAPI.fromAlternative(alt, result.isFinal, ets, language);
         bs.push(branch);
       }
     }
@@ -92,15 +93,16 @@ export const SpeechAPI = {
 
   fromList: (
     list: SpeechAPIResultList,
-    idx?: number,
-    length?: number,
-    timestamp?: number
+    idx: number,
+    length: number,
+    timestamp: number,
+    language: string,
   ): Transcript => {
     let ets: number = timestamp || performance.now();
     let ds: Alternatives[] = [];
     for (let i = idx ?? 0; i < (length ?? list.length); i++) {
       const result: SpeechAPIResult = list.item(i);
-      const branches = SpeechAPI.fromResult(result, i, ets);
+      const branches = SpeechAPI.fromResult(result, i, ets, language);
       ds.push(branches);
     }
 
@@ -108,10 +110,6 @@ export const SpeechAPI = {
   },
 
   fromData: (data: UpdateData): Transcript => {
-    return SpeechAPI.fromList(data.results, data.index, data.length, data.timestamp);
-  },
-
-  fromEvent: (event: SpeechAPIEvent): Transcript => {
-    return SpeechAPI.fromData(new UpdateData(event));
+    return SpeechAPI.fromList(data.results, data.index, data.length, data.timestamp, data.language);
   },
 };
