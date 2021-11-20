@@ -19,7 +19,10 @@ export namespace StdDev {
           let sorted = Array.from(this.windowTerms);
           sorted.sort((a, b) => (a - b));
 
-          return sorted[Math.floor(sorted.length/2)];
+          const median = sorted[Math.floor(sorted.length/2)];
+          console.log(sorted, median);
+
+          return median;
         },
         0,
         start

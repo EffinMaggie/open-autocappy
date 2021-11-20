@@ -35,9 +35,9 @@ export class Ticker extends HTMLParagraphElement {
     }
   }
 
-  protected readonly defaultPulseDelay: number = 150;
+  protected readonly defaultPulseDelay: number = 100;
   protected readonly minPulseDelay: number = 20;
-  protected readonly maxPulseDelay: number = 300;
+  protected readonly maxPulseDelay: number = 500;
   protected readonly resetPulsarInterval: number = 50;
 
   protected lastTimingSample?: number;
@@ -65,35 +65,36 @@ export class Ticker extends HTMLParagraphElement {
 
   get pulseDelay(): number {
     // dynamic intervals require setTimeout() and resetting on each call;
-    // assert that the mean time between API event callbacks is a good
+    // assert that the median time between API event callbacks is a good
     // interval, and slow us down by a partial standard deviation.
     //
-    // the fraction applied to the deviation ranges from .25 to 6, scaling
-    // linearly with ticks in range 0 to 100 - this allows for very fast
-    // responses while the API is very actively talking with us, but a
-    // gradual decay in load for zombie or recovery cases, to give the
-    // browser some breathing room.
-    const delay =
-      Math.max(this.minPulseDelay, this.median.approximation) +
-      (this.deviation.deviation * (0.25 + this.tick * 5.75)) / 100;
+    // The additional delay gets longer with the number of ticks since an API
+    // callback occurred. This is to keep standard reaction times fast, while
+    // backing off if we happen to be too aggressive.
+    let delay =
+      Math.max(this.minPulseDelay, this.median.approximation);
+
+    delay += 
+      (Math.min(this.deviation.deviation, this.maxPulseDelay - delay) * Math.log2(this.tick + 3) / 10);
 
     // fall back to default delay time iff somehow the math failed - which
     // it does sometimes if deviation hasn't been calculated yet.
-    return isNaN(delay)
+    return Number.isNaN(delay)
       ? this.defaultPulseDelay
       : Math.floor(Math.min(Math.max(delay, this.minPulseDelay), this.maxPulseDelay));
   }
 
   protected nextPulseAt?: number;
+  protected currentPulseAt?: number;
   protected pulsarTimeoutID?: number;
 
-  scheduleNextPulse() {
+  scheduleNextPulse(now: number = this.currentPulseAt ?? performance.now()) {
     const pulseDelay = this.pulseDelay;
-    this.nextPulseAt = performance.now() + pulseDelay;
+    this.nextPulseAt = now + pulseDelay;
     this.interval.number = pulseDelay;
   }
 
-  pulsar() {
+  pulsar = () => {
     this.scheduleNextPulse();
 
     // this will trigger 'tick' events on updates, which may further
@@ -101,9 +102,7 @@ export class Ticker extends HTMLParagraphElement {
     this.tick++;
   }
 
-  boundPulsar = this.pulsar.bind(this);
-
-  resetPulsar() {
+  resetPulsar = () => {
     let nextPulseAt = this.nextPulseAt;
     this.nextPulseAt = undefined;
 
@@ -111,27 +110,27 @@ export class Ticker extends HTMLParagraphElement {
       return;
     }
 
+    this.currentPulseAt = nextPulseAt;
+
     if (this.pulsarTimeoutID !== undefined) {
       window.clearTimeout(this.pulsarTimeoutID);
       this.pulsarTimeoutID = undefined;
     }
 
-    let timeUntilPulse = nextPulseAt - performance.now();
+    let timeUntilPulse = Math.max(nextPulseAt - performance.now(), this.minPulseDelay);
 
     // don't go too fast - also filter NaNs, or negative values, which may
     // arise when the browser is hogged down, since we're fresh out of
     // Tachyons.
-    if (!(timeUntilPulse > this.minPulseDelay)) {
+    if (Number.isNaN(timeUntilPulse)) {
       timeUntilPulse = this.minPulseDelay;
     }
 
     // ensure to pulse at the projected time, or at least close to it
-    this.pulsarTimeoutID = window.setTimeout(this.boundPulsar, timeUntilPulse);
+    this.pulsarTimeoutID = window.setTimeout(this.pulsar, timeUntilPulse);
   }
 
-  boundResetPulsar = this.resetPulsar.bind(this);
-
-  pulsarIntervalID = window.setInterval(this.boundResetPulsar, this.resetPulsarInterval);
+  pulsarIntervalID = window.setInterval(this.resetPulsar, this.resetPulsarInterval);
 }
 
 customElements.define('caption-ticker', Ticker, { extends: 'p' });
