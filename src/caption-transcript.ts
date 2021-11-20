@@ -86,11 +86,15 @@ export class Transcript extends HTMLOListElement {
     this.adopt(as, index, length);
   }
 
-  adopt(as: Iterable<Alternatives>, index?: number, length?: number) {
-    this.lines = new Lines(as, this);
+  sync() {
+    this.adopt(this.querySelectorAll('li[is="caption-alternatives"]') as NodeListOf<Alternatives>, this.index, this.length);
+  }
 
+  adopt(as: Iterable<Alternatives>, index?: number, length?: number) {
     this.index = index;
     this.length = length;
+
+    this.lines = new Lines(as, this);
 
     this.replaceChildren(...this.lines);
   }

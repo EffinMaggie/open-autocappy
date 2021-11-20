@@ -40,10 +40,10 @@ export class Ticker extends HTMLParagraphElement {
     }
   }
 
-  protected readonly defaultPulseDelay: number = 500;
-  protected readonly minPulseDelay: number = 50;
-  protected readonly maxPulseDelay: number = 2500;
-  protected readonly resetPulsarInterval: number = 100;
+  protected readonly defaultPulseDelay: number = 150;
+  protected readonly minPulseDelay: number = 20;
+  protected readonly maxPulseDelay: number = 300;
+  protected readonly resetPulsarInterval: number = 50;
 
   protected lastTimingSample?: number;
   protected samples = new Series.Sampled([this.defaultPulseDelay], 25);

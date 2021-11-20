@@ -66,7 +66,7 @@ export class UpdateData {
 
 export const SpeechAPI = {
   fromAlternative: (alt: SpeechAPIAlternative, final?: boolean, timestamp?: number): Branch => {
-    let ets: number = timestamp || Date.now();
+    let ets: number = timestamp || performance.now();
     return new Branch(
       new DateBetween([new MDate(ets)]),
       new QValue(alt.confidence),
@@ -78,7 +78,7 @@ export const SpeechAPI = {
 
   fromResult: (result: SpeechAPIResult, idx?: number, timestamp?: number): Alternatives => {
     let bs: Branch[] = [];
-    let ets: number = timestamp || Date.now();
+    let ets: number = timestamp || performance.now();
     for (let i = 0; i < result.length; i++) {
       const alt = result.item(i);
       if (alt) {
@@ -96,7 +96,7 @@ export const SpeechAPI = {
     length?: number,
     timestamp?: number
   ): Transcript => {
-    let ets: number = timestamp || Date.now();
+    let ets: number = timestamp || performance.now();
     let ds: Alternatives[] = [];
     for (let i = idx ?? 0; i < (length ?? list.length); i++) {
       const result: SpeechAPIResult = list.item(i);

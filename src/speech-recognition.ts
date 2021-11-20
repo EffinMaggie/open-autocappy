@@ -92,8 +92,9 @@ class speech extends api implements Recogniser {
 
   protected ticks = Status.ticks;
 
-  protected readonly defaultProcessTimeAllowance: number = 75;
-  protected readonly minProcessTimeAllowance: number = 20;
+  protected readonly defaultProcessTimeAllowance: number = 100;
+  protected readonly minProcessTimeAllowance: number = 40;
+  protected readonly maxUnfinishedUpdates: number = 40;
 
   private readonly predicates = {
     audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
@@ -107,6 +108,10 @@ class speech extends api implements Recogniser {
     zombie: new predicate(() => this.ticks.tick > 50 && this.ticks.tick < 75),
   };
 
+
+  protected transcript = document.querySelector('.captions ol.transcript[is="caption-transcript"]') as Transcript;
+  protected history = document.querySelector('.captions ol.history[is="caption-transcript"]') as Transcript;
+
   private readonly bindings = [
     new syncPredicateStyle(this.predicates.audio, Status.audio),
     new syncPredicateStyle(this.predicates.sound, Status.sound),
@@ -114,22 +119,31 @@ class speech extends api implements Recogniser {
     new syncPredicateStyle(this.predicates.running, Status.captioning),
   ];
 
-  protected static transcriptLineSelector = '.captions ol.transcript > li';
-  protected static transcriptSafeLineSelector = `${speech.transcriptLineSelector}.final, ${speech.transcriptLineSelector}.abandoned`;
+  snapshotting: number = 0;
 
-  snapshot = (full: boolean = false) => {
-    // with the current DOM enhancements, maybe we don't need to snapshot.
-    // return;
+  snapshot = async (full: boolean = false) => {
+    if (!full && this.snapshotting > 0) {
+      console.warn('already snapshotting, cancelling this invocation');
+      return;
+    }
 
-    for (const ol of document.querySelectorAll('.captions ol.history[is="caption-transcript"]') as NodeListOf<Transcript>) {
-      let moveNodes: Alternatives[] = [];
-      for (const li of document.querySelectorAll(
-        full ? speech.transcriptLineSelector : speech.transcriptSafeLineSelector
+    this.snapshotting++;
+
+    try {
+      let didMove: boolean = false;
+      for (const li of this.transcript.querySelectorAll(
+        full ? 'li[is="caption-alternatives"]' : 'li[is="caption-alternatives"].final, li[is="caption-alternatives"].abandoned'
        ) as NodeListOf<Alternatives>) {
         li.index = undefined;
-        moveNodes.push(li);
+        this.history.appendChild(li);
+        didMove = true;
       }
-      ol.take(moveNodes);
+      if (didMove) {
+        this.transcript.sync();
+        this.history.sync();
+      }
+    } finally {
+      this.snapshotting--;
     }
   };
 
@@ -153,14 +167,8 @@ class speech extends api implements Recogniser {
 
     try {
       let doSnapshot = false;
-      const latestProcessingTime = performance.now() + this.maxProcessTimeAllowance;
 
       while (this.queued.length) {
-        if (latestProcessingTime <= performance.now()) {
-          console.warn(`exceeded processing time allowance with ${this.queued.length} updates left`);
-          break;
-        }
-
         const data = this.queued.shift();
 
         if (!data) {
@@ -169,11 +177,11 @@ class speech extends api implements Recogniser {
         }
 
         const ts = SpeechAPI.fromData(data);
-        for (const transcript of document.querySelectorAll('.captions ol.transcript') as NodeListOf<Transcript>) {
-          transcript.load(ts);
-        }
 
-        doSnapshot = true;
+        doSnapshot ||= (ts.index != this.transcript.index);
+        doSnapshot ||= (ts.length != this.transcript.length);
+
+        this.transcript.load(ts);
       }
 
       if (doSnapshot) {
@@ -251,7 +259,7 @@ class speech extends api implements Recogniser {
     this.predicates.started.assume = true;
 
     this.settings.adjust(this);
-    this.snapshot(true);
+    await this.snapshot(true);
 
     try {
       super.start();
