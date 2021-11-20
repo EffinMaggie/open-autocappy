@@ -3,11 +3,6 @@
 import { ONodeQueryUpdater, Access } from './dom-manipulation.js';
 
 export namespace Status {
-  export const lastError = new Access.Storage(new ONodeQueryUpdater('#status-last-error'));
-  export const lastErrorMessage = new Access.Storage(
-    new ONodeQueryUpdater('#status-last-error-message')
-  );
-
   export const serviceURI = new Access.Storage(new ONodeQueryUpdater('#status-service'));
 
   export const captioning = new Access.Classes(
