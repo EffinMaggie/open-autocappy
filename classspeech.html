@@ -65,7 +65,6 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
-<a href="#pro-static-attribs">Static Protected Attributes</a> &#124;
 <a href="classspeech-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">speech Class Reference</div>  </div>
@@ -89,17 +88,20 @@ get&#160;</td><td class="memItemRight" valign="bottom"><b>maxProcessTimeAllowanc
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a60ed7967f045dbbcb1010811afef07cd"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><b>snapshot</b></td></tr>
+<tr class="memitem:ae82f96ada53a5e97be9ab803dc767a88"><td class="memItemLeft" align="right" valign="top"><a id="ae82f96ada53a5e97be9ab803dc767a88"></a>
+snapshotting&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number = 0</td></tr>
+<tr class="separator:ae82f96ada53a5e97be9ab803dc767a88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60ed7967f045dbbcb1010811afef07cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>snapshot</b></td></tr>
 <tr class="separator:a60ed7967f045dbbcb1010811afef07cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7af5cbb855a9cf52917786ab06a04881"><td class="memItemLeft" align="right" valign="top"><a id="a7af5cbb855a9cf52917786ab06a04881"></a>
-queued&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: <a class="el" href="classUpdateData.html">UpdateData</a>[] = []</td></tr>
-<tr class="separator:a7af5cbb855a9cf52917786ab06a04881"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad74f5b119381d4883a45f4f43de31ed4"><td class="memItemLeft" align="right" valign="top"><a id="ad74f5b119381d4883a45f4f43de31ed4"></a>
+queued&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: <a class="el" href="classUpdateData.html">UpdateData</a>[] = []</td></tr>
+<tr class="separator:ad74f5b119381d4883a45f4f43de31ed4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad99751f795d4ccc58ee725e8844cf2ca"><td class="memItemLeft" align="right" valign="top"><a id="ad99751f795d4ccc58ee725e8844cf2ca"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>result</b> = (event: SpeechAPIEvent) =&gt; this.queued.push(new <a class="el" href="classUpdateData.html">UpdateData</a>(event))</td></tr>
 <tr class="separator:ad99751f795d4ccc58ee725e8844cf2ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8eba8bfd64273c8fe572d1ee6d7d4d6e"><td class="memItemLeft" align="right" valign="top"><a id="a8eba8bfd64273c8fe572d1ee6d7d4d6e"></a>
-processing&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: number = 0</td></tr>
-<tr class="separator:a8eba8bfd64273c8fe572d1ee6d7d4d6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d0a314705e4acf0831387fb67d72aed"><td class="memItemLeft" align="right" valign="top"><a id="a3d0a314705e4acf0831387fb67d72aed"></a>
+processing&#160;</td><td class="memItemRight" valign="bottom"><b>__pad2__</b>: number = 0</td></tr>
+<tr class="separator:a3d0a314705e4acf0831387fb67d72aed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memItemLeft" align="right" valign="top"><a id="a2e4a4a98d4b2f21e78dafd77e9014c50"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>process</b></td></tr>
 <tr class="separator:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -116,20 +118,18 @@ Protected Attributes</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><b>ticks</b> = Status.ticks</td></tr>
 <tr class="separator:a8ac2739ad4b502133cd2de32de103391"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af26e07cc10b72e98de0d3e66a5c3fe66"><td class="memItemLeft" align="right" valign="top"><a id="af26e07cc10b72e98de0d3e66a5c3fe66"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>defaultProcessTimeAllowance</b>: number = 75</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>defaultProcessTimeAllowance</b>: number = 100</td></tr>
 <tr class="separator:af26e07cc10b72e98de0d3e66a5c3fe66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d7fd81e5be050d8d0880d13f3da0533"><td class="memItemLeft" align="right" valign="top"><a id="a7d7fd81e5be050d8d0880d13f3da0533"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>minProcessTimeAllowance</b>: number = 20</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>minProcessTimeAllowance</b>: number = 40</td></tr>
 <tr class="separator:a7d7fd81e5be050d8d0880d13f3da0533"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-attribs"></a>
-Static Protected Attributes</h2></td></tr>
-<tr class="memitem:ad6a622ca723a1df8d9cc9c3ac970db83"><td class="memItemLeft" align="right" valign="top"><a id="ad6a622ca723a1df8d9cc9c3ac970db83"></a>
-static&#160;</td><td class="memItemRight" valign="bottom"><b>transcriptLineSelector</b> = '.captions ol.transcript &gt; li'</td></tr>
-<tr class="separator:ad6a622ca723a1df8d9cc9c3ac970db83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a680a2df333436935a2b45da169b4e278"><td class="memItemLeft" align="right" valign="top"><a id="a680a2df333436935a2b45da169b4e278"></a>
-static&#160;</td><td class="memItemRight" valign="bottom"><b>transcriptSafeLineSelector</b> = `${speech.transcriptLineSelector}.final</td></tr>
-<tr class="separator:a680a2df333436935a2b45da169b4e278"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37aa5773d9d8d253d0e9194210d9ce2c"><td class="memItemLeft" align="right" valign="top"><a id="a37aa5773d9d8d253d0e9194210d9ce2c"></a>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>maxUnfinishedUpdates</b>: number = 40</td></tr>
+<tr class="separator:a37aa5773d9d8d253d0e9194210d9ce2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6500cc0dfd2e8b9df0dd4e2a559feb0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>transcript</b></td></tr>
+<tr class="separator:ad6500cc0dfd2e8b9df0dd4e2a559feb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2e2fd7e9ad6f6b188dd72d1ca10d5fa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>history</b></td></tr>
+<tr class="separator:aa2e2fd7e9ad6f6b188dd72d1ca10d5fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="a69076ae6898ab569fc227d39faef96fd"></a>
@@ -157,6 +157,32 @@ static&#160;</td><td class="memItemRight" valign="bottom"><b>transcriptSafeLineS
 <div class="line"> </div>
 <div class="line">    Status.lastErrorMessage.string = <span class="keyword">event</span>.message;</div>
 <div class="line">  }</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="aa2e2fd7e9ad6f6b188dd72d1ca10d5fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2e2fd7e9ad6f6b188dd72d1ca10d5fa">&#9670;&nbsp;</a></span>history</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">speech::history</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= document.querySelector(</div>
+<div class="line">    <span class="stringliteral">&#39;.captions ol.history[is=&quot;caption-transcript&quot;]&#39;</span></div>
+<div class="line">  ) as <a class="code" href="classTranscript.html">Transcript</a></div>
+<div class="ttc" id="aclassTranscript_html"><div class="ttname"><a href="classTranscript.html">Transcript</a></div><div class="ttdef"><b>Definition:</b> caption-transcript.ts:75</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -189,23 +215,33 @@ static&#160;</td><td class="memItemRight" valign="bottom"><b>transcriptSafeLineS
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (full: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>) =&gt; {</div>
-<div class="line">    </div>
-<div class="line">    </div>
+<b>Initial value:</b><div class="fragment"><div class="line">= async (full: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>) =&gt; {</div>
+<div class="line">    <span class="keywordflow">if</span> (!full &amp;&amp; this.snapshotting &gt; 0) {</div>
+<div class="line">      console.warn(<span class="stringliteral">&#39;already snapshotting, cancelling this invocation&#39;</span>);</div>
+<div class="line">      <span class="keywordflow">return</span>;</div>
+<div class="line">    }</div>
 <div class="line"> </div>
-<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> ol of document.querySelectorAll(<span class="stringliteral">&#39;.captions ol.history[is=&quot;caption-transcript&quot;]&#39;</span>) as NodeListOf&lt;Transcript&gt;) {</div>
-<div class="line">      let moveNodes: <a class="code" href="classAlternatives.html">Alternatives</a>[] = [];</div>
-<div class="line">      <span class="keywordflow">for</span> (<span class="keyword">const</span> li of document.querySelectorAll(</div>
-<div class="line">        full ? <a class="code" href="classspeech.html">speech</a>.transcriptLineSelector : <a class="code" href="classspeech.html">speech</a>.transcriptSafeLineSelector</div>
-<div class="line">       ) as NodeListOf&lt;Alternatives&gt;) {</div>
+<div class="line">    this.snapshotting++;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">try</span> {</div>
+<div class="line">      let didMove: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>;</div>
+<div class="line">      <span class="keywordflow">for</span> (<span class="keyword">const</span> li of this.transcript.querySelectorAll(</div>
+<div class="line">        full</div>
+<div class="line">          ? <span class="stringliteral">&#39;li[is=&quot;caption-alternatives&quot;]&#39;</span></div>
+<div class="line">          : <span class="stringliteral">&#39;li[is=&quot;caption-alternatives&quot;].final, li[is=&quot;caption-alternatives&quot;].abandoned&#39;</span></div>
+<div class="line">      ) as NodeListOf&lt;Alternatives&gt;) {</div>
 <div class="line">        li.index = undefined;</div>
-<div class="line">        moveNodes.push(li);</div>
+<div class="line">        this.history.appendChild(li);</div>
+<div class="line">        didMove = <span class="keyword">true</span>;</div>
 <div class="line">      }</div>
-<div class="line">      ol.take(moveNodes);</div>
+<div class="line">      <span class="keywordflow">if</span> (didMove) {</div>
+<div class="line">        this.transcript.sync();</div>
+<div class="line">        this.history.sync();</div>
+<div class="line">      }</div>
+<div class="line">    } <span class="keywordflow">finally</span> {</div>
+<div class="line">      this.snapshotting--;</div>
 <div class="line">    }</div>
 <div class="line">  }</div>
-<div class="ttc" id="aclassAlternatives_html"><div class="ttname"><a href="classAlternatives.html">Alternatives</a></div><div class="ttdef"><b>Definition:</b> caption-alternatives.ts:23</div></div>
-<div class="ttc" id="aclassspeech_html"><div class="ttname"><a href="classspeech.html">speech</a></div><div class="ttdef"><b>Definition:</b> speech-recognition.ts:90</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -244,6 +280,31 @@ static&#160;</td><td class="memItemRight" valign="bottom"><b>transcriptSafeLineS
 <div class="line">      }</div>
 <div class="line">    }</div>
 <div class="line">  }</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ad6500cc0dfd2e8b9df0dd4e2a559feb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6500cc0dfd2e8b9df0dd4e2a559feb0">&#9670;&nbsp;</a></span>transcript</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">speech::transcript</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= document.querySelector(</div>
+<div class="line">    <span class="stringliteral">&#39;.captions ol.transcript[is=&quot;caption-transcript&quot;]&#39;</span></div>
+<div class="line">  ) as <a class="code" href="classTranscript.html">Transcript</a></div>
 </div><!-- fragment -->
 </div>
 </div>
