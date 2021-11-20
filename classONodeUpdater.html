@@ -64,6 +64,8 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classONodeUpdater-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">ONodeUpdater Class Reference</div>  </div>
@@ -100,10 +102,52 @@ set&#160;</td><td class="memItemRight" valign="bottom"><b>string</b> (value:stri
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:a82da0da47b667dcfa5a899976d20963a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>syncCache</b></td></tr>
+<tr class="separator:a82da0da47b667dcfa5a899976d20963a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a8e3c5c126bf28b946f5da8815e6e9b55"><td class="memItemLeft" align="right" valign="top"><a id="a8e3c5c126bf28b946f5da8815e6e9b55"></a>
+get&#160;</td><td class="memItemRight" valign="bottom"><b>cacheEnabled</b> ()</td></tr>
+<tr class="separator:a8e3c5c126bf28b946f5da8815e6e9b55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e30dd921e7730f53346a20681a441ee"><td class="memItemLeft" align="right" valign="top"><a id="a7e30dd921e7730f53346a20681a441ee"></a>
+get&#160;</td><td class="memItemRight" valign="bottom"><b>cachedValue</b> ()</td></tr>
+<tr class="separator:a7e30dd921e7730f53346a20681a441ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
 <tr class="memitem:a3d48eef755ad3b5f6801e5d4391295e2"><td class="memItemLeft" align="right" valign="top"><a id="a3d48eef755ad3b5f6801e5d4391295e2"></a>
 superfluous&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: valueSet</td></tr>
 <tr class="separator:a3d48eef755ad3b5f6801e5d4391295e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf0b39265dc728d6c24eb5962fe48307"><td class="memItemLeft" align="right" valign="top"><a id="aaf0b39265dc728d6c24eb5962fe48307"></a>
+lastConfirmedCacheStatus&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: boolean</td></tr>
+<tr class="separator:aaf0b39265dc728d6c24eb5962fe48307"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add9a3ad7bf4526f5bc1f06b5d58ca207"><td class="memItemLeft" align="right" valign="top"><a id="add9a3ad7bf4526f5bc1f06b5d58ca207"></a>
+lastConfirmedValue&#160;</td><td class="memItemRight" valign="bottom"><b>__pad2__</b>: string</td></tr>
+<tr class="separator:add9a3ad7bf4526f5bc1f06b5d58ca207"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c0e636da50ea7380a25a7c7d629d7b3"><td class="memItemLeft" align="right" valign="top"><a id="a6c0e636da50ea7380a25a7c7d629d7b3"></a>
+observer&#160;</td><td class="memItemRight" valign="bottom"><b>__pad3__</b>: MutationObserver = new MutationObserver( this.syncCache )</td></tr>
+<tr class="separator:a6c0e636da50ea7380a25a7c7d629d7b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a82da0da47b667dcfa5a899976d20963a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82da0da47b667dcfa5a899976d20963a">&#9670;&nbsp;</a></span>syncCache</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ONodeUpdater::syncCache</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= () =&gt; {</div>
+<div class="line">    this.cachedValue = undefined;</div>
+<div class="line">    this.cachedValue = this.value;</div>
+<div class="line">  }</div>
+</div><!-- fragment -->
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/dom-manipulation.ts</li>
 </ul>
