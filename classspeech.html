@@ -88,21 +88,14 @@ async&#160;</td><td class="memItemRight" valign="bottom"><b>start</b> ()</td></t
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ae82f96ada53a5e97be9ab803dc767a88"><td class="memItemLeft" align="right" valign="top"><a id="ae82f96ada53a5e97be9ab803dc767a88"></a>
-snapshotting&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number = 0</td></tr>
-<tr class="separator:ae82f96ada53a5e97be9ab803dc767a88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60ed7967f045dbbcb1010811afef07cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>snapshot</b></td></tr>
 <tr class="separator:a60ed7967f045dbbcb1010811afef07cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad74f5b119381d4883a45f4f43de31ed4"><td class="memItemLeft" align="right" valign="top"><a id="ad74f5b119381d4883a45f4f43de31ed4"></a>
-queued&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: UpdateData[] = []</td></tr>
-<tr class="separator:ad74f5b119381d4883a45f4f43de31ed4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7af5cbb855a9cf52917786ab06a04881"><td class="memItemLeft" align="right" valign="top"><a id="a7af5cbb855a9cf52917786ab06a04881"></a>
+queued&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: UpdateData[] = []</td></tr>
+<tr class="separator:a7af5cbb855a9cf52917786ab06a04881"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad99751f795d4ccc58ee725e8844cf2ca"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>result</b></td></tr>
 <tr class="separator:ad99751f795d4ccc58ee725e8844cf2ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d0a314705e4acf0831387fb67d72aed"><td class="memItemLeft" align="right" valign="top"><a id="a3d0a314705e4acf0831387fb67d72aed"></a>
-processing&#160;</td><td class="memItemRight" valign="bottom"><b>__pad2__</b>: number = 0</td></tr>
-<tr class="separator:a3d0a314705e4acf0831387fb67d72aed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memItemLeft" align="right" valign="top"><a id="a2e4a4a98d4b2f21e78dafd77e9014c50"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>process</b></td></tr>
+<tr class="memitem:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>process</b></td></tr>
 <tr class="separator:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69076ae6898ab569fc227d39faef96fd"><td class="memItemLeft" align="right" valign="top"><a id="a69076ae6898ab569fc227d39faef96fd"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>error</b> = (event: SpeechRecognitionErrorEvent) =&gt; this.queued.push(new <a class="el" href="classErrorUpdate.html">ErrorUpdate</a>(event))</td></tr>
@@ -173,6 +166,50 @@ Protected Attributes</h2></td></tr>
 </div><!-- fragment -->
 </div>
 </div>
+<a id="a2e4a4a98d4b2f21e78dafd77e9014c50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e4a4a98d4b2f21e78dafd77e9014c50">&#9670;&nbsp;</a></span>process</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">speech::process</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= () =&gt; {</div>
+<div class="line">    </div>
+<div class="line">    <span class="keywordflow">if</span> (!this.queued.length) {</div>
+<div class="line">      <span class="keywordflow">return</span>;</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    let transcript: <a class="code" href="classTranscript.html">Transcript</a> | undefined = undefined;</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">while</span> (this.queued.length) {</div>
+<div class="line">      <span class="keyword">const</span> data = this.queued.shift();</div>
+<div class="line"> </div>
+<div class="line">      <span class="keywordflow">if</span> (!data) {</div>
+<div class="line">        console.error(<span class="stringliteral">&#39;bogus event from SpeechRecognition API; skipping&#39;</span>);</div>
+<div class="line">        <span class="keywordflow">continue</span>;</div>
+<div class="line">      }</div>
+<div class="line"> </div>
+<div class="line">      <span class="keyword">const</span> ts = SpeechAPI.fromData(data);</div>
+<div class="line"> </div>
+<div class="line">      <span class="keywordflow">if</span> (transcript === undefined) {</div>
+<div class="line">        transcript = ts;</div>
+<div class="line">      } <span class="keywordflow">else</span> {</div>
+<div class="line">        transcript.load(ts);</div>
+<div class="line">      }</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="keywordflow">if</span> (transcript !== undefined) {</div>
+<div class="line">      this.transcript.load(transcript);</div>
+<div class="line">      this.snapshot();</div>
+<div class="line">    }</div>
+<div class="line">  }</div>
+</div><!-- fragment -->
+</div>
+</div>
 <a id="ad99751f795d4ccc58ee725e8844cf2ca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad99751f795d4ccc58ee725e8844cf2ca">&#9670;&nbsp;</a></span>result</h2>
 
@@ -202,31 +239,20 @@ Protected Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= async (full: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>) =&gt; {</div>
-<div class="line">    <span class="keywordflow">if</span> (!full &amp;&amp; this.snapshotting &gt; 0) {</div>
-<div class="line">      console.warn(<span class="stringliteral">&#39;already snapshotting, cancelling this invocation&#39;</span>);</div>
-<div class="line">      <span class="keywordflow">return</span>;</div>
+<b>Initial value:</b><div class="fragment"><div class="line">= (full: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>) =&gt; {</div>
+<div class="line">    let didMove: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>;</div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> li of this.transcript.querySelectorAll(</div>
+<div class="line">      full</div>
+<div class="line">        ? <span class="stringliteral">&#39;li[is=&quot;caption-alternatives&quot;]&#39;</span></div>
+<div class="line">        : <span class="stringliteral">&#39;li[is=&quot;caption-alternatives&quot;].final, li[is=&quot;caption-alternatives&quot;].abandoned&#39;</span></div>
+<div class="line">    ) as NodeListOf&lt;Alternatives&gt;) {</div>
+<div class="line">      li.index = undefined;</div>
+<div class="line">      this.history.appendChild(li);</div>
+<div class="line">      didMove = <span class="keyword">true</span>;</div>
 <div class="line">    }</div>
-<div class="line"> </div>
-<div class="line">    this.snapshotting++;</div>
-<div class="line"> </div>
-<div class="line">    <span class="keywordflow">try</span> {</div>
-<div class="line">      let didMove: <span class="keywordtype">boolean</span> = <span class="keyword">false</span>;</div>
-<div class="line">      <span class="keywordflow">for</span> (<span class="keyword">const</span> li of this.transcript.querySelectorAll(</div>
-<div class="line">        full</div>
-<div class="line">          ? <span class="stringliteral">&#39;li[is=&quot;caption-alternatives&quot;]&#39;</span></div>
-<div class="line">          : <span class="stringliteral">&#39;li[is=&quot;caption-alternatives&quot;].final, li[is=&quot;caption-alternatives&quot;].abandoned&#39;</span></div>
-<div class="line">      ) as NodeListOf&lt;Alternatives&gt;) {</div>
-<div class="line">        li.index = undefined;</div>
-<div class="line">        this.history.appendChild(li);</div>
-<div class="line">        didMove = <span class="keyword">true</span>;</div>
-<div class="line">      }</div>
-<div class="line">      <span class="keywordflow">if</span> (didMove) {</div>
-<div class="line">        this.transcript.sync();</div>
-<div class="line">        this.history.sync();</div>
-<div class="line">      }</div>
-<div class="line">    } <span class="keywordflow">finally</span> {</div>
-<div class="line">      this.snapshotting--;</div>
+<div class="line">    <span class="keywordflow">if</span> (didMove) {</div>
+<div class="line">      this.transcript.sync();</div>
+<div class="line">      this.history.sync();</div>
 <div class="line">    }</div>
 <div class="line">  }</div>
 </div><!-- fragment -->

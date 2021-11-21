@@ -88,9 +88,9 @@ get&#160;</td><td class="memItemRight" valign="bottom"><b>tick</b> ()</td></tr>
 <tr class="memitem:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memItemLeft" align="right" valign="top"><a id="af6ccf451cfc71f45bd0102bba46ade0f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>callbackTimingSample</b> (timingMS:number)</td></tr>
 <tr class="separator:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9b8d5c894715048b3436a862cebb61c"><td class="memItemLeft" align="right" valign="top"><a id="af9b8d5c894715048b3436a862cebb61c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>scheduleNextPulse</b> (now:number=this.currentPulseAt ?? performance.now())</td></tr>
-<tr class="separator:af9b8d5c894715048b3436a862cebb61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89da69556823663fc682d411d5f2a606"><td class="memItemLeft" align="right" valign="top"><a id="a89da69556823663fc682d411d5f2a606"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>scheduleNextPulse</b> (now:number=performance.now())</td></tr>
+<tr class="separator:a89da69556823663fc682d411d5f2a606"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -114,13 +114,13 @@ Protected Attributes</h2></td></tr>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>defaultPulseDelay</b>: number = 100</td></tr>
 <tr class="separator:aaaa80c5c96cf30be0c42b27532c2ef58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6d9241a821ebcd5d071d1ec92a54265"><td class="memItemLeft" align="right" valign="top"><a id="aa6d9241a821ebcd5d071d1ec92a54265"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>minPulseDelay</b>: number = 20</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>minPulseDelay</b>: number = 50</td></tr>
 <tr class="separator:aa6d9241a821ebcd5d071d1ec92a54265"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8ab591d65adccef8fa340a4ffb1ab00"><td class="memItemLeft" align="right" valign="top"><a id="af8ab591d65adccef8fa340a4ffb1ab00"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>maxPulseDelay</b>: number = 500</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>maxPulseDelay</b>: number = 300</td></tr>
 <tr class="separator:af8ab591d65adccef8fa340a4ffb1ab00"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abafc98f8152ab0971742196aef1e1e80"><td class="memItemLeft" align="right" valign="top"><a id="abafc98f8152ab0971742196aef1e1e80"></a>
-readonly&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsarInterval</b>: number = 50</td></tr>
+readonly&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsarInterval</b>: number = 65</td></tr>
 <tr class="separator:abafc98f8152ab0971742196aef1e1e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d1ad8ab304f581568d1ef7485a08d72"><td class="memItemLeft" align="right" valign="top"><a id="a9d1ad8ab304f581568d1ef7485a08d72"></a>
 lastTimingSample&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number</td></tr>
@@ -128,18 +128,12 @@ lastTimingSample&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__<
 <tr class="memitem:aab42ee87578651ab6cfb71d0a97fbe2a"><td class="memItemLeft" align="right" valign="top"><a id="aab42ee87578651ab6cfb71d0a97fbe2a"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>samples</b> = new <a class="el" href="classSeries_1_1Sampled.html">Series.Sampled</a>([this.defaultPulseDelay], 25)</td></tr>
 <tr class="separator:aab42ee87578651ab6cfb71d0a97fbe2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a69ec026a715356f13c8d0c233ac788"><td class="memItemLeft" align="right" valign="top"><a id="a1a69ec026a715356f13c8d0c233ac788"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>deviation</b> = new StdDev.Deviation&lt;<a class="el" href="classSeries_1_1Sampled.html">Series.Sampled</a>&gt;(this.samples, 0)</td></tr>
-<tr class="separator:a1a69ec026a715356f13c8d0c233ac788"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2c32843bc14a96fda5e849fb01d2425"><td class="memItemLeft" align="right" valign="top"><a id="af2c32843bc14a96fda5e849fb01d2425"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>median</b> = new StdDev.Median&lt;<a class="el" href="classSeries_1_1Sampled.html">Series.Sampled</a>&gt;(this.samples, this.defaultPulseDelay)</td></tr>
 <tr class="separator:af2c32843bc14a96fda5e849fb01d2425"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fb11545ca49b7b090823ea39bb83ae9"><td class="memItemLeft" align="right" valign="top"><a id="a8fb11545ca49b7b090823ea39bb83ae9"></a>
-get pulseDelay()&#160;</td><td class="memItemRight" valign="bottom"><b>currentPulseAt</b>: number</td></tr>
-<tr class="separator:a8fb11545ca49b7b090823ea39bb83ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5715f7685d9de40db69d1e80dc5ddce"><td class="memItemLeft" align="right" valign="top"><a id="af5715f7685d9de40db69d1e80dc5ddce"></a>
-pulsarTimeoutID&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: number</td></tr>
-<tr class="separator:af5715f7685d9de40db69d1e80dc5ddce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7acf7ab36b9af57539abee372e8ccab"><td class="memItemLeft" align="right" valign="top"><a id="ac7acf7ab36b9af57539abee372e8ccab"></a>
+get pulseDelay()&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarTimeoutID</b>: number</td></tr>
+<tr class="separator:ac7acf7ab36b9af57539abee372e8ccab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="a2669e20028029323e0cec7985691a54a"></a>
@@ -154,6 +148,9 @@ pulsarTimeoutID&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</
       </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= () =&gt; {</div>
+<div class="line">    </div>
+<div class="line">    this.pulsarTimeoutID = undefined;</div>
+<div class="line"> </div>
 <div class="line">    this.scheduleNextPulse();</div>
 <div class="line"> </div>
 <div class="line">    </div>
@@ -182,20 +179,20 @@ pulsarTimeoutID&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</
 <div class="line">      <span class="keywordflow">return</span>;</div>
 <div class="line">    }</div>
 <div class="line"> </div>
-<div class="line">    this.currentPulseAt = nextPulseAt;</div>
-<div class="line"> </div>
 <div class="line">    <span class="keywordflow">if</span> (this.pulsarTimeoutID !== undefined) {</div>
 <div class="line">      window.clearTimeout(this.pulsarTimeoutID);</div>
 <div class="line">      this.pulsarTimeoutID = undefined;</div>
 <div class="line">    }</div>
 <div class="line"> </div>
-<div class="line">    let timeUntilPulse = Math.max(nextPulseAt - performance.now(), this.minPulseDelay);</div>
+<div class="line">    let timeUntilPulse = nextPulseAt - performance.now();</div>
 <div class="line"> </div>
 <div class="line">    </div>
 <div class="line">    </div>
 <div class="line">    </div>
-<div class="line">    <span class="keywordflow">if</span> (Number.isNaN(timeUntilPulse)) {</div>
+<div class="line">    <span class="keywordflow">if</span> (Number.isNaN(timeUntilPulse) || timeUntilPulse &lt; this.minPulseDelay) {</div>
 <div class="line">      timeUntilPulse = this.minPulseDelay;</div>
+<div class="line">    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (timeUntilPulse &gt; this.maxPulseDelay) {</div>
+<div class="line">      timeUntilPulse = this.maxPulseDelay;</div>
 <div class="line">    }</div>
 <div class="line"> </div>
 <div class="line">    </div>
