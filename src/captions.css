@@ -68,8 +68,8 @@ body {
 
 .captions > ol.history > li.final {
   display: block;
-  padding: .5em;
-  margin: .5em -.5em;
+  padding: 0.5em;
+  margin: 0.5em -0.5em;
 }
 
 .captions > ol {
@@ -88,17 +88,17 @@ body {
   cursor: progress;
 }
 
-.captions > ol > li > span.interim:before { 
+.captions > ol > li > span.interim:before {
   color: purple;
   content: '[ ';
 }
 
-.captions > ol > li.interim:last-child > span.interim:after { 
+.captions > ol > li.interim:last-child > span.interim:after {
   color: purple;
   content: ' ... ]';
 }
 
-.captions > ol > li > span.interim:after { 
+.captions > ol > li > span.interim:after {
   color: purple;
   content: ' ]';
 }

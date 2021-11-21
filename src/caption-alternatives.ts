@@ -1,10 +1,11 @@
 /** @format */
 
 import { ONodeUpdater, OExplicitNodeUpdater, Access } from './dom-manipulation.js';
-import { CompareResult, OuterHull, sort } from './qualified.js';
+import { CompareResult, OuterHull, QValue, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
 
 import { Branch } from './caption-branch.js';
+import { Translations } from './translate-deepl.js';
 
 export class Branches extends OuterHull<Branch> {
   constructor(bs: Iterable<Branch>, public readonly alternatives: Alternatives) {
@@ -21,7 +22,7 @@ export class Branches extends OuterHull<Branch> {
 }
 
 export class Alternatives extends HTMLLIElement {
-  public readonly branches: Branches;
+  public branches: Branches;
 
   constructor(bs: Iterable<Branch>, index?: number, final: boolean = false) {
     super();
@@ -33,6 +34,35 @@ export class Alternatives extends HTMLLIElement {
     this.final = final;
 
     this.replaceChildren(...this.branches);
+
+    if (this.final && Translations.Settings.enabled) {
+      console.warn('will translate: ', this, Translations.Settings);
+      for (const bs of this.branches) {
+        if (!bs.final) {
+          continue;
+        }
+        Translations.translate(bs.text, bs.language).then(
+          (translations: Iterable<Translations.LanguageString>) => {
+            const newBranches = this.branches.concat(
+                Array.from(translations).map(
+                  (translation: Translations.LanguageString) =>
+                    new Branch(
+                      this.when,
+                      new QValue(1.0),
+                      true,
+                      translation.text,
+                      'deepl',
+                      translation.lang
+                    )
+                )
+              )
+
+            this.branches = new Branches(newBranches, this);
+            this.replaceChildren(...this.branches);
+          }
+        );
+      }
+    }
   }
 
   private accessors = {
