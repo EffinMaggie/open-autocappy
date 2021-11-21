@@ -224,7 +224,7 @@ Protected Attributes</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">= (event: SpeechRecognitionEvent) =&gt;</div>
 <div class="line">    this.queued.push(<span class="keyword">new</span> <a class="code" href="classSpeechAPIUpdate.html">SpeechAPIUpdate</a>(event, this.<a class="code" href="classsettings.html">settings</a>.lang))</div>
 <div class="ttc" id="aclassSpeechAPIUpdate_html"><div class="ttname"><a href="classSpeechAPIUpdate.html">SpeechAPIUpdate</a></div><div class="ttdef"><b>Definition:</b> caption-branches.ts:21</div></div>
-<div class="ttc" id="aclasssettings_html"><div class="ttname"><a href="classsettings.html">settings</a></div><div class="ttdef"><b>Definition:</b> speech-recognition.ts:52</div></div>
+<div class="ttc" id="aclasssettings_html"><div class="ttname"><a href="classsettings.html">settings</a></div><div class="ttdef"><b>Definition:</b> speech-recognition.ts:53</div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -248,6 +248,14 @@ Protected Attributes</h2></td></tr>
 <div class="line">    ) as NodeListOf&lt;Alternatives&gt;) {</div>
 <div class="line">      li.index = undefined;</div>
 <div class="line">      this.history.appendChild(li);</div>
+<div class="line">      didMove = <span class="keyword">true</span>;</div>
+<div class="line">    }</div>
+<div class="line">    <span class="keywordflow">while</span> (TranslatedBranches.length) {</div>
+<div class="line">      <span class="keyword">const</span> b = TranslatedBranches.shift();</div>
+<div class="line">      <span class="keywordflow">if</span> (!b) {</div>
+<div class="line">        <span class="keywordflow">continue</span>;</div>
+<div class="line">      }</div>
+<div class="line">      this.history.appendChild(Fabricate.Translation(b));</div>
 <div class="line">      didMove = <span class="keyword">true</span>;</div>
 <div class="line">    }</div>
 <div class="line">    <span class="keywordflow">if</span> (didMove) {</div>
