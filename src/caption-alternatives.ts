@@ -1,7 +1,7 @@
 /** @format */
 
 import { ONodeUpdater, OExplicitNodeUpdater, Access } from './dom-manipulation.js';
-import { CompareResult, OuterHull, QValue, sort } from './qualified.js';
+import { CompareResult, OuterHull, sort } from './qualified.js';
 import { DateBetween, MDate, now } from './dated.js';
 
 import { Branch } from './caption-branch.js';
@@ -24,45 +24,17 @@ export class Branches extends OuterHull<Branch> {
 export class Alternatives extends HTMLLIElement {
   public branches: Branches;
 
-  constructor(bs: Iterable<Branch>, index?: number, final: boolean = false) {
+  constructor(bs: Iterable<Branch>, index?: number, final: boolean = false, translation: boolean = false) {
     super();
     this.setAttribute('is', 'caption-alternatives');
 
-    this.branches = new Branches(bs, this);
-
     this.index = index;
     this.final = final;
+    this.translation = translation;
+
+    this.branches = new Branches(bs, this);
 
     this.replaceChildren(...this.branches);
-
-    if (this.final && Translations.Settings.enabled) {
-      console.warn('will translate: ', this, Translations.Settings);
-      for (const bs of this.branches) {
-        if (!bs.final) {
-          continue;
-        }
-        Translations.translate(bs.text, bs.language).then(
-          (translations: Iterable<Translations.LanguageString>) => {
-            const newBranches = this.branches.concat(
-                Array.from(translations).map(
-                  (translation: Translations.LanguageString) =>
-                    new Branch(
-                      this.when,
-                      new QValue(1.0),
-                      true,
-                      translation.text,
-                      'deepl',
-                      translation.lang
-                    )
-                )
-              )
-
-            this.branches = new Branches(newBranches, this);
-            this.replaceChildren(...this.branches);
-          }
-        );
-      }
-    }
   }
 
   private accessors = {
@@ -107,6 +79,18 @@ export class Alternatives extends HTMLLIElement {
 
   get abandoned(): boolean {
     return !this.final && this.index === undefined;
+  }
+
+  get translation(): boolean {
+    return this.model.classes.has('translation');
+  }
+
+  set translation(translation: boolean) {
+    if (translation) {
+      this.model.classes.modify(undefined, ['translation']);
+    } else {
+      this.model.classes.modify(['translation'], undefined);
+    }
   }
 
   *whenHull(): Generator<MDate> {

@@ -20,7 +20,8 @@ import {
   tracker,
   syncPredicateStyle,
 } from './declare-events.js';
-import { SpeechAPI, UpdateData, SpeechAPIUpdate, ErrorUpdate } from './caption-branches.js';
+import { SpeechAPI, UpdateData, SpeechAPIUpdate, ErrorUpdate, Fabricate } from './caption-branches.js';
+import { TranslatedBranches } from './caption-branch.js';
 import { Alternatives } from './caption-alternatives.js';
 import { Transcript } from './caption-transcript.js';
 import { Ticker } from './caption-ticker.js';
@@ -126,6 +127,14 @@ class speech extends api implements SpeechRecognition {
     ) as NodeListOf<Alternatives>) {
       li.index = undefined;
       this.history.appendChild(li);
+      didMove = true;
+    }
+    while (TranslatedBranches.length) {
+      const b = TranslatedBranches.shift();
+      if (!b) {
+        continue;
+      }
+      this.history.appendChild(Fabricate.Translation(b));
       didMove = true;
     }
     if (didMove) {

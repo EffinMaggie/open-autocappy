@@ -81,7 +81,7 @@ export namespace Translations {
       .then((json: translations) =>
         Array.from(json['translations']).map(
           (translation: translation) =>
-            new LanguageString(translation.detected_source_language, translation.text)
+            new LanguageString(settings.target, translation.text)
         )
       );
   };
