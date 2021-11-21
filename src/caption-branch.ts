@@ -37,7 +37,7 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
 
   private accessors = {
     classes: new OExplicitNodeUpdater(this, 'class', ''),
-    confidence: new OExplicitNodeUpdater(this, 'data-confidence', '-1'),
+    confidence: new OExplicitNodeUpdater(this, 'data-confidence', '0'),
     when: new OExplicitNodeUpdater(this, 'data-when', ''),
     source: new OExplicitNodeUpdater(this, 'data-source', ''),
     lang: new OExplicitNodeUpdater(this, 'lang', ''),

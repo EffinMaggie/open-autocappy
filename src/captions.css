@@ -3,185 +3,146 @@
 body {
   background: black;
   color: white;
-  margin: 5px 50px;
+  margin: 2em;
+  font-family: sans-serif;
+  font-size: 1.5em;
 }
 
-.captions > ol > li {
-  display: block;
-  margin: 0.3em -50px;
-  padding: 0.5em 50px;
-}
-
-.captions ol > li > span[data-confidence]:hover:after {
-  content: ' @' attr(data-confidence);
-  color: gray;
-  font-size: 0.8em;
-}
-
-p[is='caption-ticker'] {
+.captions p[is='caption-ticker'] {
   color: blue;
-  margin: 0;
-  padding: 0;
-  margin-top: 15px;
-  margin-left: -5px;
-  height: 15px;
+  text-align: right;
 }
 
-p[is='caption-ticker'][data-ticks]:before {
-  content: attr(data-ticks);
+.captions p[is='caption-ticker']:before {
+  display: inline;
+  content: ' ';
 }
 
-p[is='caption-ticker'][data-ticks^='1'] {
-  color: purple;
-}
-
-p[is='caption-ticker'][data-ticks^='2'] {
-  color: red;
+.captions p {
+  display: inline;
   font-weight: bold;
+  color: gray;
 }
 
-p[is='caption-ticker'][data-ticks^='1']:after {
-  content: '?';
-}
-
-p[is='caption-ticker'][data-ticks^='2']:after {
-  content: '!';
-}
-
-p[is='caption-ticker'][data-ticks='0'],
-p[is='caption-ticker'][data-ticks='1'],
-p[is='caption-ticker'][data-ticks='2'] {
-  color: pink;
-}
-
-p[is='caption-ticker'][data-ticks='0']:after {
-  content: ' UwU';
-}
-
-p[is='caption-ticker'][data-ticks='1']:after,
-p[is='caption-ticker'][data-ticks='2']:after {
-  content: none;
-}
-
-#status-service,
-#status-captioning.active,
-#status-audio.active,
-#status-sound.active,
-#status-speech.active {
-  font-weight: bold;
+.captions p.active {
   color: green;
 }
 
-#status-service,
-#status-captioning,
-#status-audio,
-#status-sound,
-#status-speech {
-  display: block;
-  position: absolute;
-  top: 25px;
-  left: 50px;
-  font-weight: bold;
-  color: gray;
-}
-
-#status-captioning {
-}
-#status-audio {
-  left: 150px;
-}
-#status-sound {
-  left: 210px;
-}
-#status-speech {
-  left: 270px;
-}
-
-#status-service {
-  top: 50px;
-}
-
-span {
-  color: gray;
-}
-
-.captions ol li.final,
-.captions ol li.final span {
-  background: black;
-  color: white;
+.captions > ol > li > span {
   font-weight: bold;
 }
 
-.captions ol > li span.error {
-  font-weight: normal;
-  color: purple;
-}
-
-.captions ol > li span.error::before {
-  display: block;
-  content: 'error event: ' attr(data-error);
-  font-weight: bold;
-  color: purple;
-}
-
-.captions ol > li.final {
-  color: gray;
-  font-weight: bold;
-}
-
-.captions ol li.final span.interim {
-  font-weight: normal;
-  font-size: 0.9em;
-  color: gray;
-  padding-right: 0.5em;
-}
-
-.captions ol > li > span {
+.captions > ol > li.abandoned,
+.captions > ol > li > span {
   display: none;
 }
 
-.captions ol > li:hover > span,
-.captions ol > li > span.final:last-child,
-.captions ol > li > span.interim:last-child {
+.captions > ol > li.final,
+.captions > ol > li span.final:last-child {
+  display: inline;
+  color: white;
+}
+
+.captions > ol > li > span:after {
+  display: inline;
+  content: ' ';
+}
+
+.captions > ol > li {
+  display: inline;
+  margin: 1em 0;
+}
+
+.captions > ol {
+  table-layout: fixed;
+}
+
+.captions > ol.transcript {
+  display: block;
+  min-height: 6em;
+}
+
+.captions > ol.history > li.final:hover {
+  background: #221155;
+}
+
+.captions > ol.history > li.final {
+  display: block;
+  padding: .5em;
+  margin: .5em -.5em;
+}
+
+.captions > ol {
+  list-style-type: none;
+  padding: 0;
+  margin: 1em 0;
+}
+
+.captions > ol > li > span.final:last-child,
+.captions > ol > li > span.interim:last-child {
   display: inline;
 }
 
-.captions ol {
+.captions > ol > li > span.interim {
+  color: gray;
+  cursor: progress;
+}
+
+.captions > ol > li > span.interim:before { 
+  color: purple;
+  content: '[ ';
+}
+
+.captions > ol > li.interim:last-child > span.interim:after { 
+  color: purple;
+  content: ' ... ]';
+}
+
+.captions > ol > li > span.interim:after { 
+  color: purple;
+  content: ' ]';
+}
+
+.captions > ol.history {
   display: flex;
   flex-direction: column-reverse;
   padding-inline-start: 0;
 }
 
-.captions ol > li {
+.captions > ol.history > li {
   flex: 1;
 }
 
-.captions ol li span > span {
-  padding: 5px 20px;
+.captions > ol > li > span.error {
+  color: purple;
+  display: inline;
 }
 
-.captions ol li {
-  display: none;
-}
-
-.captions ol li:nth-last-child(2),
-.captions ol li:last-child {
+.captions > ol > li > span.error:before {
+  content: 'error ' attr(data-error);
+  color: purple;
   display: block;
-  border-bottom: 1px solid gray;
 }
 
-.captions ol li:last-child {
-  font-size: 1.8em;
+.captions > ol > li.final {
+  cursor: zoom-in;
+  user-select: none;
+}
+
+.captions ol.history > li:active > span[data-confidence]:after {
+  content: ' @' attr(data-confidence);
+  color: gray;
+  font-size: 0.8em;
+}
+
+.captions > ol > li.final:active > span.final {
+  display: block;
+  font-weight: normal;
+  font-size: 0.7em;
+}
+
+.captions > ol > li.final:active > span.final:last-child {
+  font-size: 1em;
+  font-weight: bold;
   color: white;
-  margin: 1em -50px;
-}
-
-.captions ol li:nth-last-child(2) {
-  font-size: 1.5em;
-}
-
-.captions ol li.final,
-.captions ol li.abandoned:last-child,
-.captions ol li.interim:last-child {
-  display: block;
 }
