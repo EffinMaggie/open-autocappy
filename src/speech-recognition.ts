@@ -117,33 +117,20 @@ class speech extends api implements SpeechRecognition {
     new syncPredicateStyle(this.predicates.running, Status.captioning),
   ];
 
-  snapshotting: number = 0;
-
-  snapshot = async (full: boolean = false) => {
-    if (!full && this.snapshotting > 0) {
-      console.warn('already snapshotting, cancelling this invocation');
-      return;
+  snapshot = (full: boolean = false) => {
+    let didMove: boolean = false;
+    for (const li of this.transcript.querySelectorAll(
+      full
+        ? 'li[is="caption-alternatives"]'
+        : 'li[is="caption-alternatives"].final, li[is="caption-alternatives"].abandoned'
+    ) as NodeListOf<Alternatives>) {
+      li.index = undefined;
+      this.history.appendChild(li);
+      didMove = true;
     }
-
-    this.snapshotting++;
-
-    try {
-      let didMove: boolean = false;
-      for (const li of this.transcript.querySelectorAll(
-        full
-          ? 'li[is="caption-alternatives"]'
-          : 'li[is="caption-alternatives"].final, li[is="caption-alternatives"].abandoned'
-      ) as NodeListOf<Alternatives>) {
-        li.index = undefined;
-        this.history.appendChild(li);
-        didMove = true;
-      }
-      if (didMove) {
-        this.transcript.sync();
-        this.history.sync();
-      }
-    } finally {
-      this.snapshotting--;
+    if (didMove) {
+      this.transcript.sync();
+      this.history.sync();
     }
   };
 
@@ -152,44 +139,34 @@ class speech extends api implements SpeechRecognition {
   result = (event: SpeechRecognitionEvent) =>
     this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
 
-  processing: number = 0;
-
-  process = async (synchronous: boolean = false) => {
-    if (!synchronous && this.processing > 0) {
-      // never allow two threads to be processing stuff at the same time,
-      // as it won't help performance and the queue and snapshotting steps
-      // may not be reentrant. The order of the queue processing should
-      // not be changed from the order we got results in.
-      console.log('already processing');
+  process = () => {
+    // if there's nothing to do, don't do nothing.
+    if (!this.queued.length) {
       return;
     }
 
-    this.processing++;
+    let transcript: Transcript | undefined = undefined;
 
-    try {
-      let doSnapshot = false;
+    while (this.queued.length) {
+      const data = this.queued.shift();
 
-      while (this.queued.length) {
-        const data = this.queued.shift();
-
-        if (!data) {
-          console.error('bogus event from SpeechRecognition API; skipping');
-          continue;
-        }
-
-        const ts = SpeechAPI.fromData(data);
-
-        doSnapshot ||= ts.index != this.transcript.index;
-        doSnapshot ||= ts.length != this.transcript.length;
-
-        this.transcript.load(ts);
+      if (!data) {
+        console.error('bogus event from SpeechRecognition API; skipping');
+        continue;
       }
 
-      if (doSnapshot) {
-        this.snapshot();
+      const ts = SpeechAPI.fromData(data);
+
+      if (transcript === undefined) {
+        transcript = ts;
+      } else {
+        transcript.load(ts);
       }
-    } finally {
-      this.processing--;
+    }
+
+    if (transcript !== undefined) {
+      this.transcript.load(transcript);
+      this.snapshot();
     }
   };
 
@@ -256,8 +233,8 @@ class speech extends api implements SpeechRecognition {
     // clear out any pending transcript updates before trying to start,
     // because the API provider will likely recycle ID numbers, which would
     // cause confusing clashes with the interim records.
-    await this.process(true);
-    await this.snapshot(true);
+    this.process();
+    this.snapshot(true);
 
     try {
       super.start();
