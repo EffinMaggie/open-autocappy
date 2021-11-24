@@ -65,7 +65,6 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
-<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classaction-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">action Class Reference</div>  </div>
@@ -74,102 +73,25 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0f8159812b15322f90fdcd114387cc2b"><td class="memItemLeft" align="right" valign="top"><a id="a0f8159812b15322f90fdcd114387cc2b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (protected readonly handler:EventListener, public readonly name:string=action.name, triggers:Iterable&lt; string &gt;=[], public readonly valid:predicate=predicate.yes, public readonly reentrant:predicate=predicate.yes, public readonly asynchronous:predicate=predicate.no)</td></tr>
-<tr class="separator:a0f8159812b15322f90fdcd114387cc2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ffb145a09d80204c1595a60e0d7c04f"><td class="memItemLeft" align="right" valign="top"><a id="a8ffb145a09d80204c1595a60e0d7c04f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (public readonly handler:EventListener, public readonly name:string=action.name, triggers:Iterable&lt; string &gt;=[])</td></tr>
+<tr class="separator:a8ffb145a09d80204c1595a60e0d7c04f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a2b0ce7bad42408a2c523d1df1ea9a4d4"><td class="memItemLeft" align="right" valign="top"><a id="a2b0ce7bad42408a2c523d1df1ea9a4d4"></a>
 readonly&#160;</td><td class="memItemRight" valign="bottom"><b>triggers</b>: Set&lt;string&gt;</td></tr>
 <tr class="separator:a2b0ce7bad42408a2c523d1df1ea9a4d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83e2987c347189456ae1f92f05ad3b14"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>next</b></td></tr>
-<tr class="separator:a83e2987c347189456ae1f92f05ad3b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8bb704a46b9eeea13ea8660432a700dc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>prev</b></td></tr>
-<tr class="separator:a8bb704a46b9eeea13ea8660432a700dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeedaa1fcd8059385c307d7101b8d56ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>renamed</b></td></tr>
-<tr class="separator:aeedaa1fcd8059385c307d7101b8d56ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7dbe0c46826a7c2a4b6172f4d7451c39"><td class="memItemLeft" align="right" valign="top"><a id="a7dbe0c46826a7c2a4b6172f4d7451c39"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>naming</b> = (): <a class="el" href="classaction.html">action</a> =&gt; this.upon([this.name])</td></tr>
-<tr class="separator:a7dbe0c46826a7c2a4b6172f4d7451c39"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a770723ab7321abc71a958a067afb07c0"><td class="memItemLeft" align="right" valign="top"><a id="a770723ab7321abc71a958a067afb07c0"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>meshing</b> = (): <a class="el" href="classaction.html">action</a> =&gt; this.upon([this.name + '?'])</td></tr>
-<tr class="separator:a770723ab7321abc71a958a067afb07c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec61f582bdc27dbc38cbc0c530129d8e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>upon</b></td></tr>
+<tr class="memitem:aec61f582bdc27dbc38cbc0c530129d8e"><td class="memItemLeft" align="right" valign="top"><a id="aec61f582bdc27dbc38cbc0c530129d8e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>upon</b> = (triggers: Iterable&lt;string&gt;): <a class="el" href="classaction.html">action</a> =&gt; new <a class="el" href="classaction.html">action</a>(this.handler, this.name, triggers)</td></tr>
 <tr class="separator:aec61f582bdc27dbc38cbc0c530129d8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9491515f0842d34e95c014f4666e8898"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>validp</b></td></tr>
-<tr class="separator:a9491515f0842d34e95c014f4666e8898"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ed0f33bb1308a5154622befd2faeb2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>reentrantp</b></td></tr>
-<tr class="separator:a2ed0f33bb1308a5154622befd2faeb2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa66845b6321adbfba6c3fa2e721388a0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>asyncp</b></td></tr>
-<tr class="separator:aa66845b6321adbfba6c3fa2e721388a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af387b0b1fbfc8f057a8c74eaf7f7c88d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>act</b></td></tr>
-<tr class="separator:af387b0b1fbfc8f057a8c74eaf7f7c88d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a110f5ded111617ccbaa1a4ae0dd2bdff"><td class="memItemLeft" align="right" valign="top"><a id="a110f5ded111617ccbaa1a4ae0dd2bdff"></a>
-<a class="el" href="classlistener.html">listener</a>&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: (observer: EventTarget) =&gt; <a class="el" href="classlistener.html">listener</a> = (observer: EventTarget) =&gt; new <a class="el" href="classlistener.html">listener</a>(observer</td></tr>
-<tr class="separator:a110f5ded111617ccbaa1a4ae0dd2bdff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac4e5b7a06f262ba29e785985ff24dfa5"><td class="memItemLeft" align="right" valign="top"><a id="ac4e5b7a06f262ba29e785985ff24dfa5"></a>
-<a class="el" href="classlistener.html">listener</a>&#160;</td><td class="memItemRight" valign="bottom"><b>this</b></td></tr>
-<tr class="separator:ac4e5b7a06f262ba29e785985ff24dfa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:adee07308f35aad9278e465328a328808"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><b>make</b></td></tr>
 <tr class="separator:adee07308f35aad9278e465328a328808"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec45f40ecc657bf73489e8c142617532"><td class="memItemLeft" align="right" valign="top">static&#160;</td><td class="memItemRight" valign="bottom"><b>poke</b></td></tr>
-<tr class="separator:aec45f40ecc657bf73489e8c142617532"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
-Protected Attributes</h2></td></tr>
-<tr class="memitem:ae6a1773ea0ed5a687b84823877c557f5"><td class="memItemLeft" align="right" valign="top"><a id="ae6a1773ea0ed5a687b84823877c557f5"></a>
-running&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: number = 0</td></tr>
-<tr class="separator:ae6a1773ea0ed5a687b84823877c557f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86c8c759315d22b11b8488a08e81f75b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>process</b></td></tr>
-<tr class="separator:a86c8c759315d22b11b8488a08e81f75b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6e1eee0a7d6109b1ab94c078fc933e0"><td class="memItemLeft" align="right" valign="top"><a id="ae6e1eee0a7d6109b1ab94c078fc933e0"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>asynchronously</b> = async (event: Event): Promise&lt;boolean&gt; =&gt; this.process(event)</td></tr>
-<tr class="separator:ae6e1eee0a7d6109b1ab94c078fc933e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="af387b0b1fbfc8f057a8c74eaf7f7c88d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af387b0b1fbfc8f057a8c74eaf7f7c88d">&#9670;&nbsp;</a></span>act</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::act</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (event: Event) =&gt; {</div>
-<div class="line">    <span class="keywordflow">if</span> (this.asynchronous.ok()) {</div>
-<div class="line">      this.asynchronously(event);</div>
-<div class="line">    } <span class="keywordflow">else</span> {</div>
-<div class="line">      this.process(event);</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="aa66845b6321adbfba6c3fa2e721388a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa66845b6321adbfba6c3fa2e721388a0">&#9670;&nbsp;</a></span>asyncp</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::asyncp</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (p: <a class="code" href="classpredicate.html">predicate</a>): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(this.handler, this.name, this.triggers, this.valid, this.reentrant, p)</div>
-<div class="ttc" id="aclassaction_html"><div class="ttname"><a href="classaction.html">action</a></div><div class="ttdef"><b>Definition:</b> declare-events.ts:12</div></div>
-<div class="ttc" id="aclasspredicate_html"><div class="ttname"><a href="classpredicate.html">predicate</a></div><div class="ttdef"><b>Definition:</b> declare-events.ts:213</div></div>
-</div><!-- fragment -->
-</div>
-</div>
 <a id="adee07308f35aad9278e465328a328808"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adee07308f35aad9278e465328a328808">&#9670;&nbsp;</a></span>make</h2>
 
@@ -196,189 +118,7 @@ running&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: numb
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(fn[name], name);</div>
 <div class="line">  }</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a83e2987c347189456ae1f92f05ad3b14"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a83e2987c347189456ae1f92f05ad3b14">&#9670;&nbsp;</a></span>next</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::next</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (act: <a class="code" href="classaction.html">action</a>, name: <span class="keywordtype">string</span> = this.name): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(</div>
-<div class="line">      (event: Event) =&gt; {</div>
-<div class="line">        this.handler(event);</div>
-<div class="line">        act.handler(event);</div>
-<div class="line">      },</div>
-<div class="line">      name,</div>
-<div class="line">      this.triggers,</div>
-<div class="line">      this.valid,</div>
-<div class="line">      this.reentrant,</div>
-<div class="line">      this.asynchronous</div>
-<div class="line">    )</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="aec45f40ecc657bf73489e8c142617532"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec45f40ecc657bf73489e8c142617532">&#9670;&nbsp;</a></span>poke</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::poke</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (observer: EventTarget, event: string, relay?: any) =&gt;</div>
-<div class="line">    <a class="code" href="classaction.html">action</a>.make(() =&gt; poke(observer, event, relay), <span class="stringliteral">&#39;poke:&#39;</span> + event)</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a8bb704a46b9eeea13ea8660432a700dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8bb704a46b9eeea13ea8660432a700dc">&#9670;&nbsp;</a></span>prev</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::prev</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (act: <a class="code" href="classaction.html">action</a>, name: <span class="keywordtype">string</span> = this.name): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(</div>
-<div class="line">      (event: Event) =&gt; {</div>
-<div class="line">        act.handler(event);</div>
-<div class="line">        this.handler(event);</div>
-<div class="line">      },</div>
-<div class="line">      name,</div>
-<div class="line">      this.triggers,</div>
-<div class="line">      this.valid,</div>
-<div class="line">      this.reentrant,</div>
-<div class="line">      this.asynchronous</div>
-<div class="line">    )</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a86c8c759315d22b11b8488a08e81f75b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a86c8c759315d22b11b8488a08e81f75b">&#9670;&nbsp;</a></span>process</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::process</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (event: Event): <span class="keywordtype">boolean</span> =&gt; {</div>
-<div class="line">    this.running++;</div>
-<div class="line"> </div>
-<div class="line">    let valid = <span class="keyword">true</span>;</div>
-<div class="line"> </div>
-<div class="line">    valid = valid &amp;&amp; (this.reentrant.ok() || this.running === 1);</div>
-<div class="line">    valid = valid &amp;&amp; this.valid.ok();</div>
-<div class="line"> </div>
-<div class="line">    <span class="keywordflow">if</span> (valid) {</div>
-<div class="line">      <span class="keywordflow">try</span> {</div>
-<div class="line">        this.handler(event);</div>
-<div class="line">      } <span class="keywordflow">catch</span> (e) {</div>
-<div class="line">        console.error(`exception during event processing: `, <span class="keyword">this</span>, e);</div>
-<div class="line">        poke(event.target!, <span class="keyword">this</span>.name + <span class="stringliteral">&#39;:exception&#39;</span>);</div>
-<div class="line">      }</div>
-<div class="line">    }</div>
-<div class="line"> </div>
-<div class="line">    this.running--;</div>
-<div class="line"> </div>
-<div class="line">    <span class="keywordflow">return</span> valid;</div>
-<div class="line">  }</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a2ed0f33bb1308a5154622befd2faeb2f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ed0f33bb1308a5154622befd2faeb2f">&#9670;&nbsp;</a></span>reentrantp</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::reentrantp</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (p: <a class="code" href="classpredicate.html">predicate</a>): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(this.handler, this.name, this.triggers, this.valid, p, this.asynchronous)</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="aeedaa1fcd8059385c307d7101b8d56ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeedaa1fcd8059385c307d7101b8d56ab">&#9670;&nbsp;</a></span>renamed</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::renamed</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (name: string): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(this.handler, name, this.triggers, this.valid, this.reentrant, this.asynchronous)</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="aec61f582bdc27dbc38cbc0c530129d8e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec61f582bdc27dbc38cbc0c530129d8e">&#9670;&nbsp;</a></span>upon</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::upon</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (triggers: Iterable&lt;string&gt;): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(this.handler, this.name, triggers, this.valid, this.reentrant, this.asynchronous)</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a9491515f0842d34e95c014f4666e8898"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9491515f0842d34e95c014f4666e8898">&#9670;&nbsp;</a></span>validp</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">action::validp</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= (p: <a class="code" href="classpredicate.html">predicate</a>): <a class="code" href="classaction.html">action</a> =&gt;</div>
-<div class="line">    <span class="keyword">new</span> <a class="code" href="classaction.html">action</a>(this.handler, this.name, this.triggers, p, this.reentrant, this.asynchronous)</div>
+<div class="ttc" id="aclassaction_html"><div class="ttname"><a href="classaction.html">action</a></div><div class="ttdef"><b>Definition:</b> declare-events.ts:12</div></div>
 </div><!-- fragment -->
 </div>
 </div>

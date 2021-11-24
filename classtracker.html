@@ -63,6 +63,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-static-attribs">Static Protected Attributes</a> &#124;
 <a href="classtracker-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">tracker Class Reference</div>  </div>
@@ -84,9 +85,9 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (public readonly observer:EventTarget, public readonly after:Iterable&lt; string &gt;, public readonly before:Iterable&lt; string &gt;)</td></tr>
 <tr class="separator:a13d6a538fff945ac11d542c8121d35e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classpredicate"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classpredicate')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classpredicate.html">predicate</a></td></tr>
-<tr class="memitem:aed66b5f4472e4fa4aa4e6eb715c29fa4 inherit pub_methods_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="aed66b5f4472e4fa4aa4e6eb715c29fa4"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (protected test:thunk&lt; maybe &gt;, public readonly influencers:listeners=listeners.none)</td></tr>
-<tr class="separator:aed66b5f4472e4fa4aa4e6eb715c29fa4 inherit pub_methods_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cd11bd260343e79615fd9425ac7c261 inherit pub_methods_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a6cd11bd260343e79615fd9425ac7c261"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> (protected test:thunk&lt; maybe &gt;)</td></tr>
+<tr class="separator:a6cd11bd260343e79615fd9425ac7c261 inherit pub_methods_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0eeffc665e3384a9fd425b16eb5e5f97 inherit pub_methods_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a0eeffc665e3384a9fd425b16eb5e5f97"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (this.assumedValue !==undefined)</td></tr>
 <tr class="separator:a0eeffc665e3384a9fd425b16eb5e5f97 inherit pub_methods_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -95,6 +96,19 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4dcc9a3711d4bf7fed1ae134033fffa4 inherit pub_methods_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2a3892adc5724b4d1411b6058b1edaf inherit pub_methods_classpredicate"><td class="memItemLeft" align="right" valign="top">set&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classpredicate.html#aa2a3892adc5724b4d1411b6058b1edaf">assume</a> (value:maybe)</td></tr>
 <tr class="separator:aa2a3892adc5724b4d1411b6058b1edaf inherit pub_methods_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-attribs"></a>
+Static Protected Attributes</h2></td></tr>
+<tr class="memitem:a5551441624626420492bd470efd43648"><td class="memItemLeft" align="right" valign="top"><a id="a5551441624626420492bd470efd43648"></a>
+static&#160;</td><td class="memItemRight" valign="bottom"><b>changedEvent</b> = new CustomEvent('value-changed')</td></tr>
+<tr class="separator:a5551441624626420492bd470efd43648"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_static_attribs_classpredicate"><td colspan="2" onclick="javascript:toggleInherit('pro_static_attribs_classpredicate')"><img src="closed.png" alt="-"/>&#160;Static Protected Attributes inherited from <a class="el" href="classpredicate.html">predicate</a></td></tr>
+<tr class="memitem:a77393de34675cf351158c510a4dac2cf inherit pro_static_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a77393de34675cf351158c510a4dac2cf"></a>
+static&#160;</td><td class="memItemRight" valign="bottom"><b>changedEvent</b> = new CustomEvent('value-changed')</td></tr>
+<tr class="separator:a77393de34675cf351158c510a4dac2cf inherit pro_static_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33aa1d757bd1bc1f3d3e2a38b3023f7a inherit pro_static_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a33aa1d757bd1bc1f3d3e2a38b3023f7a"></a>
+static&#160;</td><td class="memItemRight" valign="bottom"><b>reentrancy</b>: number = 0</td></tr>
+<tr class="separator:a33aa1d757bd1bc1f3d3e2a38b3023f7a inherit pro_static_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -119,25 +133,6 @@ ok&#160;</td><td class="memItemRight" valign="bottom"><b>__pad3__</b>: thunk&lt;
 <tr class="memitem:ac4cbe3d8a80a805835abf0b83b4d84ba inherit pub_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="ac4cbe3d8a80a805835abf0b83b4d84ba"></a>
 fail&#160;</td><td class="memItemRight" valign="bottom"><b>__pad4__</b>: thunk&lt;boolean&gt; = () =&gt; this.is(false) || this.is(undefined)</td></tr>
 <tr class="separator:ac4cbe3d8a80a805835abf0b83b4d84ba inherit pub_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a1afc7b98539bf307d831a0137b9898 inherit pub_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a0a1afc7b98539bf307d831a0137b9898"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>invert</b> = () =&gt; new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; this.fail(), this.influencers)</td></tr>
-<tr class="separator:a0a1afc7b98539bf307d831a0137b9898 inherit pub_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e5f05615f4be213f16084c3fe5f0381 inherit pub_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a2e5f05615f4be213f16084c3fe5f0381"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>also</b> = (p: <a class="el" href="classpredicate.html">predicate</a>) =&gt; new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; this.ok() &amp;&amp; p.ok(), this.influencers)</td></tr>
-<tr class="separator:a2e5f05615f4be213f16084c3fe5f0381 inherit pub_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a51ac96f693196b2c8fa393ab1088ae90 inherit pub_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a51ac96f693196b2c8fa393ab1088ae90"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>or</b> = (p: <a class="el" href="classpredicate.html">predicate</a>) =&gt; new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; this.ok() || p.ok(), this.influencers)</td></tr>
-<tr class="separator:a51ac96f693196b2c8fa393ab1088ae90 inherit pub_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1797cb7ff7814926723da117919981d inherit pub_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="ad1797cb7ff7814926723da117919981d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>nor</b> = (p: <a class="el" href="classpredicate.html">predicate</a>) =&gt; new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; this.fail() &amp;&amp; p.fail(), this.influencers)</td></tr>
-<tr class="separator:ad1797cb7ff7814926723da117919981d inherit pub_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_static_attribs_classpredicate"><td colspan="2" onclick="javascript:toggleInherit('pub_static_attribs_classpredicate')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="classpredicate.html">predicate</a></td></tr>
-<tr class="memitem:a827ef6553e40103618118652dcb6d7d6 inherit pub_static_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a827ef6553e40103618118652dcb6d7d6"></a>
-static&#160;</td><td class="memItemRight" valign="bottom"><b>yes</b> = new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; true)</td></tr>
-<tr class="separator:a827ef6553e40103618118652dcb6d7d6 inherit pub_static_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7b48e646a28a38979434ae9ea46f7ff inherit pub_static_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="ab7b48e646a28a38979434ae9ea46f7ff"></a>
-static&#160;</td><td class="memItemRight" valign="bottom"><b>no</b> = new <a class="el" href="classpredicate.html">predicate</a>(() =&gt; false)</td></tr>
-<tr class="separator:ab7b48e646a28a38979434ae9ea46f7ff inherit pub_static_attribs_classpredicate"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classpredicate"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classpredicate')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classpredicate.html">predicate</a></td></tr>
 <tr class="memitem:a8be02cac01cd3c6e6524ddbc4b929322 inherit pro_attribs_classpredicate"><td class="memItemLeft" align="right" valign="top"><a id="a8be02cac01cd3c6e6524ddbc4b929322"></a>
 assumedValue&#160;</td><td class="memItemRight" valign="bottom"><b>__pad1__</b>: maybe = undefined</td></tr>

@@ -82,15 +82,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a93be0fd9e23788c272471aa1f3d82910"><td class="memItemLeft" align="right" valign="top"><a id="a93be0fd9e23788c272471aa1f3d82910"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>constructor</b> ()</td></tr>
 <tr class="separator:a93be0fd9e23788c272471aa1f3d82910"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42f4b0832a3c7fb662debea4636d9459"><td class="memItemLeft" align="right" valign="top"><a id="a42f4b0832a3c7fb662debea4636d9459"></a>
-get&#160;</td><td class="memItemRight" valign="bottom"><b>tick</b> ()</td></tr>
-<tr class="separator:a42f4b0832a3c7fb662debea4636d9459"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dc486f92ae51dcbb74795986cd5d5cf"><td class="memItemLeft" align="right" valign="top"><a id="a9dc486f92ae51dcbb74795986cd5d5cf"></a>
+get tick() set&#160;</td><td class="memItemRight" valign="bottom"><b>tick</b> (now:number)</td></tr>
+<tr class="separator:a9dc486f92ae51dcbb74795986cd5d5cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memItemLeft" align="right" valign="top"><a id="af6ccf451cfc71f45bd0102bba46ade0f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>callbackTimingSample</b> (timingMS:number)</td></tr>
 <tr class="separator:af6ccf451cfc71f45bd0102bba46ade0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a89da69556823663fc682d411d5f2a606"><td class="memItemLeft" align="right" valign="top"><a id="a89da69556823663fc682d411d5f2a606"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>scheduleNextPulse</b> (now:number=performance.now())</td></tr>
 <tr class="separator:a89da69556823663fc682d411d5f2a606"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e0616afadad4e7a376cea039a1d8980"><td class="memItemLeft" align="right" valign="top"><a id="a5e0616afadad4e7a376cea039a1d8980"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>pulse</b> ()</td></tr>
+<tr class="separator:a5e0616afadad4e7a376cea039a1d8980"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -100,12 +103,13 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a45d8853ae70e5d456299f7d3d11d5ae7"><td class="memItemLeft" align="right" valign="top"><a id="a45d8853ae70e5d456299f7d3d11d5ae7"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>interval</b> = new <a class="el" href="classAccess_1_1Numeric.html">Access.Numeric</a>(this.accessors.interval)</td></tr>
 <tr class="separator:a45d8853ae70e5d456299f7d3d11d5ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2669e20028029323e0cec7985691a54a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>pulsar</b></td></tr>
+<tr class="memitem:a2669e20028029323e0cec7985691a54a"><td class="memItemLeft" align="right" valign="top"><a id="a2669e20028029323e0cec7985691a54a"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>pulsar</b> = this.pulse.bind(this)</td></tr>
 <tr class="separator:a2669e20028029323e0cec7985691a54a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaad34d6844f130d5d401dbc9f18987fb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>resetPulsar</b></td></tr>
 <tr class="separator:aaad34d6844f130d5d401dbc9f18987fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4dbf46686a335f035e0e92a58197d42"><td class="memItemLeft" align="right" valign="top"><a id="ae4dbf46686a335f035e0e92a58197d42"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarIntervalID</b> = window.setInterval(this.resetPulsar, this.resetPulsarInterval)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarIntervalID</b> = window.setInterval(this.resetPulsar.bind(this), this.resetPulsarInterval)</td></tr>
 <tr class="separator:ae4dbf46686a335f035e0e92a58197d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
@@ -136,30 +140,6 @@ get pulseDelay()&#160;</td><td class="memItemRight" valign="bottom"><b>pulsarTim
 <tr class="separator:ac7acf7ab36b9af57539abee372e8ccab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a2669e20028029323e0cec7985691a54a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2669e20028029323e0cec7985691a54a">&#9670;&nbsp;</a></span>pulsar</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Ticker::pulsar</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= () =&gt; {</div>
-<div class="line">    </div>
-<div class="line">    this.pulsarTimeoutID = undefined;</div>
-<div class="line"> </div>
-<div class="line">    this.scheduleNextPulse();</div>
-<div class="line"> </div>
-<div class="line">    </div>
-<div class="line">    </div>
-<div class="line">    this.tick++;</div>
-<div class="line">  }</div>
-</div><!-- fragment -->
-</div>
-</div>
 <a id="aaad34d6844f130d5d401dbc9f18987fb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaad34d6844f130d5d401dbc9f18987fb">&#9670;&nbsp;</a></span>resetPulsar</h2>
 
