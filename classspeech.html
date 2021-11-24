@@ -79,6 +79,9 @@ Inheritance diagram for speech:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a8f61224af753b3f04f94dbc0774f37d7"><td class="memItemLeft" align="right" valign="top"><a id="a8f61224af753b3f04f94dbc0774f37d7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>process</b> (fullSnapshot:boolean=false)</td></tr>
+<tr class="separator:a8f61224af753b3f04f94dbc0774f37d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16dd7e929d189e241b09fd965da61b6d"><td class="memItemLeft" align="right" valign="top"><a id="a16dd7e929d189e241b09fd965da61b6d"></a>
 async&#160;</td><td class="memItemRight" valign="bottom"><b>start</b> ()</td></tr>
 <tr class="separator:a16dd7e929d189e241b09fd965da61b6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -98,8 +101,6 @@ queued&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: Updat
 <tr class="separator:a7af5cbb855a9cf52917786ab06a04881"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad99751f795d4ccc58ee725e8844cf2ca"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>result</b></td></tr>
 <tr class="separator:ad99751f795d4ccc58ee725e8844cf2ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>process</b></td></tr>
-<tr class="separator:a2e4a4a98d4b2f21e78dafd77e9014c50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69076ae6898ab569fc227d39faef96fd"><td class="memItemLeft" align="right" valign="top"><a id="a69076ae6898ab569fc227d39faef96fd"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>error</b> = (event: SpeechRecognitionErrorEvent) =&gt; this.queued.push(new <a class="el" href="classErrorUpdate.html">ErrorUpdate</a>(event))</td></tr>
 <tr class="separator:a69076ae6898ab569fc227d39faef96fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -169,50 +170,6 @@ Protected Attributes</h2></td></tr>
 <div class="line">      )</div>
 <div class="line">    )</div>
 <div class="ttc" id="aclassErrorUpdate_html"><div class="ttname"><a href="classErrorUpdate.html">ErrorUpdate</a></div><div class="ttdef"><b>Definition:</b> caption-branches.ts:37</div></div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a2e4a4a98d4b2f21e78dafd77e9014c50"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e4a4a98d4b2f21e78dafd77e9014c50">&#9670;&nbsp;</a></span>process</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">speech::process</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">= () =&gt; {</div>
-<div class="line">    </div>
-<div class="line">    <span class="keywordflow">if</span> (!this.queued.length) {</div>
-<div class="line">      <span class="keywordflow">return</span>;</div>
-<div class="line">    }</div>
-<div class="line"> </div>
-<div class="line">    let transcript: <a class="code" href="classTranscript.html">Transcript</a> | undefined = undefined;</div>
-<div class="line"> </div>
-<div class="line">    <span class="keywordflow">while</span> (this.queued.length) {</div>
-<div class="line">      <span class="keyword">const</span> data = this.queued.shift();</div>
-<div class="line"> </div>
-<div class="line">      <span class="keywordflow">if</span> (!data) {</div>
-<div class="line">        console.error(<span class="stringliteral">&#39;bogus event from SpeechRecognition API; skipping&#39;</span>);</div>
-<div class="line">        <span class="keywordflow">continue</span>;</div>
-<div class="line">      }</div>
-<div class="line"> </div>
-<div class="line">      <span class="keyword">const</span> ts = SpeechAPI.fromData(data);</div>
-<div class="line"> </div>
-<div class="line">      <span class="keywordflow">if</span> (transcript === undefined) {</div>
-<div class="line">        transcript = ts;</div>
-<div class="line">      } <span class="keywordflow">else</span> {</div>
-<div class="line">        transcript.load(ts);</div>
-<div class="line">      }</div>
-<div class="line">    }</div>
-<div class="line"> </div>
-<div class="line">    <span class="keywordflow">if</span> (transcript !== undefined) {</div>
-<div class="line">      this.transcript.load(transcript);</div>
-<div class="line">      this.snapshot();</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
 </div><!-- fragment -->
 </div>
 </div>
