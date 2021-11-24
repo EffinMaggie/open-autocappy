@@ -268,7 +268,7 @@ class speech extends api implements SpeechRecognition {
   private readonly weave = new listeners(
     [this],
     new actions([
-      action.make(this.result, 'result').upon(['result', 'nomatch']),
+      action.make(this.result).upon(['result', 'nomatch']),
 
       action
         .make((event: Event) => {
@@ -289,8 +289,8 @@ class speech extends api implements SpeechRecognition {
           'speechend',
         ]),
 
-      action.make(this.error, 'error').naming(),
-      action.make(this.nomatch, 'nomatch').naming(),
+      action.make(this.error).upon(['error']),
+      action.make(this.nomatch).upon(['nomatch']),
     ])
   );
 

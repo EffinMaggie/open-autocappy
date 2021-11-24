@@ -1,7 +1,5 @@
 /** @format */
 
-import { poke } from './declare-events.js';
-
 export type CompareResult = -1 | 0 | 1;
 
 export interface PartialOrder {

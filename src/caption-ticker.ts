@@ -2,7 +2,7 @@
 
 import { Series, StdDev } from './streaming.js';
 import { OExplicitNodeUpdater, Access } from './dom-manipulation.js';
-import { action, actions, listeners, poke } from './declare-events.js';
+import { action, actions, listeners } from './declare-events.js';
 
 export class Ticker extends HTMLLIElement {
   constructor() {
@@ -24,6 +24,8 @@ export class Ticker extends HTMLLIElement {
     return this.ticks.number;
   }
 
+  private static tickEvent = new CustomEvent('tick');
+
   set tick(now: number) {
     if (now == this.tick) {
       return;
@@ -32,7 +34,7 @@ export class Ticker extends HTMLLIElement {
     this.ticks.number = now;
 
     if (now > 0) {
-      poke(this, 'tick');
+      this.dispatchEvent(Ticker.tickEvent);
     }
   }
 
@@ -94,7 +96,7 @@ export class Ticker extends HTMLLIElement {
     this.interval.number = pulseDelay;
   }
 
-  pulsar = () => {
+  pulse() {
     // don't try to cancel this callback, we're running.
     this.pulsarTimeoutID = undefined;
 
@@ -103,7 +105,9 @@ export class Ticker extends HTMLLIElement {
     // this will trigger 'tick' events on updates, which may further
     // trigger longer, async processing.
     this.tick++;
-  };
+  }
+
+  pulsar = this.pulse.bind(this);
 
   resetPulsar = () => {
     let nextPulseAt = this.nextPulseAt;
@@ -133,7 +137,7 @@ export class Ticker extends HTMLLIElement {
     this.pulsarTimeoutID = window.setTimeout(this.pulsar, timeUntilPulse);
   };
 
-  pulsarIntervalID = window.setInterval(this.resetPulsar, this.resetPulsarInterval);
+  pulsarIntervalID = window.setInterval(this.resetPulsar.bind(this), this.resetPulsarInterval);
 }
 
 customElements.define('caption-ticker', Ticker, { extends: 'li' });

@@ -1,7 +1,7 @@
 /** @format */
 
 import { MutableValue, ToString, FromString } from './qualified.js';
-import { action, actions, listeners, poke } from './declare-events.js';
+import { action, actions, listeners } from './declare-events.js';
 
 const defaultStringValue: string = '[default value]';
 
@@ -165,13 +165,15 @@ export class ONodeUpdater extends EventTarget implements MutableValue<string>, F
     return this.lastConfirmedValue;
   }
 
+  protected static changeObservedEvent = new CustomEvent('value-changed');
+
   protected set cachedValue(value: string | undefined) {
     if (value === undefined) {
       this.lastConfirmedValue = undefined;
     } else if (this.cacheEnabled) {
       if (this.lastConfirmedValue !== value) {
         this.lastConfirmedValue = value;
-        poke(this, 'value-change-observed');
+        this.dispatchEvent(ONodeUpdater.changeObservedEvent);
       }
     }
   }

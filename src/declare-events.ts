@@ -13,12 +13,9 @@ export class action {
   public readonly triggers: Set<string>;
 
   constructor(
-    protected readonly handler: EventListener,
+    public readonly handler: EventListener,
     public readonly name: string = action.name,
-    triggers: Iterable<string> = [],
-    public readonly valid: predicate = predicate.yes,
-    public readonly reentrant: predicate = predicate.yes,
-    public readonly asynchronous: predicate = predicate.no
+    triggers: Iterable<string> = []
   ) {
     this.triggers = new Set<string>(triggers);
   }
@@ -31,103 +28,13 @@ export class action {
     return new action(fn[name], name);
   };
 
-  public static poke = (observer: EventTarget, event: string, relay?: any) =>
-    action.make(() => poke(observer, event, relay), 'poke:' + event);
-
-  public next = (act: action, name: string = this.name): action =>
-    new action(
-      (event: Event) => {
-        this.handler(event);
-        act.handler(event);
-      },
-      name,
-      this.triggers,
-      this.valid,
-      this.reentrant,
-      this.asynchronous
-    );
-
-  public prev = (act: action, name: string = this.name): action =>
-    new action(
-      (event: Event) => {
-        act.handler(event);
-        this.handler(event);
-      },
-      name,
-      this.triggers,
-      this.valid,
-      this.reentrant,
-      this.asynchronous
-    );
-
-  public renamed = (name: string): action =>
-    new action(this.handler, name, this.triggers, this.valid, this.reentrant, this.asynchronous);
-
-  public naming = (): action => this.upon([this.name]);
-  public meshing = (): action => this.upon([this.name + '?']);
-
-  public upon = (triggers: Iterable<string>): action =>
-    new action(this.handler, this.name, triggers, this.valid, this.reentrant, this.asynchronous);
-
-  public validp = (p: predicate): action =>
-    new action(this.handler, this.name, this.triggers, p, this.reentrant, this.asynchronous);
-
-  public reentrantp = (p: predicate): action =>
-    new action(this.handler, this.name, this.triggers, this.valid, p, this.asynchronous);
-
-  public asyncp = (p: predicate): action =>
-    new action(this.handler, this.name, this.triggers, this.valid, this.reentrant, p);
-
-  protected running: number = 0;
-
-  protected process = (event: Event): boolean => {
-    this.running++;
-
-    let valid = true;
-
-    valid = valid && (this.reentrant.ok() || this.running === 1);
-    valid = valid && this.valid.ok();
-
-    if (valid) {
-      try {
-        this.handler(event);
-      } catch (e) {
-        console.error(`exception during event processing: `, this, e);
-        poke(event.target!, this.name + ':exception');
-      }
-    }
-
-    this.running--;
-
-    return valid;
-  };
-
-  protected asynchronously = async (event: Event): Promise<boolean> => this.process(event);
-
-  public act = (event: Event) => {
-    if (this.asynchronous.ok()) {
-      this.asynchronously(event);
-    } else {
-      this.process(event);
-    }
-  };
-
-  public listener: (observer: EventTarget) => listener = (observer: EventTarget) =>
-    new listener(observer, this);
-
-  public *listeners(observers: observers): Generator<listener> {
-    for (const observer of observers) {
-      yield new listener(observer, this);
-    }
-  }
+  public upon = (triggers: Iterable<string>): action => new action(this.handler, this.name, triggers);
 }
 
 export class actions implements Iterable<action> {
-  public static readonly none: actions = new actions();
-
   *[Symbol.iterator](): Generator<action> {}
 
-  constructor(actions?: Iterable<action>) {
+  constructor(actions: Iterable<action>) {
     if (actions === undefined) {
       return;
     }
@@ -155,9 +62,9 @@ class listener {
 
       for (const trigger of this.action.triggers) {
         if (want) {
-          this.observer.addEventListener(trigger, this.action.act);
+          this.observer.addEventListener(trigger, this.action.handler);
         } else {
-          this.observer.removeEventListener(trigger, this.action.act);
+          this.observer.removeEventListener(trigger, this.action.handler);
         }
       }
     }
@@ -165,33 +72,15 @@ class listener {
 }
 
 export class listeners implements Iterable<listener> {
-  public static readonly none: listeners = new listeners([], actions.none);
-
-  *[Symbol.iterator](): Generator<listener> {}
-
-  constructor(
-    protected readonly observers: observers,
-    protected readonly actions: actions,
-    auto: boolean = false
-  ) {
-    const mine: listener[] = Array.from(
-      (function* () {
-        for (const observer of observers) {
-          for (const action of actions) {
-            yield new listener(observer, action);
-          }
-        }
-      })()
-    );
-
-    this[Symbol.iterator] = function* () {
-      yield* mine;
-    };
-
-    if (auto) {
-      this.on = auto;
+  *[Symbol.iterator](): Generator<listener> {
+    for (const observer of this.observers) {
+      for (const action of this.actions) {
+        yield new listener(observer, action);
+      }
     }
   }
+
+  constructor(protected readonly observers: observers, protected readonly actions: actions) {}
 
   get on(): boolean {
     for (const a of this) {
@@ -211,16 +100,15 @@ export class listeners implements Iterable<listener> {
 }
 
 export class predicate extends EventTarget {
-  static yes = new predicate(() => true);
-  static no = new predicate(() => false);
-
   cached: maybe = undefined;
 
-  constructor(protected test: thunk<maybe>, public readonly influencers: listeners = listeners.none) {
+  constructor(protected test: thunk<maybe>) {
     super();
   }
 
   protected assumedValue: maybe = undefined;
+  protected static changedEvent = new CustomEvent('value-changed');
+  protected static reentrancy: number = 0;
 
   public pass: thunk<maybe> = (): maybe => {
     const value = this.test();
@@ -235,7 +123,11 @@ export class predicate extends EventTarget {
 
     if (value !== this.cached) {
       this.cached = value;
-      poke(this, 'value-changed');
+      predicate.reentrancy++;
+      if (predicate.reentrancy === 1) {
+        this.dispatchEvent(predicate.changedEvent);
+      }
+      predicate.reentrancy--;
     }
 
     return value;
@@ -248,11 +140,6 @@ export class predicate extends EventTarget {
 
   public ok: thunk<boolean> = () => this.is(true);
   public fail: thunk<boolean> = () => this.is(false) || this.is(undefined);
-
-  public invert = () => new predicate(() => this.fail(), this.influencers);
-  public also = (p: predicate) => new predicate(() => this.ok() && p.ok(), this.influencers);
-  public or = (p: predicate) => new predicate(() => this.ok() || p.ok(), this.influencers);
-  public nor = (p: predicate) => new predicate(() => this.fail() && p.fail(), this.influencers);
 
   /**
    * Override value, if different.
@@ -271,65 +158,52 @@ export class predicate extends EventTarget {
   public set assume(value: maybe) {
     if (this.test() !== value) {
       this.assumedValue = value;
-      poke(this, 'value-changed');
+      predicate.reentrancy++;
+      if (predicate.reentrancy === 1) {
+        this.dispatchEvent(predicate.changedEvent);
+      }
+      predicate.reentrancy--;
     }
   }
 }
 
-function assertTarget(target?: EventTarget | null): asserts target {
-  console.assert(target, 'All events must have a valid event.target');
-}
-
-const badEventNames = new Set<string | undefined>([undefined, '', '!', '?', '...']);
-
-function assertValidEvent(event?: string): asserts event {
-  console.assert(event, 'Raised events must have a type name');
-  console.assert(!badEventNames.has(event), 'Raised events must have a valid name');
-}
-
-export const poke = (observer: EventTarget, event: string, relay?: any) => {
-  assertValidEvent(event);
-
-  observer.dispatchEvent.bind(observer)(new CustomEvent(event, { detail: relay }));
-};
-
 export class tracker extends predicate {
   private value: maybe = undefined;
+  protected static changedEvent = new CustomEvent('value-changed');
 
   constructor(
     public readonly observer: EventTarget,
     public readonly after: Iterable<string>,
     public readonly before: Iterable<string>
   ) {
-    super(
-      () => this.value,
-      new listeners(
-        [observer],
-        new actions([
-          new action(
-            () => {
-              if (!this.value) {
-                this.value = true;
-                poke(this, 'value-changed');
-              }
-            },
-            'value-changed',
-            after
-          ),
-          new action(
-            () => {
-              if (this.value) {
-                this.value = false;
-                poke(this, 'value-changed');
-              }
-            },
-            'value-changed',
-            before
-          ),
-        ])
-      )
-    );
-
-    this.influencers.on = true;
+    super(() => this.value);
   }
+
+  private readonly weave = new listeners(
+    [this.observer],
+    new actions([
+      new action(
+        () => {
+          if (!this.value) {
+            this.value = true;
+            this.dispatchEvent(tracker.changedEvent);
+          }
+        },
+        'value-changed',
+        this.after
+      ),
+      new action(
+        () => {
+          if (this.value) {
+            this.value = false;
+            this.dispatchEvent(tracker.changedEvent);
+          }
+        },
+        'value-changed',
+        this.before
+      ),
+    ])
+  );
+
+  private readonly enabled = (this.weave.on = true);
 }
