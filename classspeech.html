@@ -88,6 +88,9 @@ async&#160;</td><td class="memItemRight" valign="bottom"><b>start</b> ()</td></t
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:afe419ebe9467996c180a5f282a18de60"><td class="memItemLeft" align="right" valign="top"><a id="afe419ebe9467996c180a5f282a18de60"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>statusBindings</b> = this.status.replaceChildren(...this.bindings)</td></tr>
+<tr class="separator:afe419ebe9467996c180a5f282a18de60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60ed7967f045dbbcb1010811afef07cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>snapshot</b></td></tr>
 <tr class="separator:a60ed7967f045dbbcb1010811afef07cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7af5cbb855a9cf52917786ab06a04881"><td class="memItemLeft" align="right" valign="top"><a id="a7af5cbb855a9cf52917786ab06a04881"></a>
@@ -108,8 +111,11 @@ queued&#160;</td><td class="memItemRight" valign="bottom"><b>__pad0__</b>: Updat
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a8ac2739ad4b502133cd2de32de103391"><td class="memItemLeft" align="right" valign="top"><a id="a8ac2739ad4b502133cd2de32de103391"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>ticks</b> = document.querySelector('p[is=&quot;caption-ticker&quot;]') as <a class="el" href="classTicker.html">Ticker</a></td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>ticks</b> = new <a class="el" href="classTicker.html">Ticker</a>()</td></tr>
 <tr class="separator:a8ac2739ad4b502133cd2de32de103391"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92ab4570c3d360d9be4f43878973fd49"><td class="memItemLeft" align="right" valign="top"><a id="a92ab4570c3d360d9be4f43878973fd49"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>status</b> = document.querySelector('.captions .status') as HTMLUListElement</td></tr>
+<tr class="separator:a92ab4570c3d360d9be4f43878973fd49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6500cc0dfd2e8b9df0dd4e2a559feb0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>transcript</b></td></tr>
 <tr class="separator:ad6500cc0dfd2e8b9df0dd4e2a559feb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2e2fd7e9ad6f6b188dd72d1ca10d5fa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>history</b></td></tr>
@@ -224,7 +230,7 @@ Protected Attributes</h2></td></tr>
 <b>Initial value:</b><div class="fragment"><div class="line">= (event: SpeechRecognitionEvent) =&gt;</div>
 <div class="line">    this.queued.push(<span class="keyword">new</span> <a class="code" href="classSpeechAPIUpdate.html">SpeechAPIUpdate</a>(event, this.<a class="code" href="classsettings.html">settings</a>.lang))</div>
 <div class="ttc" id="aclassSpeechAPIUpdate_html"><div class="ttname"><a href="classSpeechAPIUpdate.html">SpeechAPIUpdate</a></div><div class="ttdef"><b>Definition:</b> caption-branches.ts:21</div></div>
-<div class="ttc" id="aclasssettings_html"><div class="ttname"><a href="classsettings.html">settings</a></div><div class="ttdef"><b>Definition:</b> speech-recognition.ts:53</div></div>
+<div class="ttc" id="aclasssettings_html"><div class="ttname"><a href="classsettings.html">settings</a></div><div class="ttdef"><b>Definition:</b> speech-recognition.ts:47</div></div>
 </div><!-- fragment -->
 </div>
 </div>
