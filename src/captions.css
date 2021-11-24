@@ -8,23 +8,24 @@ body {
   font-size: 1.5em;
 }
 
-.captions p[is='caption-ticker'] {
+li[is='caption-ticker'] {
+  display: inline;
   color: blue;
   text-align: right;
 }
 
-.captions p[is='caption-ticker']:before {
+li[is='caption-ticker']:before {
   display: inline;
   content: ' ';
 }
 
-.captions p {
+li[is='caption-predicate'] {
   display: inline;
   font-weight: bold;
   color: gray;
 }
 
-.captions p.active {
+li[is='caption-predicate'].active {
   color: green;
 }
 

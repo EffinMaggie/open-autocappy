@@ -12,14 +12,8 @@ import {
 
 import { Series, StdDev } from './streaming.js';
 import { Status, Settings } from './dom-interface.js';
-import {
-  action,
-  actions,
-  listeners,
-  predicate,
-  tracker,
-  syncPredicateStyle,
-} from './declare-events.js';
+import { action, actions, listeners, predicate, tracker } from './declare-events.js';
+import { CaptionPredicate } from './caption-predicate.js';
 import { SpeechAPI, UpdateData, SpeechAPIUpdate, ErrorUpdate, Fabricate } from './caption-branches.js';
 import { TranslatedBranches } from './caption-branch.js';
 import { Alternatives } from './caption-alternatives.js';
@@ -91,19 +85,21 @@ class speech extends api implements SpeechRecognition {
   private readonly settings = new settings();
 
   private readonly predicates = {
-    audio: new tracker(this, 'hasAudio', ['audiostart'], ['audioend']),
-    sound: new tracker(this, 'hasSound', ['soundstart'], ['soundend']),
-    speech: new tracker(this, 'hasSpeech', ['speechstart'], ['speechend']),
-    running: new tracker(this, 'isRunning', ['start'], ['end']),
-    started: new tracker(this, 'isStarted', ['configure'], ['start']),
+    audio: new tracker(this, ['audiostart'], ['audioend']),
+    sound: new tracker(this, ['soundstart'], ['soundend']),
+    speech: new tracker(this, ['speechstart'], ['speechend']),
+    running: new tracker(this, ['start'], ['end']),
+    started: new tracker(this, ['configure'], ['start']),
 
     recovery: new predicate(() => this.ticks.tick >= 80),
     panic: new predicate(() => this.ticks.tick > 75 && this.ticks.tick < 80),
     zombie: new predicate(() => this.ticks.tick > 50 && this.ticks.tick < 75),
   };
 
-  protected ticks = document.querySelector('p[is="caption-ticker"]') as Ticker;
+  // protected ticks = document.querySelector('p[is="caption-ticker"]') as Ticker;
+  protected ticks = new Ticker();
 
+  protected status = document.querySelector('.captions .status') as HTMLUListElement;
   protected transcript = document.querySelector(
     '.captions ol.transcript[is="caption-transcript"]'
   ) as Transcript;
@@ -112,11 +108,15 @@ class speech extends api implements SpeechRecognition {
   ) as Transcript;
 
   private readonly bindings = [
-    new syncPredicateStyle(this.predicates.audio, Status.audio),
-    new syncPredicateStyle(this.predicates.sound, Status.sound),
-    new syncPredicateStyle(this.predicates.speech, Status.speech),
-    new syncPredicateStyle(this.predicates.running, Status.captioning),
+    new CaptionPredicate(this.predicates.started, 'started'),
+    new CaptionPredicate(this.predicates.running, 'running'),
+    new CaptionPredicate(this.predicates.audio, 'audio'),
+    new CaptionPredicate(this.predicates.sound, 'sound'),
+    new CaptionPredicate(this.predicates.speech, 'speech'),
+    this.ticks,
   ];
+
+  statusBindings = this.status.replaceChildren(...this.bindings);
 
   snapshot = (full: boolean = false) => {
     let didMove: boolean = false;

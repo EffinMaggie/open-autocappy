@@ -68,7 +68,12 @@ export class ErrorUpdate {
 export type UpdateData = SpeechAPIUpdate | ErrorUpdate;
 
 export namespace Fabricate {
-  export const Error = (timestamp: number, error: string, source: string, message?: string): Transcript => {
+  export const Error = (
+    timestamp: number,
+    error: string,
+    source: string,
+    message?: string
+  ): Transcript => {
     const bs: Branch[] = [
       Branch.makeError(new DateBetween([new MDate(timestamp)]), error, source, message),
     ];
@@ -79,13 +84,11 @@ export namespace Fabricate {
   };
 
   export const Translation = (branch: Branch): Alternatives => {
-    const bs: Branch[] = [
-      branch,
-    ];
+    const bs: Branch[] = [branch];
 
     return new Alternatives(bs, undefined, true, true);
   };
-};
+}
 
 export const SpeechAPI = {
   fromAlternative: (

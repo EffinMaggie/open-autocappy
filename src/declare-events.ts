@@ -298,7 +298,6 @@ export class tracker extends predicate {
 
   constructor(
     public readonly observer: EventTarget,
-    public readonly name: string,
     public readonly after: Iterable<string>,
     public readonly before: Iterable<string>
   ) {
@@ -314,7 +313,7 @@ export class tracker extends predicate {
                 poke(this, 'value-changed');
               }
             },
-            name,
+            'value-changed',
             after
           ),
           new action(
@@ -324,7 +323,7 @@ export class tracker extends predicate {
                 poke(this, 'value-changed');
               }
             },
-            name,
+            'value-changed',
             before
           ),
         ])
@@ -333,29 +332,4 @@ export class tracker extends predicate {
 
     this.influencers.on = true;
   }
-}
-
-export class syncPredicateStyle {
-  private value: maybe = undefined;
-
-  constructor(
-    public readonly predicate: predicate,
-    public readonly classes: Access.Classes,
-    public readonly whenOn: Iterable<string> = new Set(['active']),
-    public readonly whenOff: Iterable<string> = new Set(['end'])
-  ) {}
-
-  protected sync = () => {
-    if (this.predicate.ok()) {
-      this.classes.modify(this.whenOff, this.whenOn);
-    } else {
-      this.classes.modify(this.whenOn, this.whenOff);
-    }
-  };
-
-  private readonly weave = new listeners(
-    [this.predicate],
-    new actions([action.make(this.sync, 'sync').upon(['value-changed'])])
-  );
-  private readonly enabled = (this.weave.on = true);
 }

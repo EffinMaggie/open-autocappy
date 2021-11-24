@@ -24,7 +24,12 @@ export class Branches extends OuterHull<Branch> {
 export class Alternatives extends HTMLLIElement {
   public branches: Branches;
 
-  constructor(bs: Iterable<Branch>, index?: number, final: boolean = false, translation: boolean = false) {
+  constructor(
+    bs: Iterable<Branch>,
+    index?: number,
+    final: boolean = false,
+    translation: boolean = false
+  ) {
     super();
     this.setAttribute('is', 'caption-alternatives');
 

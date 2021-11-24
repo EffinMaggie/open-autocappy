@@ -4,9 +4,10 @@ import { Series, StdDev } from './streaming.js';
 import { OExplicitNodeUpdater, Access } from './dom-manipulation.js';
 import { action, actions, listeners, poke } from './declare-events.js';
 
-export class Ticker extends HTMLParagraphElement {
+export class Ticker extends HTMLLIElement {
   constructor() {
     super();
+    this.setAttribute('is', 'caption-ticker');
 
     this.scheduleNextPulse();
   }
@@ -135,4 +136,4 @@ export class Ticker extends HTMLParagraphElement {
   pulsarIntervalID = window.setInterval(this.resetPulsar, this.resetPulsarInterval);
 }
 
-customElements.define('caption-ticker', Ticker, { extends: 'p' });
+customElements.define('caption-ticker', Ticker, { extends: 'li' });

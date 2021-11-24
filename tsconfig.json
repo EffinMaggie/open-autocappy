@@ -6,6 +6,7 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "module": "es2020",
+    "strictBindCallApply": true,
     "strictNullChecks": true,
     "allowSyntheticDefaultImports": true
   },

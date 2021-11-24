@@ -14,23 +14,16 @@
     <meta name="max-alternatives" content="1" />
 
     <meta name="translator" content="https://api.deepl.com/v2/translate" />
-    <meta name="translator-target" content="ja" />
-    <meta name="translator-api-key" content="" />
+    <meta name="translator-target" content="es" />
     <meta name="translator-formality" content="less" />
 
-    <script type="module" src="caption-ticker.js"></script>
     <script type="module" src="caption-transcript.js"></script>
     <script type="module" src="speech-recognition.js"></script>
   </head>
 
   <body class="captions">
-    <p id="status-captioning">█</p>
-    <p id="status-audio">█</p>
-    <p id="status-sound">█</p>
-    <p id="status-speech">█</p>
+    <ul class="status"></ul>
     <p id="status-service"></p>
-
-    <p is="caption-ticker"></p>
 
     <ol class="transcript" is="caption-transcript"></ol>
     <ol class="history" is="caption-transcript"></ol>

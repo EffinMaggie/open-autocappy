@@ -9,7 +9,6 @@ import { Translations } from './translate-deepl.js';
 export let TranslatedBranches: Branch[] = [];
 
 export class Branch extends HTMLSpanElement implements PartialOrder {
-
   public constructor(
     when: DateBetween,
     confidence: QValue,
@@ -17,7 +16,7 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     text: string,
     source: string,
     language: string,
-    error?: string,
+    error?: string
   ) {
     super();
     this.setAttribute('is', 'caption-branch');
@@ -31,13 +30,15 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     this.error = error;
 
     if (final && Translations.Settings.enabled && language !== Translations.Settings.target) {
-        Translations.translate(text, language).then(
-          (translations: Iterable<Translations.LanguageString>) => {
-            for (const translation of translations) {
-              TranslatedBranches.push(Branch.makeTranslation(this.when, translation.text, 'deepl', translation.lang));
+      Translations.translate(text, language).then(
+        (translations: Iterable<Translations.LanguageString>) => {
+          for (const translation of translations) {
+            TranslatedBranches.push(
+              Branch.makeTranslation(this.when, translation.text, 'deepl', translation.lang)
+            );
           }
-          }
-        );
+        }
+      );
     }
   }
 
@@ -54,7 +55,7 @@ export class Branch extends HTMLSpanElement implements PartialOrder {
     when: DateBetween,
     text: string,
     source: string,
-    language: string,
+    language: string
   ): Branch {
     return new Branch(when, new QValue(1.0), true, text, source, language);
   }
