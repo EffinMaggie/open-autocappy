@@ -148,12 +148,8 @@ class speech extends api implements SpeechRecognition {
   result = (event: SpeechRecognitionEvent) =>
     this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
 
-  process = () => {
+  process(fullSnapshot: boolean = false) {
     // if there's nothing to do, don't do nothing.
-    if (!this.queued.length) {
-      return;
-    }
-
     let transcript: Transcript | undefined = undefined;
 
     while (this.queued.length) {
@@ -175,7 +171,9 @@ class speech extends api implements SpeechRecognition {
 
     if (transcript !== undefined) {
       this.transcript.load(transcript);
-      this.snapshot();
+      this.snapshot(fullSnapshot);
+    } else if (fullSnapshot) {
+      this.snapshot(true);
     }
   };
 
@@ -242,8 +240,7 @@ class speech extends api implements SpeechRecognition {
     // clear out any pending transcript updates before trying to start,
     // because the API provider will likely recycle ID numbers, which would
     // cause confusing clashes with the interim records.
-    this.process();
-    this.snapshot(true);
+    this.process(true);
 
     try {
       super.start();

@@ -32,18 +32,16 @@ export class action {
 }
 
 export class actions implements Iterable<action> {
-  *[Symbol.iterator](): Generator<action> {}
+  protected readonly mine: Array<action>;
 
-  constructor(actions: Iterable<action>) {
-    if (actions === undefined) {
-      return;
+  *[Symbol.iterator](): Generator<action> {
+    for (const m of this.mine) {
+      yield m;
     }
+  }
 
-    const mine = Array.from(actions);
-
-    this[Symbol.iterator] = function* () {
-      yield* mine;
-    };
+  constructor(protected readonly actions: Iterable<action>) {
+    this.mine = Array.from(actions);
   }
 }
 
