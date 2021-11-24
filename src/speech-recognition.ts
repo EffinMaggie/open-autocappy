@@ -118,7 +118,7 @@ class speech extends api implements SpeechRecognition {
 
   statusBindings = this.status.replaceChildren(...this.bindings);
 
-  snapshot = (full: boolean = false) => {
+  snapshot(full: boolean = false) {
     let didMove: boolean = false;
     for (const li of this.transcript.querySelectorAll(
       full
@@ -148,7 +148,15 @@ class speech extends api implements SpeechRecognition {
   result = (event: SpeechRecognitionEvent) =>
     this.queued.push(new SpeechAPIUpdate(event, this.settings.lang));
 
+  protected processing: number = 0;
+
   process(fullSnapshot: boolean = false) {
+    if (this.processing > 0 && !fullSnapshot) {
+      return;
+    }
+
+    this.processing++;
+
     // if there's nothing to do, don't do nothing.
     let transcript: Transcript | undefined = undefined;
 
@@ -175,6 +183,8 @@ class speech extends api implements SpeechRecognition {
     } else if (fullSnapshot) {
       this.snapshot(true);
     }
+
+    this.processing--;
   };
 
   error = (event: SpeechRecognitionErrorEvent) => this.queued.push(new ErrorUpdate(event));
